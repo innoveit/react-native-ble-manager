@@ -6,12 +6,8 @@
  */
 'use strict';
 
-var warning = require('fbjs/lib/warning');
+var React = require('react-native');
+var BleManager = React.NativeModules.BleManager;
 
-var BleManagerModule = {
-  test: function() {
-    warning('Not yet implemented for Android.');
-  }
-};
+module.exports = BleManager;
 
-module.exports = BleManagerModule;

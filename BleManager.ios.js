@@ -3,17 +3,7 @@
  * @flow
  */
 'use strict';
-
-var NativeBleManager = require('NativeModules').BleManager;
-
-/**
- * High-level docs for the BleManagerModule iOS API can be written here.
- */
-
-var BleManager = {
-  test: function() {
-    NativeBleManager.test();
-  }
-};
+var React = require('react-native');
+var BleManager = React.NativeModules.BleManager;
 
 module.exports = BleManager;
