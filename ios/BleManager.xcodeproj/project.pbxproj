@@ -178,11 +178,17 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../react-native/React/**",
+					"$(SRCROOT)/../../react-native/React/**",
+					"$(SRCROOT)/node_modules/react-native/React/**",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../react-native/React/** $(SRCROOT)/node_modules/react-native/React/**";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../react-native/React/** $(SRCROOT)/../../react-native/React/** $(SRCROOT)/node_modules/react-native/React/**";
 			};
 			name = Debug;
 		};
@@ -213,10 +219,16 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../react-native/React/**",
+					"$(SRCROOT)/../../react-native/React/**",
+					"$(SRCROOT)/node_modules/react-native/React/**",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../react-native/React/** $(SRCROOT)/node_modules/react-native/React/**";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../react-native/React/** $(SRCROOT)/../../react-native/React/** $(SRCROOT)/node_modules/react-native/React/**";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
