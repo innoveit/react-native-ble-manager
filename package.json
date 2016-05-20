@@ -1,0 +1,15 @@
+{
+  "name": "BleManager",
+  "version": "0.0.1",
+  "keywords": ["
+  	react-native",
+  	"android",
+    "ios",
+    "ble",
+    "bluetooth"
+  ],
+  "author": {
+    "name": "Innove",
+    "url": "https://github.com/innoveit"
+  }
+}
