@@ -1,4 +1,6 @@
 # react-native-ble-manager
+[![npm version](https://img.shields.io/npm/v/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
+[![npm downloads](https://img.shields.io/npm/dm/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
 
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
