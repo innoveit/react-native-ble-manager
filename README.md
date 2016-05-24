@@ -4,9 +4,60 @@
 
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
-###Supported Platforms
+##Supported Platforms
 - iOS
 - Android (API 16)
+
+##Install
+```shell
+npm i --save react-native-ble-manager
+```
+####iOS
+- Open the node_modules/react-native-ble-manager/ios folder and drag BleManager.xcodeproj into your Libraries group.
+- Check the "Build Phases"of your project and add "libBleManager.a" in the "Link Binary With Libraries" section.
+
+####Android
+#####Update Gradle Settings
+
+```
+// file: android/settings.gradle
+...
+
+include ':react-native-ble-manager'
+project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-ble-manager/android')
+```
+#####Update Gradle Build
+
+```
+// file: android/app/build.gradle
+...
+
+dependencies {
+    ...
+    compile project(':react-native-ble-manager')
+}
+```
+#####Register React Package
+```
+...
+import it.innove.BleManagerPackage; // <--- import
+
+public class MainActivity extends ReactActivity {
+
+    ...
+
+    @Override
+    protected List<ReactPackage> getPackages() {
+        return Arrays.<ReactPackage>asList(
+            new MainReactPackage(),
+            new BleManagerPackage(this) // <------ add the package
+        );
+    }
+
+    ...
+}
+```
+
 
 ##Methods
 
