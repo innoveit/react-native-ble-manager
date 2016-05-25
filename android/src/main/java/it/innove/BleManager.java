@@ -54,12 +54,11 @@ public class BleManager extends ReactContextBaseJavaModule {
 					.build();
 		}
 
-		Log.d(LOG_TAG, "Inizializzo modulo");
+		Log.d(LOG_TAG, "BleManager initialized");
 
 
 		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 		context.registerReceiver(mReceiver, filter);
-		Log.d(LOG_TAG, "Inizializzo receiver stato ble");
 	}
 
 	@Override
@@ -70,7 +69,6 @@ public class BleManager extends ReactContextBaseJavaModule {
 	private BluetoothAdapter getBluetoothAdapter() {
 		if (bluetoothAdapter == null) {
 			BluetoothManager manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-			Log.d(LOG_TAG, "Manager preso");
 			bluetoothAdapter = manager.getAdapter();
 		}
 		return bluetoothAdapter;
@@ -169,6 +167,17 @@ public class BleManager extends ReactContextBaseJavaModule {
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
 			peripheral.registerNotify(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), successCallback, failCallback);
+		} else
+			failCallback.invoke();
+	}
+
+	@ReactMethod
+	public void stopNotification(String deviceUUID, String serviceUUID, String characteristicUUID, Callback successCallback, Callback failCallback) {
+		Log.d(LOG_TAG, "stopNotification");
+
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null){
+			peripheral.removeNotify(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), successCallback, failCallback);
 		} else
 			failCallback.invoke();
 	}

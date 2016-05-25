@@ -353,38 +353,37 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 
 	}
-	/*
 
-	private void removeNotifyCallback(CallbackContext callbackContext, UUID serviceUUID, UUID characteristicUUID) {
+	public void removeNotify(UUID serviceUUID, UUID characteristicUUID, Callback success, Callback fail) {
+
+		Log.d(LOG_TAG, "removeNotify");
 
 		if (gatt == null) {
-			callbackContext.error("BluetoothGatt is null");
+			fail.invoke("BluetoothGatt is null");
 			return;
 		}
 
 		BluetoothGattService service = gatt.getService(serviceUUID);
 		BluetoothGattCharacteristic characteristic = findNotifyCharacteristic(service, characteristicUUID);
-		String key = generateHashKey(serviceUUID, characteristic);
+		//String key = generateHashKey(serviceUUID, characteristic);
 
 		if (characteristic != null) {
 
-			notificationCallbacks.remove(key);
 
 			if (gatt.setCharacteristicNotification(characteristic, false)) {
-				callbackContext.success();
+				success.success();
 			} else {
 				// TODO we can probably ignore and return success anyway since we removed the notification callback
-				callbackContext.error("Failed to stop notification for " + characteristicUUID);
+				success.error("Failed to stop notification for " + characteristicUUID);
 			}
 
 		} else {
-			callbackContext.error("Characteristic " + characteristicUUID + " not found");
+			fail.invoke("Characteristic " + characteristicUUID + " not found");
 		}
 
-		commandCompleted();
 
 	}
-*/
+
 	// Some devices reuse UUIDs across characteristics, so we can't use service.getCharacteristic(characteristicUUID)
 	// instead check the UUID and properties for each characteristic in the service until we find the best match
 	// This function prefers Notify over Indicate
