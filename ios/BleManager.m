@@ -15,17 +15,15 @@ RCT_EXPORT_MODULE();
 @synthesize bridge = _bridge;
 
 @synthesize manager;
-//@synthesize peripheralManager;
 @synthesize peripherals;
 
 - (instancetype)init
 {
   
   if (self = [super init]) {
-    NSLog(@"Inizializzazione BluetoothManagerModule");
+    NSLog(@"BleManager initialized");
     peripherals = [NSMutableSet set];
     manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue()];
-    //peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:(id<CBPeripheralManagerDelegate>)self queue:nil options:nil];
     
     connectCallbacks = [NSMutableDictionary new];
     connectCallbackLatches = [NSMutableDictionary new];
@@ -40,38 +38,16 @@ RCT_EXPORT_MODULE();
 }
 
 
-
-- (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral {
-  
-  NSLog(@"Stato gestione periferica %@", [self periphalManagerStateToString:peripheral.state]);
-  
-}
-
-
-
-- (void)peripheralManager:(CBPeripheralManager *)peripheral central:(CBCentral *)central didSubscribeToCharacteristic:(CBCharacteristic *)characteristic {
-  NSLog(@"Pronto subscript");
-
-  
-  
-  //UInt8 j= 07;
-  //NSData *@toSend = [[[NSData alloc] initWithBytes:&j length:sizeof(j)] autorelease];
-  //[_peripheralManager updateValue:message forCharacteristic:characteristic onSubscribedCentrals:nil];
-}
-
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
   if (error) {
-    NSLog(@"Errore %@ :%@", characteristic.UUID, error);
+    NSLog(@"Error %@ :%@", characteristic.UUID, error);
     return;
   }
-  NSLog(@"Caratteristica da %@ - Value:%@", characteristic.UUID, characteristic.value);
+  NSLog(@"Read value [%@]: %@", characteristic.UUID, characteristic.value);
   
   NSString *stringFromData = [characteristic.value hexadecimalString];
-  //[[NSString alloc] initWithData:characteristic.value encoding:NSDataBase64Encoding64CharacterLineLength];
   
-  //NSLog(@"Base64: %@", stringFromData);
-  
-  [self.bridge.eventDispatcher sendAppEventWithName:@"BluetoothManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"value": stringFromData}];
+  [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"value": stringFromData}];
   
 }
 
@@ -84,18 +60,22 @@ RCT_EXPORT_MODULE();
   // Call didUpdateValueForCharacteristic only when we have a value.
   if (characteristic.value)
   {
-    NSLog(@"Ricevuto valore da notifica %@", characteristic.value);
-    //[self peripheral:peripheral didUpdateValueForCharacteristic:characteristic error:error];
+    NSLog(@"Received value from notification: %@", characteristic.value);
   }
   
   NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-  RCTResponseSenderBlock notificationCallback = [notificationCallbacks objectForKey:key];
-  
+    
   if (characteristic.isNotifying) {
     NSLog(@"Notification began on %@", characteristic);
+    RCTResponseSenderBlock notificationCallback = [notificationCallbacks objectForKey:key];
     notificationCallback(@[]);
+    [notificationCallbacks removeObjectForKey:key];
   } else {
     // Notification has stopped
+    NSLog(@"Notification ended on %@", characteristic);
+    RCTResponseSenderBlock stopNotificationCallback = [stopNotificationCallbacks objectForKey:key];
+    stopNotificationCallback(@[]);
+    [stopNotificationCallbacks removeObjectForKey:key];
     [manager cancelPeripheralConnection:peripheral];
   }
 }
@@ -203,30 +183,29 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds callback:(nonnull RCTResponseSenderBlock)successCallback)
 {
-  NSLog(@"Chiamato scan");
+    NSLog(@"scan with timeout %@", timeoutSeconds);
+    NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
+    NSMutableArray *serviceUUIDs = [NSMutableArray new];
+
   
-  NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
-  NSMutableArray *serviceUUIDs = [NSMutableArray new];
-  //stopScanCallback = stopCallback;
   
-  NSLog(@"Timeout %@", timeoutSeconds);
   
-  for (int i = 0; i < [services count]; i++) {
-    CBUUID *serviceUUID =[CBUUID UUIDWithString:[serviceUUIDStrings objectAtIndex: i]];
-    [serviceUUIDs addObject:serviceUUID];
-  }
-  [manager scanForPeripheralsWithServices:serviceUUIDs options:nil];
+    for (int i = 0; i < [services count]; i++) {
+        CBUUID *serviceUUID =[CBUUID UUIDWithString:[serviceUUIDStrings objectAtIndex: i]];
+        [serviceUUIDs addObject:serviceUUID];
+    }
+    [manager scanForPeripheralsWithServices:serviceUUIDs options:nil];
   
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [NSTimer scheduledTimerWithTimeInterval:[timeoutSeconds floatValue] target:self selector:@selector(stopScanTimer:) userInfo: nil repeats:NO];
-  });
-  successCallback(@[]);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [NSTimer scheduledTimerWithTimeInterval:[timeoutSeconds floatValue] target:self selector:@selector(stopScanTimer:) userInfo: nil repeats:NO];
+    });
+    successCallback(@[]);
 }
 
 -(void)stopScanTimer:(NSTimer *)timer {
   NSLog(@"Stop scan");
   [manager stopScan];
-  [self.bridge.eventDispatcher sendAppEventWithName:@"BluetoothManagerStopScan" body:@{}];
+  [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
@@ -236,8 +215,8 @@ RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSN
   [peripherals addObject:peripheral];
   [peripheral setAdvertisementData:advertisementData RSSI:RSSI];
   
-  NSLog(@"Trovata periferica: %@", [peripheral name]);
-  [self.bridge.eventDispatcher sendAppEventWithName:@"BluetoothManagerDiscoverPeripheral" body:[peripheral asDictionary]];
+  NSLog(@"Discover peripheral: %@", [peripheral name]);
+  [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
   
 }
 
@@ -402,6 +381,24 @@ RCT_EXPORT_METHOD(startNotification:(NSString *)deviceUUID serviceUUID:(NSString
   
 }
 
+RCT_EXPORT_METHOD(stoptNotification:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+{
+    NSLog(@"stoptNotification");
+    
+    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWrite failCallback:failCallback];
+    
+    if (context) {
+        CBPeripheral *peripheral = [context peripheral];
+        CBCharacteristic *characteristic = [context characteristic];
+        
+        NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
+        [stopNotificationCallbacks setObject: successCallback forKey: key];
+        
+        [peripheral setNotifyValue:NO forCharacteristic:characteristic];
+    }
+    
+}
+
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
   NSLog(@"didWrite");
@@ -443,7 +440,7 @@ RCT_EXPORT_METHOD(startNotification:(NSString *)deviceUUID serviceUUID:(NSString
   if (error) {
     NSLog(@"Error: %@", error);
   }
-  [self.bridge.eventDispatcher sendAppEventWithName:@"BluetoothManagerDisconnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
+  [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDisconnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
@@ -521,7 +518,7 @@ RCT_EXPORT_METHOD(startNotification:(NSString *)deviceUUID serviceUUID:(NSString
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
   NSString *stateName = [self centralManagerStateToString:central.state];
-  [self.bridge.eventDispatcher sendAppEventWithName:@"BluetoothManagerDidUpdateState" body:@{@"state":stateName}];
+  [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateState" body:@{@"state":stateName}];
 }
 
 // expecting deviceUUID, serviceUUID, characteristicUUID in command.arguments
