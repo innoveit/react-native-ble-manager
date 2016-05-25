@@ -124,7 +124,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 							public void run() {
 								getBluetoothAdapter().stopLeScan(mLeScanCallback);
 								WritableMap map = Arguments.createMap();
-								sendEvent("BluetoothManagerStopScan", map);
+								sendEvent("BleManagerStopScan", map);
 							}
 						});
 
@@ -218,7 +218,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 								try {
 									Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
 									WritableMap map = Arguments.fromBundle(bundle);
-									sendEvent("BluetoothManagerDiscoverPeripheral", map);
+									sendEvent("BleManagerDiscoverPeripheral", map);
 								} catch (JSONException e) {
 
 								}
@@ -253,7 +253,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 		WritableMap map = Arguments.createMap();
 		map.putString("state", state);
 		Log.d(LOG_TAG, "state:" + state);
-		sendEvent("BluetoothManagerDidUpdateState", map);
+		sendEvent("BleManagerDidUpdateState", map);
 	}
 
 	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -285,7 +285,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 			WritableMap map = Arguments.createMap();
 			map.putString("state", stringState);
 			Log.d(LOG_TAG, "state: " + stringState);
-			sendEvent("BluetoothManagerDidUpdateState", map);
+			sendEvent("BleManagerDidUpdateState", map);
 		}
 	};
 

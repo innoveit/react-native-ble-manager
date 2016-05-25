@@ -75,8 +75,8 @@ public class Peripheral extends BluetoothGattCallback {
 			Log.d(LOG_TAG, "disconnesso");
 			WritableMap map = Arguments.createMap();
 			map.putString("peripheral", device.getAddress());
-			sendEvent("BluetoothManagerDisconnectPeripheral", map);
-			Log.d(LOG_TAG, "Forzo BluetoothManagerDisconnectPeripheral peripheral:" + device.getAddress());
+			sendEvent("BleManagerDisconnectPeripheral", map);
+			Log.d(LOG_TAG, "Forzo BleManagerDisconnectPeripheral peripheral:" + device.getAddress());
 		}else
 			Log.d(LOG_TAG, "non disconnesso gatt a null");
 	}
@@ -201,8 +201,8 @@ public class Peripheral extends BluetoothGattCallback {
 
 				WritableMap map = Arguments.createMap();
 				map.putString("peripheral", device.getAddress());
-				sendEvent("BluetoothManagerDisconnectPeripheral", map);
-				Log.d(LOG_TAG, "BluetoothManagerDisconnectPeripheral peripheral:" + device.getAddress());
+				sendEvent("BleManagerDisconnectPeripheral", map);
+				Log.d(LOG_TAG, "BleManagerDisconnectPeripheral peripheral:" + device.getAddress());
 			}
 			if (connectFailCallback != null) {
 				connectFailCallback.invoke();
@@ -234,7 +234,7 @@ public class Peripheral extends BluetoothGattCallback {
 		map.putString("peripheral", device.getAddress());
 		map.putString("characteristic", characteristic.getUuid().toString());
 		map.putString("value", BleManager.bytesToHex(dataValue));
-		sendEvent("BluetoothManagerDidUpdateValueForCharacteristic", map);
+		sendEvent("BleManagerDidUpdateValueForCharacteristic", map);
 	}
 
 	@Override
@@ -371,10 +371,10 @@ public class Peripheral extends BluetoothGattCallback {
 
 
 			if (gatt.setCharacteristicNotification(characteristic, false)) {
-				success.success();
+				success.invoke();
 			} else {
 				// TODO we can probably ignore and return success anyway since we removed the notification callback
-				success.error("Failed to stop notification for " + characteristicUUID);
+				fail.invoke("Failed to stop notification for " + characteristicUUID);
 			}
 
 		} else {

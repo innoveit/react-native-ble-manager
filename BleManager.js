@@ -44,6 +44,16 @@ class BleManager  {
     });
   }
 
+  stopNotification(peripheralId, serviceUUID, characteristicUUID) {
+    return new Promise((fulfill, reject) => {
+      bleManager.stopNotification(peripheralId, serviceUUID, characteristicUUID, (success) => {
+        fulfill();
+      }, (fail) => {
+        reject(fail);
+      });
+    });
+  }
+
   checkState() {
     bleManager.checkState();
   }
