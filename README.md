@@ -119,8 +119,15 @@ BleManager.disconnect('4B28EF69-423D-FA86-01FA-CC6CB923A2C9')
   });
 ```
 ##Events
-- BluetoothManagerStopScan
-- BluetoothManagerDidUpdateState
-- BluetoothManagerDiscoverPeripheral
-- BluetoothManagerDidUpdateValueForCharacteristic
-- BluetoothManagerDisconnectPeripheral
+### BleManagerStopScan
+The scanning for peripherals is ended.
+
+__Arguments__
+- `none`
+
+###  BleManagerDidUpdateState
+The BLE change state.
+
+###  BleManagerDiscoverPeripheral
+###  BleManagerDidUpdateValueForCharacteristic
+###  BleManagerDisconnectPeripheral
