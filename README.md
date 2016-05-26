@@ -111,7 +111,7 @@ __Examples__
 BleManager.disconnect('4B28EF69-423D-FA86-01FA-CC6CB923A2C9')
   .then(() => {
     // Success code
-    console.log('Connected');
+    console.log('Disconnected');
   })
   .catch((error) => {
     // Failure code
@@ -125,9 +125,61 @@ The scanning for peripherals is ended.
 __Arguments__
 - `none`
 
+__Examples__
+```js
+NativeAppEventEmitter.addListener(
+    'BleManagerStopScan',
+    () => { 
+        // Scanning is stopped 
+    }
+);
+```
+
 ###  BleManagerDidUpdateState
 The BLE change state.
 
+__Arguments__
+- `state` - `String` - the new BLE state ('on'/'off').
+
+__Examples__
+```js
+NativeAppEventEmitter.addListener(
+    'BleManagerDidUpdateState',
+    (args) => { 
+        // The new state: args.state
+    }
+);
+```
+
 ###  BleManagerDiscoverPeripheral
+The scanning find a new peripheral.
+
+__Arguments__
+- `id` - `String` - the id of the peripheral
+- `name` - `String` - the name of the peripheral
+
+__Examples__
+```js
+NativeAppEventEmitter.addListener(
+    'BleManagerDiscoverPeripheral',
+    (args) => { 
+        // The id: args.id
+        // The name: args.name
+    }
+);
+```
+
 ###  BleManagerDidUpdateValueForCharacteristic
+A characteristic notify a new value.
+
+__Arguments__
+- `peripheral` - `String` - the id of the peripheral
+- `characteristic` - `String` - the UUID of the characteristic
+- `value` - `String` - the read value in Hex format
+
 ###  BleManagerDisconnectPeripheral
+A peripheral is disconnected.
+
+__Arguments__
+- `peripheral` - `String` - the id of the peripheral
+
