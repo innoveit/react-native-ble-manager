@@ -23,3 +23,5 @@ DerivedData
 *.tgz
 
 *.xcuserstate
+
+xcuserdata

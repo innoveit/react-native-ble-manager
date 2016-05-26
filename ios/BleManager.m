@@ -293,8 +293,8 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
         [writeCallbacks setObject:successCallback forKey:key];
         
-        NSLog(@"Message originale(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
-        RCTLogInfo(@"Message originale(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
+        //NSLog(@"Message originale(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
+        RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         if ([dataMessage length] > 20){
             int dataLength = (int)dataMessage.length;
             int count = 0;
@@ -309,12 +309,10 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
                 count += 20;
             }
             if (count < dataLength) {
-                // Rimangono byte in coda
                 NSData* splitMessage = [dataMessage subdataWithRange:NSMakeRange(count, dataLength - count)];
                 [writeQueue addObject:splitMessage];
             }
-            NSLog(@"Message in coda: %i", [writeQueue count]);
-            //NSLog(@"Primo messaggio (%lu): %@ ", (unsigned long)[firstMessage length], [firstMessage hexadecimalString]);
+            NSLog(@"Queued splitted message: %lu", (unsigned long)[writeQueue count]);
             [peripheral writeValue:firstMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
         } else {
             [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
@@ -335,7 +333,7 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
-        NSLog(@"Messaggio originale(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
+        NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         /*
          const char bytes[] = {0x00,0x07,0x00,0x03,0x00};
          //const char bytes[] = {0x00,0x07,0x02,0x01,0x00};
