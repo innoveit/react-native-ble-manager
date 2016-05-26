@@ -132,7 +132,7 @@ Start the notification on the specified characteristic.
 Returns a `Promise` object.
 
 __Arguments__
-- `peripheralId` - `String` - the id/mac address of the peripheral to disconnect.
+- `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 
@@ -148,6 +148,25 @@ BleManager.startNotification('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-X
     console.log(error);
   });
 ```
+
+### stopNotification(peripheralId, serviceUUID, characteristicUUID)
+Stop the notification on the specified characteristic.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+
+### write(peripheralId, serviceUUID, characteristicUUID, data)
+Write with response to the specified characteristic.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+- `data` - `String` - the data to write in Base64 format.
 
 ##Events
 ### BleManagerStopScan
