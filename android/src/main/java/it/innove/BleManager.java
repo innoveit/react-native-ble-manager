@@ -16,7 +16,7 @@ import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
 import com.facebook.react.bridge.*;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import org.json.JSONException;
 
 import java.util.*;
@@ -77,7 +77,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 	private void sendEvent(String eventName,
 						   @Nullable WritableMap params) {
 		getReactApplicationContext()
-				.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+				.getJSModule(RCTNativeAppEventEmitter.class)
 				.emit(eventName, params);
 	}
 

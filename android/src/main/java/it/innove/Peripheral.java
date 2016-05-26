@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
 import com.facebook.react.bridge.*;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,7 +50,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	private void sendEvent(String eventName, @Nullable WritableMap params) {
 		reactContext
-				.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+				.getJSModule(RCTNativeAppEventEmitter.class)
 				.emit(eventName, params);
 	}
 
