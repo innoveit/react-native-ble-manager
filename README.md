@@ -118,6 +118,37 @@ BleManager.disconnect('4B28EF69-423D-FA86-01FA-CC6CB923A2C9')
     console.log(error);
   });
 ```
+
+### checkState()
+Force the module to check the state of BLE and trigger a BleManagerDidUpdateState event.
+
+__Examples__
+```js
+BleManager.checkState();
+```
+
+### startNotification(peripheralId, serviceUUID, characteristicUUID)
+Start the notification on the specified characteristic.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral to disconnect.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+
+__Examples__
+```js
+BleManager.startNotification('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
+  .then(() => {
+    // Success code
+    console.log('Notification started');
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
+
 ##Events
 ### BleManagerStopScan
 The scanning for peripherals is ended.
