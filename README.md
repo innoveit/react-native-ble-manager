@@ -1,6 +1,7 @@
 # react-native-ble-manager
 [![npm version](https://img.shields.io/npm/v/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
 [![npm downloads](https://img.shields.io/npm/dm/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
+[![GitHub issues](https://img.shields.io/github/issues/innoveit/react-native-ble-manager.svg?style=flat)](https://github.com/innoveit/react-native-ble-manager/issues)
 
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
@@ -88,7 +89,7 @@ __Arguments__
 
 __Examples__
 ```js
-BleManager.connect('4B28EF69-423D-FA86-01FA-CC6CB923A2C9')
+BleManager.connect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   .then(() => {
     // Success code
     console.log('Connected');
@@ -108,7 +109,7 @@ __Arguments__
 
 __Examples__
 ```js
-BleManager.disconnect('4B28EF69-423D-FA86-01FA-CC6CB923A2C9')
+BleManager.disconnect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   .then(() => {
     // Success code
     console.log('Disconnected');
