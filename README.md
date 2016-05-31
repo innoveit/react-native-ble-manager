@@ -159,6 +159,15 @@ __Arguments__
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 
+### read(peripheralId, serviceUUID, characteristicUUID)
+Read the current value of the specified characteristic.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+
 ### write(peripheralId, serviceUUID, characteristicUUID, data)
 Write with response to the specified characteristic.
 Returns a `Promise` object.
