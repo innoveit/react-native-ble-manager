@@ -4,6 +4,16 @@ var bleManager = React.NativeModules.BleManager;
 
 class BleManager  {
 
+  read(peripheralId, serviceUUID, characteristicUUID) {
+    return new Promise((fulfill, reject) => {
+      bleManager.read(peripheralId, serviceUUID, characteristicUUID, (success) => {
+        fulfill();
+      }, (fail) => {
+        reject(fail);
+      });
+    });
+  }
+
   write(peripheralId, serviceUUID, characteristicUUID, data) {
     return new Promise((fulfill, reject) => {
       bleManager.write(peripheralId, serviceUUID, characteristicUUID, data, (success) => {
