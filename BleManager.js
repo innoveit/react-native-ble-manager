@@ -7,7 +7,7 @@ class BleManager  {
   read(peripheralId, serviceUUID, characteristicUUID) {
     return new Promise((fulfill, reject) => {
       bleManager.read(peripheralId, serviceUUID, characteristicUUID, (success) => {
-        fulfill();
+        fulfill(success);
       }, (fail) => {
         reject(fail);
       });

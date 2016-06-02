@@ -45,10 +45,17 @@ RCT_EXPORT_MODULE();
     }
     NSLog(@"Read value [%@]: %@", characteristic.UUID, characteristic.value);
     
+    NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
+    RCTResponseSenderBlock readCallback = [readCallbacks objectForKey:key];
+    
     NSString *stringFromData = [characteristic.value hexadecimalString];
     
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"value": stringFromData}];
-    
+    if (readCallback != NULL){
+        readCallback(@[stringFromData]);
+        [readCallbacks removeObjectForKey:key];
+    } else {
+        [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"value": stringFromData}];
+    }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {

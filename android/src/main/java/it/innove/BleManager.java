@@ -38,9 +38,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 
 	// key is the MAC Address
 	Map<String, Peripheral> peripherals = new LinkedHashMap<String, Peripheral>();
-	Map<String, Callback> connectCallback = new LinkedHashMap<String, Callback>();
 
-	private Timer timer = new Timer();
 
 	public BleManager(ReactApplicationContext reactContext, Activity activity) {
 		super(reactContext);
@@ -139,7 +137,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 
 	@ReactMethod
 	public void connect(String peripheralUUID, Callback successCallback, Callback failCallback) {
-		Log.d(LOG_TAG, "connect: " + peripheralUUID );
+		Log.d(LOG_TAG, "Connect to: " + peripheralUUID );
 
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral != null){
@@ -150,7 +148,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 
 	@ReactMethod
 	public void disconnect(String peripheralUUID, Callback successCallback, Callback failCallback) {
-		Log.d(LOG_TAG, "disconnect: " + peripheralUUID);
+		Log.d(LOG_TAG, "Disconnect from: " + peripheralUUID);
 
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral != null){
@@ -185,13 +183,24 @@ public class BleManager extends ReactContextBaseJavaModule {
 
 	@ReactMethod
 	public void write(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Callback successCallback, Callback failCallback) {
-		Log.d(LOG_TAG, "write su periferica: " + deviceUUID);
+		Log.d(LOG_TAG, "Write to: " + deviceUUID);
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
 			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
-			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded) + " su " + deviceUUID);
+			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 			peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, successCallback, failCallback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+		} else
+			failCallback.invoke();
+	}
+
+	@ReactMethod
+	public void read(String deviceUUID, String serviceUUID, String characteristicUUID, Callback successCallback, Callback failCallback) {
+		Log.d(LOG_TAG, "Read from: " + deviceUUID);
+
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null){
+			peripheral.read(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), successCallback, failCallback);
 		} else
 			failCallback.invoke();
 	}
