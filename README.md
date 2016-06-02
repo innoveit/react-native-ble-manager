@@ -167,6 +167,19 @@ __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
+ 
+__Examples__
+```js
+BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
+  .then((readData) => {
+    // Success code
+    console.log('Read: ' + readData);
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
 
 ### write(peripheralId, serviceUUID, characteristicUUID, data)
 Write with response to the specified characteristic.
