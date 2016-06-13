@@ -7,7 +7,7 @@ This is a porting of https://github.com/don/cordova-plugin-ble-central project t
 
 ##Supported Platforms
 - iOS
-- Android (API 16)
+- Android (API 18)
 
 ##Install
 ```shell
