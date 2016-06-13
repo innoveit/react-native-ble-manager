@@ -84,7 +84,6 @@ RCT_EXPORT_MODULE();
         RCTResponseSenderBlock stopNotificationCallback = [stopNotificationCallbacks objectForKey:key];
         stopNotificationCallback(@[]);
         [stopNotificationCallbacks removeObjectForKey:key];
-        [manager cancelPeripheralConnection:peripheral];
     }
 }
 
