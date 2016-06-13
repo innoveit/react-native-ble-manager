@@ -72,7 +72,7 @@ __Arguments__
 
 __Examples__
 ```js
-BleManager.scan([])
+BleManager.scan([], 5)
   .then(() => {
     // Success code
     console.log('Scan started');
