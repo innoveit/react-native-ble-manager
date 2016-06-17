@@ -190,6 +190,29 @@ __Arguments__
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 - `data` - `String` - the data to write in Base64 format.
+ 
+To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
+
+`npm install base64-js --save`
+
+To format the data before calling the write function:
+```js
+var base64 = require('base64-js');
+var data = base64.fromByteArray(yourData);
+```
+
+__Examples__
+```js
+BleManager.write('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', data)
+  .then(() => {
+    // Success code
+    console.log('Write: ' + data);
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
 
 ##Events
 ### BleManagerStopScan
