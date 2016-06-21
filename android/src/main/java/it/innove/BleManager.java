@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.*;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,23 +20,22 @@ import org.json.JSONException;
 
 import java.util.*;
 
+import static android.os.Build.VERSION_CODES.KITKAT;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 
-public class BleManager extends ReactContextBaseJavaModule {
+class BleManager extends ReactContextBaseJavaModule {
 
-	public static final String LOG_TAG = "logs";
+	private static final String LOG_TAG = "logs";
 
 
 	private static Activity activity;
 	private BluetoothAdapter bluetoothAdapter;
-	private BluetoothLeScanner bluetoothLeScanner;
-	private ScanSettings settings;
 	private Context context;
 	private ReactContext reactContext;
 
 	// key is the MAC Address
-	Map<String, Peripheral> peripherals = new LinkedHashMap<String, Peripheral>();
+	private Map<String, Peripheral> peripherals = new LinkedHashMap<>();
 
 
 	public BleManager(ReactApplicationContext reactContext, Activity activity) {
@@ -45,12 +43,6 @@ public class BleManager extends ReactContextBaseJavaModule {
 		BleManager.activity = activity;
 		context = reactContext;
 		this.reactContext = reactContext;
-
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			settings = new ScanSettings.Builder()
-					.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-					.build();
-		}
 
 		Log.d(LOG_TAG, "BleManager initialized");
 
@@ -85,55 +77,57 @@ public class BleManager extends ReactContextBaseJavaModule {
 		if (!getBluetoothAdapter().isEnabled())
 			return;
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-			for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-				Map.Entry<String, Peripheral> entry = iterator.next();
-				if (!entry.getValue().isConnected()) {
-					iterator.remove();
-				}
-			}
-
-			if (serviceUUIDs.size() > 0) {
-				UUID[] services = new UUID[serviceUUIDs.size()];
-				for(int i = 0; i < serviceUUIDs.size(); i++){
-					services[i] = UUIDHelper.uuidFromString(serviceUUIDs.getString(i));
-					Log.d(LOG_TAG, "scan su service: " + serviceUUIDs.getString(i));
-				}
-
-				//getBluetoothAdapter().startLeScan(services, mLeScanCallback);
-				getBluetoothAdapter().startLeScan(mLeScanCallback);
-			} else {
-				getBluetoothAdapter().startLeScan(mLeScanCallback);
-			}
-
-			if (scanSeconds > 0) {
-				Thread thread = new Thread() {
-
-					@Override
-					public void run() {
-
-						try {
-							Thread.sleep(scanSeconds * 1000);
-						} catch (InterruptedException e) {
-						}
-
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								getBluetoothAdapter().stopLeScan(mLeScanCallback);
-								WritableMap map = Arguments.createMap();
-								sendEvent("BleManagerStopScan", map);
-							}
-						});
-
-					}
-
-				};
-				thread.start();
+		for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+			Map.Entry<String, Peripheral> entry = iterator.next();
+			if (!entry.getValue().isConnected()) {
+				iterator.remove();
 			}
 		}
+
+		if (serviceUUIDs.size() > 0) {
+			UUID[] services = new UUID[serviceUUIDs.size()];
+			for(int i = 0; i < serviceUUIDs.size(); i++){
+				services[i] = UUIDHelper.uuidFromString(serviceUUIDs.getString(i));
+				Log.d(LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
+			}
+			if (Build.VERSION.SDK_INT >= KITKAT) {
+				getBluetoothAdapter().startLeScan(services, mLeScanCallback);
+			}else {
+				getBluetoothAdapter().startLeScan(mLeScanCallback);
+			}
+		} else {
+			getBluetoothAdapter().startLeScan(mLeScanCallback);
+		}
+
+		if (scanSeconds > 0) {
+			Thread thread = new Thread() {
+
+				@Override
+				public void run() {
+
+					try {
+						Thread.sleep(scanSeconds * 1000);
+					} catch (InterruptedException ignored) {
+					}
+
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							getBluetoothAdapter().stopLeScan(mLeScanCallback);
+							WritableMap map = Arguments.createMap();
+							sendEvent("BleManagerStopScan", map);
+						}
+					});
+
+				}
+
+			};
+			thread.start();
+			}
+
 		successCallback.invoke();
 	}
+
 
 	@ReactMethod
 	public void connect(String peripheralUUID, Callback successCallback, Callback failCallback) {
@@ -228,7 +222,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 									Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
 									WritableMap map = Arguments.fromBundle(bundle);
 									sendEvent("BleManagerDiscoverPeripheral", map);
-								} catch (JSONException e) {
+								} catch (JSONException ignored) {
 
 								}
 
@@ -301,7 +295,7 @@ public class BleManager extends ReactContextBaseJavaModule {
 
 
 
-	final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
 	public static String bytesToHex(byte[] bytes) {
 		char[] hexChars = new char[bytes.length * 2];

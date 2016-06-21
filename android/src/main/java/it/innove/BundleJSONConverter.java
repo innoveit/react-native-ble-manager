@@ -27,7 +27,7 @@ import java.util.*;
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 public class BundleJSONConverter {
-	private static final Map<Class<?>, Setter> SETTERS = new HashMap<Class<?>, Setter>();
+	private static final Map<Class<?>, Setter> SETTERS = new HashMap<>();
 
 	static {
 		SETTERS.put(Boolean.class, new Setter() {
