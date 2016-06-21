@@ -20,7 +20,7 @@ import org.json.JSONException;
 
 import java.util.*;
 
-import static android.os.Build.VERSION_CODES.KITKAT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 
@@ -90,9 +90,11 @@ class BleManager extends ReactContextBaseJavaModule {
 				services[i] = UUIDHelper.uuidFromString(serviceUUIDs.getString(i));
 				Log.d(LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
 			}
-			if (Build.VERSION.SDK_INT >= KITKAT) {
+			if (Build.VERSION.SDK_INT >= LOLLIPOP) {
+				Log.d(LOG_TAG, "scan con filter");
 				getBluetoothAdapter().startLeScan(services, mLeScanCallback);
 			}else {
+				Log.d(LOG_TAG, "scan senza filter");
 				getBluetoothAdapter().startLeScan(mLeScanCallback);
 			}
 		} else {
