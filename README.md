@@ -67,7 +67,7 @@ Scan for availables peripherals.
 Returns a `Promise` object.
 
 __Arguments__
-- `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for. On Android the filter works only for 4.4 or newer
+- `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for. On Android the filter works only for 4.4 or newer.
 - `seconds` - `Integer` - the amount of seconds to scan.
 
 __Examples__
