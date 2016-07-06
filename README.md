@@ -43,7 +43,7 @@ dependencies {
 ...
 import it.innove.BleManagerPackage; // <--- import
 
-public class MainActivity extends ReactActivity {
+public class MainApplication extends Application implements ReactApplication {
 
     ...
 
@@ -51,7 +51,7 @@ public class MainActivity extends ReactActivity {
     protected List<ReactPackage> getPackages() {
         return Arrays.<ReactPackage>asList(
             new MainReactPackage(),
-            new BleManagerPackage(this) // <------ add the package
+            new BleManagerPackage() // <------ add the package
         );
     }
 
