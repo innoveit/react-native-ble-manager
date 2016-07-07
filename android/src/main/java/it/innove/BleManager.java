@@ -1,6 +1,5 @@
 package it.innove;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -29,7 +28,6 @@ class BleManager extends ReactContextBaseJavaModule {
 	private static final String LOG_TAG = "logs";
 
 
-	private static Activity activity;
 	private BluetoothAdapter bluetoothAdapter;
 	private Context context;
 	private ReactContext reactContext;
@@ -38,9 +36,8 @@ class BleManager extends ReactContextBaseJavaModule {
 	private Map<String, Peripheral> peripherals = new LinkedHashMap<>();
 
 
-	public BleManager(ReactApplicationContext reactContext, Activity activity) {
+	public BleManager(ReactApplicationContext reactContext) {
 		super(reactContext);
-		BleManager.activity = activity;
 		context = reactContext;
 		this.reactContext = reactContext;
 
@@ -137,7 +134,7 @@ class BleManager extends ReactContextBaseJavaModule {
 
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral != null){
-			peripheral.connect(successCallback, failCallback, activity);
+			peripheral.connect(successCallback, failCallback, getCurrentActivity());
 		} else
 			failCallback.invoke();
 	}

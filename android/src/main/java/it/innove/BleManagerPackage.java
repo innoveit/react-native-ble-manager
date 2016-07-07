@@ -1,6 +1,5 @@
 package it.innove;
 
-import android.app.Activity;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
@@ -14,18 +13,13 @@ import java.util.List;
 
 public class BleManagerPackage implements ReactPackage {
 
-	private Activity mActivity;
-
-	public BleManagerPackage(Activity activityContext) {
-		mActivity = activityContext;
-	}
-
+	public BleManagerPackage() {}
 
 	@Override
 	public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
 		List<NativeModule> modules = new ArrayList<>();
 
-		modules.add(new BleManager(reactApplicationContext, mActivity));
+		modules.add(new BleManager(reactApplicationContext));
 		return  modules;
 	}
 
