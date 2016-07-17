@@ -68,9 +68,12 @@ class BleManager  {
     bleManager.checkState();
   }
 
-  scan(serviceUUIDs, seconds) {
+  scan(serviceUUIDs, seconds, allowDuplicates) {
     return new Promise((fulfill, reject) => {
-      bleManager.scan(serviceUUIDs, seconds,(success) => {
+      if (allowDuplicates == null) {
+        allowDuplicates = false;
+      }
+      bleManager.scan(serviceUUIDs, seconds, allowDuplicates, (success) => {
         fulfill();
       });
     });

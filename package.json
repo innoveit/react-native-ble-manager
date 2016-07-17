@@ -1,6 +1,6 @@
 {
   "name": "react-native-ble-manager",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A BLE module for react native.",
   "main": "BleManager",
   "repository": {
@@ -15,7 +15,8 @@
   	"android",
     "ios",
     "ble",
-    "bluetooth"
+    "bluetooth",
+    "low energy"
   ],
   "license": "Apache-2.0",
   "author": {

@@ -69,15 +69,16 @@ Returns a `Promise` object.
 __Arguments__
 - `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for. On Android the filter works only for 5.0 or newer.
 - `seconds` - `Integer` - the amount of seconds to scan.
+- `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
 
 __Examples__
 ```js
-BleManager.scan([], 5)
+BleManager.scan([], 5, true)
   .then(() => {
     // Success code
     console.log('Scan started');
   });
-  
+
 ```
 
 ### connect(peripheralId)
@@ -167,7 +168,7 @@ __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
- 
+
 __Examples__
 ```js
 BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
@@ -190,7 +191,7 @@ __Arguments__
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 - `data` - `String` - the data to write in Base64 format.
- 
+
 To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
 
 `npm install base64-js --save`
@@ -225,8 +226,8 @@ __Examples__
 ```js
 NativeAppEventEmitter.addListener(
     'BleManagerStopScan',
-    () => { 
-        // Scanning is stopped 
+    () => {
+        // Scanning is stopped
     }
 );
 ```
@@ -241,7 +242,7 @@ __Examples__
 ```js
 NativeAppEventEmitter.addListener(
     'BleManagerDidUpdateState',
-    (args) => { 
+    (args) => {
         // The new state: args.state
     }
 );
@@ -258,7 +259,7 @@ __Examples__
 ```js
 NativeAppEventEmitter.addListener(
     'BleManagerDiscoverPeripheral',
-    (args) => { 
+    (args) => {
         // The id: args.id
         // The name: args.name
     }
@@ -278,4 +279,3 @@ A peripheral is disconnected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
-

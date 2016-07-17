@@ -188,20 +188,21 @@ RCT_EXPORT_MODULE();
 }
 
 
-RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds callback:(nonnull RCTResponseSenderBlock)successCallback)
+RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates callback:(nonnull RCTResponseSenderBlock)successCallback)
 {
     NSLog(@"scan with timeout %@", timeoutSeconds);
     NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
     NSMutableArray *serviceUUIDs = [NSMutableArray new];
-    
-    
-    
+    NSDictionary *options = nil;
+    if (allowDuplicates){
+        options = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
+    }
     
     for (int i = 0; i < [services count]; i++) {
         CBUUID *serviceUUID =[CBUUID UUIDWithString:[serviceUUIDStrings objectAtIndex: i]];
         [serviceUUIDs addObject:serviceUUID];
     }
-    [manager scanForPeripheralsWithServices:serviceUUIDs options:nil];
+    [manager scanForPeripheralsWithServices:serviceUUIDs options:options];
     
     dispatch_async(dispatch_get_main_queue(), ^{
         [NSTimer scheduledTimerWithTimeInterval:[timeoutSeconds floatValue] target:self selector:@selector(stopScanTimer:) userInfo: nil repeats:NO];
