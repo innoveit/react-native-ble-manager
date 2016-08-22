@@ -467,7 +467,6 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Callback successCallback, Callback failCallback, int writeType) {
 
-		Log.d(LOG_TAG, "write interno peripheral");
 
 		if (gatt == null) {
 			failCallback.invoke("BluetoothGatt is null");
@@ -483,11 +482,11 @@ public class Peripheral extends BluetoothGattCallback {
 			} else {
 
 				if (writeQueue.size() > 0) {
-					failCallback.invoke("Scrittura con byte ancora in coda");
+					failCallback.invoke("You have already an queued message");
 				}
 
 				if ( writeCallback != null) {
-					failCallback.invoke("Altra scrittura in corso");
+					failCallback.invoke("You're already writing");
 				}
 
 				if (writeQueue.size() == 0 && writeCallback == null) {
@@ -512,20 +511,18 @@ public class Peripheral extends BluetoothGattCallback {
 							count += 20;
 						}
 						if (count < dataLength) {
-							// Rimangono byte in coda
+							// Other bytes in queue
 							byte[] splitMessage = Arrays.copyOfRange(data, count, data.length);
-							Log.d(LOG_TAG, "Lunghezza ultimo messaggio: " + splitMessage.length);
 							writeQueue.add(splitMessage);
 						}
 
-						Log.d(LOG_TAG, "Messaggi in coda: " + writeQueue.size());
 						doWrite(characteristic, firstMessage);
 					} else {
 						characteristic.setValue(data);
 
 
 						if (gatt.writeCharacteristic(characteristic)) {
-							Log.d(LOG_TAG, "write completato");
+							Log.d(LOG_TAG, "Write completed");
 						} else {
 							writeCallback = null;
 							failCallback.invoke("Write failed");
@@ -536,6 +533,7 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 
 	}
+
 
 	// Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
 	// and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)

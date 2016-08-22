@@ -188,6 +188,24 @@ class BleManager extends ReactContextBaseJavaModule {
 	}
 
 	@ReactMethod
+	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Callback successCallback, Callback failCallback) {
+		Log.d(LOG_TAG, "Write without response to: " + deviceUUID);
+
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null){
+			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
+			if (decoded.length > 20) {
+				failCallback.invoke("The max data size is 20");
+			} else {
+				Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+				peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, successCallback, failCallback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+				successCallback.invoke();
+			}
+		} else
+			failCallback.invoke();
+	}
+
+	@ReactMethod
 	public void read(String deviceUUID, String serviceUUID, String characteristicUUID, Callback successCallback, Callback failCallback) {
 		Log.d(LOG_TAG, "Read from: " + deviceUUID);
 
