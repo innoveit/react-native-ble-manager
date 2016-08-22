@@ -24,6 +24,16 @@ class BleManager  {
     });
   }
 
+  writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data) {
+    return new Promise((fulfill, reject) => {
+      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, (success) => {
+        fulfill();
+      }, (fail) => {
+        reject(fail);
+      });
+    });
+  }
+
   connect(peripheralId) {
     return new Promise((fulfill, reject) => {
       bleManager.connect(peripheralId,(success) => {

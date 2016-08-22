@@ -300,7 +300,6 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
         [writeCallbacks setObject:successCallback forKey:key];
         
-        //NSLog(@"Message originale(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         if ([dataMessage length] > 20){
             int dataLength = (int)dataMessage.length;
@@ -336,27 +335,11 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse failCallback:failCallback];
     
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
-    if (context) {
+    if (context && [dataMessage length] <= 20) {
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
         NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
-        /*
-         const char bytes[] = {0x00,0x07,0x00,0x03,0x00};
-         //const char bytes[] = {0x00,0x07,0x02,0x01,0x00};
-         NSMutableData *mMessage = [[NSMutableData alloc] initWithBytes:bytes length:sizeof(bytes)];
-         
-         
-         NSLog(@"Message originale(%lu): %@ ", (unsigned long)[mMessage length], [mMessage hexadecimalString]);
-         NSMutableData *crc = [self crc16: mMessage];
-         [mMessage appendData:crc];
-         
-         NSLog(@"Crc: %@", [crc hexadecimalString]);
-         
-         //NSString *sMessage = [[NSString alloc] initWithData:message encoding:NSASCIIStringEncoding];
-         NSLog(@"Message finale(%lu): %@ ", (unsigned long)[mMessage length], [mMessage hexadecimalString]);*/
-        
-        // TODO need to check the max length
         [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
         successCallback(@[]);
     }else
