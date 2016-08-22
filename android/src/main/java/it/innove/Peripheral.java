@@ -72,8 +72,7 @@ public class Peripheral extends BluetoothGattCallback {
 		connectCallback = null;
 		connected = false;
 		if (gatt != null) {
-			gatt.close();
-			gatt = null;
+			gatt.disconnect();
 			Log.d(LOG_TAG, "Disconnect");
 			WritableMap map = Arguments.createMap();
 			map.putString("peripheral", device.getAddress());
@@ -196,8 +195,7 @@ public class Peripheral extends BluetoothGattCallback {
 				connected = false;
 
 				if (gatt != null) {
-					gatt.close();
-					gatt = null;
+					gatt.disconnect();
 				}
 
 				WritableMap map = Arguments.createMap();

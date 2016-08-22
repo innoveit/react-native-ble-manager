@@ -11,6 +11,7 @@
     NSMutableDictionary *notificationCallbacks;
     NSMutableDictionary *stopNotificationCallbacks;
     NSMutableDictionary *connectCallbackLatches;
+    NSMutableDictionary *writeErrorCallbacks;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
