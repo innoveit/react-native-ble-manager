@@ -127,6 +127,14 @@ class BleManager extends ReactContextBaseJavaModule {
 		successCallback.invoke();
 	}
 
+    @ReactMethod
+    public void stopScan(Callback successCallback) {
+        Log.d(LOG_TAG, "Stop scan");
+        if (!getBluetoothAdapter().isEnabled())
+            return;
+        getBluetoothAdapter().stopLeScan(mLeScanCallback);
+        successCallback.invoke();
+    }
 
 	@ReactMethod
 	public void connect(String peripheralUUID, Callback successCallback, Callback failCallback) {
@@ -309,7 +317,45 @@ class BleManager extends ReactContextBaseJavaModule {
 		}
 	};
 
+    @ReactMethod
+    public void getDiscoveredPeripherals(Callback callback) {
+        Log.d(LOG_TAG, "Get discovered peripherals");
+        WritableArray map = Arguments.createArray();
+        BundleJSONConverter bjc = new BundleJSONConverter();
+        for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String, Peripheral> entry = iterator.next();
+            Peripheral peripheral = entry.getValue();
+            try {
+                Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+                WritableMap jsonBundle = Arguments.fromBundle(bundle);
+                map.pushMap(jsonBundle);
+            } catch (JSONException ignored) {
 
+            }
+        }
+        callback.invoke(null, map);
+    }
+    
+    @ReactMethod
+    public void getConnectedPeripherals(Callback callback) {
+        Log.d(LOG_TAG, "Get connected peripherals");
+        WritableArray map = Arguments.createArray();
+        BundleJSONConverter bjc = new BundleJSONConverter();
+        for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<String, Peripheral> entry = iterator.next();
+            Peripheral peripheral = entry.getValue();
+            if(peripheral.isConnected()){
+                try {
+                    Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+                    WritableMap jsonBundle = Arguments.fromBundle(bundle);
+                    map.pushMap(jsonBundle);
+                } catch (JSONException ignored) {
+
+                }
+            }
+        }
+        callback.invoke(null, map);
+    }
 
 
 	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();

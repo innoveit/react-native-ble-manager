@@ -7,6 +7,7 @@
     NSMutableDictionary* connectCallbacks;
     NSMutableDictionary *readCallbacks;
     NSMutableDictionary *writeCallbacks;
+    NSMutableDictionary *writeErrorCallbacks;
     NSMutableArray *writeQueue;
     NSMutableDictionary *notificationCallbacks;
     NSMutableDictionary *stopNotificationCallbacks;

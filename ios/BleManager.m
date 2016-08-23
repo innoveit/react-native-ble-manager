@@ -29,6 +29,7 @@ RCT_EXPORT_MODULE();
         connectCallbackLatches = [NSMutableDictionary new];
         readCallbacks = [NSMutableDictionary new];
         writeCallbacks = [NSMutableDictionary new];
+        writeErrorCallbacks = [NSMutableDictionary new];
         writeQueue = [NSMutableArray array];
         notificationCallbacks = [NSMutableDictionary new];
         stopNotificationCallbacks = [NSMutableDictionary new];
@@ -187,6 +188,30 @@ RCT_EXPORT_MODULE();
         return 0;
 }
 
+RCT_EXPORT_METHOD(getDiscoveredPeripheralsPeripherals:(nonnull RCTResponseSenderBlock)callback)
+{
+    NSLog(@"Get discovered peripherals");
+    NSMutableArray *discoveredPeripherals = [NSMutableArray array];
+    for(CBPeripheral *peripheral in peripherals){
+        NSDictionary * obj = [peripheral asDictionary];
+        [discoveredPeripherals addObject:obj];
+    }
+    callback(@[[NSNull null], [NSArray arrayWithArray:discoveredPeripherals]]);
+}
+
+RCT_EXPORT_METHOD(getConnectedPeripherals:(nonnull RCTResponseSenderBlock)callback)
+{
+    NSLog(@"Get connected peripherals");
+    NSMutableArray *connectedPeripherals = [NSMutableArray array];
+    for(CBPeripheral *peripheral in peripherals){
+        //those peripherals will be exclude from scan, include them here
+        if([peripheral state] == CBPeripheralStateConnected || [peripheral state] == CBPeripheralStateConnecting){
+            NSDictionary * obj = [peripheral asDictionary];
+            [connectedPeripherals addObject:obj];
+        }
+    }
+    callback(@[[NSNull null], [NSArray arrayWithArray:connectedPeripherals]]);
+}
 
 RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates callback:(nonnull RCTResponseSenderBlock)successCallback)
 {
@@ -209,6 +234,13 @@ RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSN
     });
     successCallback(@[]);
 }
+
+RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
+{
+    [manager stopScan];
+    callback(@[[NSNull null]]);
+}
+
 
 -(void)stopScanTimer:(NSTimer *)timer {
     NSLog(@"Stop scan");
@@ -413,10 +445,14 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
     RCTResponseSenderBlock writeCallback = [writeCallbacks objectForKey:key];
+    RCTResponseSenderBlock writeErrorCallback = [writeErrorCallbacks objectForKey:key];
     
     if (writeCallback) {
         if (error) {
             NSLog(@"%@", error);
+            if(writeErrorCallback){
+                writeErrorCallback(@[error.localizedDescription]);
+            }
         } else {
             if ([writeQueue count] == 0) {
                 writeCallback(@[@""]);
