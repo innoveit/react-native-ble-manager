@@ -199,18 +199,22 @@ RCT_EXPORT_METHOD(getDiscoveredPeripheralsPeripherals:(nonnull RCTResponseSender
     callback(@[[NSNull null], [NSArray arrayWithArray:discoveredPeripherals]]);
 }
 
-RCT_EXPORT_METHOD(getConnectedPeripherals:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Get connected peripherals");
-    NSMutableArray *connectedPeripherals = [NSMutableArray array];
-    for(CBPeripheral *peripheral in peripherals){
-        //those peripherals will be exclude from scan, include them here
-        if([peripheral state] == CBPeripheralStateConnected || [peripheral state] == CBPeripheralStateConnecting){
-            NSDictionary * obj = [peripheral asDictionary];
-            [connectedPeripherals addObject:obj];
-        }
+    NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
+    NSMutableArray *serviceUUIDs = [NSMutableArray new];
+    for(NSString *uuidString in serviceUUIDStrings){
+        CBUUID *serviceUUID =[CBUUID UUIDWithString:uuidString];
+        [serviceUUIDs addObject:serviceUUID];
     }
-    callback(@[[NSNull null], [NSArray arrayWithArray:connectedPeripherals]]);
+    NSArray *connectedPeripherals = [manager retrieveConnectedPeripheralsWithServices:serviceUUIDs];
+    NSMutableArray *foundedPeripherals = [NSMutableArray array];
+    for(CBPeripheral *peripheral in connectedPeripherals){
+        NSDictionary * obj = [peripheral asDictionary];
+        [foundedPeripherals addObject:obj];
+    }
+    callback(@[[NSNull null], [NSArray arrayWithArray:foundedPeripherals]]);
 }
 
 RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates callback:(nonnull RCTResponseSenderBlock)successCallback)
@@ -331,6 +335,7 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
         [writeCallbacks setObject:successCallback forKey:key];
+        [writeErrorCallbacks setObject:failCallback forKey:key];
         
         RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         if ([dataMessage length] > 20){

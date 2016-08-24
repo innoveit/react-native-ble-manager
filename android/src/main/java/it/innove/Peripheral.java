@@ -169,6 +169,10 @@ public class Peripheral extends BluetoothGattCallback {
 		return device;
 	}
 
+	public Boolean hasService(UUID uuid){
+		return gatt.getService(uuid) != null;
+	}
+
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
