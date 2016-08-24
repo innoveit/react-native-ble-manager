@@ -170,6 +170,9 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public Boolean hasService(UUID uuid){
+        if(gatt == null){
+            return null;
+        }
 		return gatt.getService(uuid) != null;
 	}
 
