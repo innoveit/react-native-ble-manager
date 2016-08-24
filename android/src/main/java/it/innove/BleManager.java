@@ -349,7 +349,6 @@ class BleManager extends ReactContextBaseJavaModule {
             if (serviceUUIDs.size() > 0) {
                 for (int i = 0; i < serviceUUIDs.size(); i++) {
                     accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
-                    Log.d(LOG_TAG, accept.toString());
                 }
             } else {
                 accept = true;
