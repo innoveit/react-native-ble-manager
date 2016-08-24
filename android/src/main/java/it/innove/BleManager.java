@@ -337,14 +337,25 @@ class BleManager extends ReactContextBaseJavaModule {
     }
     
     @ReactMethod
-    public void getConnectedPeripherals(Callback callback) {
+    public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
         Log.d(LOG_TAG, "Get connected peripherals");
         WritableArray map = Arguments.createArray();
         BundleJSONConverter bjc = new BundleJSONConverter();
         for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<String, Peripheral> entry = iterator.next();
             Peripheral peripheral = entry.getValue();
-            if(peripheral.isConnected()){
+            Boolean accept = false;
+
+            if (serviceUUIDs.size() > 0) {
+                for (int i = 0; i < serviceUUIDs.size(); i++) {
+                    accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
+                    Log.d(LOG_TAG, accept.toString());
+                }
+            } else {
+                accept = true;
+            }
+
+            if (peripheral.isConnected() && accept) {
                 try {
                     Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
                     WritableMap jsonBundle = Arguments.fromBundle(bundle);
