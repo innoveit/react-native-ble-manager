@@ -196,7 +196,7 @@ BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX
   });
 ```
 
-### write(peripheralId, serviceUUID, characteristicUUID, data)
+### write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
 Write with response to the specified characteristic.
 Returns a `Promise` object.
 
@@ -205,6 +205,7 @@ __Arguments__
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 - `data` - `String` - the data to write in Base64 format.
+- `maxByteSize` - `Integer` - specify the max byte size before splitting message
 
 To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
 

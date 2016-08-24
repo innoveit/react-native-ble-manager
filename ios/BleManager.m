@@ -61,7 +61,7 @@ RCT_EXPORT_MODULE();
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     if (error) {
-        NSLog(@"Error in didUpdateNotificationStateForCharacteristic: %@", error);                
+        NSLog(@"Error in didUpdateNotificationStateForCharacteristic: %@", error);
         return;
     }
     
@@ -322,7 +322,7 @@ RCT_EXPORT_METHOD(checkState)
     NSLog(@"Peripheral connection failure: %@. (%@)", peripheral, [error localizedDescription]);
 }
 
-RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message  successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
 {
     NSLog(@"Write");
     
@@ -338,18 +338,18 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         [writeErrorCallbacks setObject:failCallback forKey:key];
         
         RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
-        if ([dataMessage length] > 20){
+        if ([dataMessage length] > maxByteSize){
             int dataLength = (int)dataMessage.length;
             int count = 0;
             NSData* firstMessage;
-            while(count < dataLength && (dataLength - count > 20)){
+            while(count < dataLength && (dataLength - count > maxByteSize)){
                 if (count == 0){
-                    firstMessage = [dataMessage subdataWithRange:NSMakeRange(count, 20)];
+                    firstMessage = [dataMessage subdataWithRange:NSMakeRange(count, maxByteSize)];
                 }else{
-                    NSData* splitMessage = [dataMessage subdataWithRange:NSMakeRange(count, 20)];
+                    NSData* splitMessage = [dataMessage subdataWithRange:NSMakeRange(count, maxByteSize)];
                     [writeQueue addObject:splitMessage];
                 }
-                count += 20;
+                count += maxByteSize;
             }
             if (count < dataLength) {
                 NSData* splitMessage = [dataMessage subdataWithRange:NSMakeRange(count, dataLength - count)];
@@ -365,14 +365,14 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
 }
 
 
-RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message  successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
 {
     NSLog(@"writeWithoutResponse");
     
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse failCallback:failCallback];
     
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
-    if (context && [dataMessage length] <= 20) {
+    if (context && [dataMessage length] <= maxByteSize) {
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
