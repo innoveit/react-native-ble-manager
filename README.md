@@ -81,6 +81,20 @@ BleManager.scan([], 5, true)
 
 ```
 
+### stopScan()
+Stop the scanning.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.stopScan()
+  .then(() => {
+    // Success code
+    console.log('Scan stopped');
+  });
+
+```
+
 ### connect(peripheralId)
 Attempts to connect to a peripheral.
 Returns a `Promise` object.

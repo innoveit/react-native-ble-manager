@@ -89,6 +89,14 @@ class BleManager  {
     });
   }
 
+  stopScan() {
+    return new Promise((fulfill, reject) => {
+      bleManager.stopScan((success) => {
+        fulfill();
+      });
+    });
+  }
+
 }
 
 module.exports = new BleManager();
