@@ -230,6 +230,37 @@ BleManager.write('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXX
   });
 ```
 
+### getConnectedPeripherals(serviceUUIDs)
+Return the connected peripherals.
+Returns a `Promise` object.
+
+__Arguments__
+- `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for.
+
+__Examples__
+```js
+BleManager.getConnectedPeripherals([])
+  .then((peripheralsArray) => {
+    // Success code
+    console.log('Connected peripherals: ' + peripheralsArray.length);
+  });
+
+```
+
+### getDiscoveredPeripherals()
+Return the discovered peripherals after a scan.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.getDiscoveredPeripherals([])
+  .then((peripheralsArray) => {
+    // Success code
+    console.log('Discovered peripherals: ' + peripheralsArray.length);
+  });
+
+```
+
 ##Events
 ### BleManagerStopScan
 The scanning for peripherals is ended.

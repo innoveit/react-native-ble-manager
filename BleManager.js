@@ -94,8 +94,36 @@ class BleManager  {
 
   stopScan() {
     return new Promise((fulfill, reject) => {
-      bleManager.stopScan((success) => {
-        fulfill();
+      bleManager.stopScan((result) => {
+        if (result != null) {
+          reject(result);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
+  getConnectedPeripherals(serviceUUIDs) {
+    return new Promise((fulfill, reject) => {
+      bleManager.getConnectedPeripherals(serviceUUIDs, (result) => {
+        if (result[0] != null) {
+          reject(result[0])
+        } else {
+          fulfill(result[1]);
+        }
+      });
+    });
+  }
+
+  getDiscoveredPeripherals() {
+    return new Promise((fulfill, reject) => {
+      bleManager.getDiscoveredPeripherals((result) => {
+        if (result[0] != null) {
+          reject(result[0])
+        } else {
+          fulfill(result[1]);
+        }
       });
     });
   }
