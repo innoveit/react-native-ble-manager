@@ -466,7 +466,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	}
 
-	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Callback successCallback, Callback failCallback, int writeType) {
+	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Callback successCallback, Callback failCallback, int writeType) {
 
 
 		if (gatt == null) {
@@ -498,18 +498,18 @@ public class Peripheral extends BluetoothGattCallback {
 					} else
 						successCallback.invoke();
 
-					if (data.length > 20) {
+					if (data.length > maxByteSize) {
 						int dataLength = data.length;
 						int count = 0;
 						byte[] firstMessage = null;
-						while (count < dataLength && (dataLength - count > 20)) {
+						while (count < dataLength && (dataLength - count > maxByteSize)) {
 							if (count == 0) {
-								firstMessage = Arrays.copyOfRange(data, count, count + 20);
+								firstMessage = Arrays.copyOfRange(data, count, count + maxByteSize);
 							} else {
-								byte[] splitMessage = Arrays.copyOfRange(data, count, count + 20);
+								byte[] splitMessage = Arrays.copyOfRange(data, count, count + maxByteSize);
 								writeQueue.add(splitMessage);
 							}
-							count += 20;
+							count += maxByteSize;
 						}
 						if (count < dataLength) {
 							// Other bytes in queue

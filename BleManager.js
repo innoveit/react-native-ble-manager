@@ -14,9 +14,12 @@ class BleManager  {
     });
   }
 
-  write(peripheralId, serviceUUID, characteristicUUID, data) {
+  write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
+    if (maxByteSize == null) {
+      maxByteSize = 20;
+    }
     return new Promise((fulfill, reject) => {
-      bleManager.write(peripheralId, serviceUUID, characteristicUUID, data, (success) => {
+      bleManager.write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (success) => {
         fulfill();
       }, (fail) => {
         reject(fail);
