@@ -73,6 +73,8 @@ public class Peripheral extends BluetoothGattCallback {
 		connected = false;
 		if (gatt != null) {
 			gatt.disconnect();
+			gatt.close();
+			gatt = null;
 			Log.d(LOG_TAG, "Disconnect");
 			WritableMap map = Arguments.createMap();
 			map.putString("peripheral", device.getAddress());
@@ -187,7 +189,7 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
-		Log.d(LOG_TAG, "onConnectionStateChange da " + status + " a "+ newState + " peripheral:" + device.getAddress());
+		Log.d(LOG_TAG, "onConnectionStateChange from " + status + " to "+ newState + " on peripheral:" + device.getAddress());
 
 		this.gatt = gatt;
 
@@ -200,6 +202,12 @@ public class Peripheral extends BluetoothGattCallback {
 
 			if (connected) {
 				connected = false;
+
+				if (gatt != null) {
+					gatt.disconnect();
+					gatt.close();
+					this.gatt = null;
+				}
 
 				WritableMap map = Arguments.createMap();
 				map.putString("peripheral", device.getAddress());
@@ -228,9 +236,8 @@ public class Peripheral extends BluetoothGattCallback {
 	public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 		super.onCharacteristicChanged(gatt, characteristic);
 
-		//Log.d(LOG_TAG, "onCharacteristicChanged " + characteristic);
 		byte[] dataValue = characteristic.getValue();
-		Log.d(LOG_TAG, "Letto:" + BleManager.bytesToHex(dataValue) + " da:" + device.getAddress());
+		Log.d(LOG_TAG, "Read: " + BleManager.bytesToHex(dataValue) + " from peripheral: " + device.getAddress());
 
 		WritableMap map = Arguments.createMap();
 		map.putString("peripheral", device.getAddress());
@@ -268,23 +275,19 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
 		super.onCharacteristicWrite(gatt, characteristic, status);
-		//Log.d(LOG_TAG, "onCharacteristicWrite " + characteristic);
 
 		if (writeCallback != null) {
 
 			if (writeQueue.size() > 0){
 				byte[] data = writeQueue.get(0);
 				writeQueue.remove(0);
-				//Log.d(LOG_TAG, "rimangono in coda: " + writeQueue.size());
 				doWrite(characteristic, data);
 			} else {
 
 				if (status == BluetoothGatt.GATT_SUCCESS) {
 					writeCallback.invoke();
-					//Log.e(LOG_TAG, "writeCallback invocato");
 				} else {
-					//writeCallback.error(status);
-					Log.e(LOG_TAG, "errore onCharacteristicWrite:" + status);
+					Log.e(LOG_TAG, "Error onCharacteristicWrite:" + status);
 					writeFailCallback.invoke("Error writing status: " + status);
 				}
 
@@ -292,13 +295,12 @@ public class Peripheral extends BluetoothGattCallback {
 				writeFailCallback = null;
 			}
 		}else
-			Log.e(LOG_TAG, "Nessun callback su write");
+			Log.e(LOG_TAG, "No callback on write");
 	}
 
 	@Override
 	public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
 		super.onDescriptorWrite(gatt, descriptor, status);
-		Log.d(LOG_TAG, "onDescriptorWrite " + descriptor);
 	}
 
 	private void setNotify(UUID serviceUUID, UUID characteristicUUID, Boolean notify, Callback success, Callback fail){
@@ -313,13 +315,10 @@ public class Peripheral extends BluetoothGattCallback {
 		BluetoothGattCharacteristic characteristic = findNotifyCharacteristic(service, characteristicUUID);
 
 		if (characteristic != null) {
-			Log.d(LOG_TAG, "characteristic ok");
-
 			if (gatt.setCharacteristicNotification(characteristic, notify)) {
 
 				BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CHARACTERISTIC_NOTIFICATION_CONFIG));
 				if (descriptor != null) {
-					Log.d(LOG_TAG, "trovato descriptor");
 
 					// prefer notify over indicate
 					if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
@@ -453,17 +452,11 @@ public class Peripheral extends BluetoothGattCallback {
 
 
 	public void doWrite(BluetoothGattCharacteristic characteristic, byte[] data) {
-
-		//Log.d(LOG_TAG, "doWrite");
-
 		characteristic.setValue(data);
 
-		if (gatt.writeCharacteristic(characteristic)) {
-			//Log.d(LOG_TAG, "doWrite completato");
-		} else {
-			Log.d(LOG_TAG, "errore doWrite");
+		if (!gatt.writeCharacteristic(characteristic)) {
+			Log.d(LOG_TAG, "Error on doWrite");
 		}
-
 	}
 
 	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Callback successCallback, Callback failCallback, int writeType) {
@@ -563,7 +556,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 			return characteristic;
 		}catch (Exception e) {
-			Log.e(LOG_TAG, "Errore su findWritableCharacteristic", e);
+			Log.e(LOG_TAG, "Error on findWritableCharacteristic", e);
 			return null;
 		}
 	}

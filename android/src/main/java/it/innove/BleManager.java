@@ -88,10 +88,8 @@ class BleManager extends ReactContextBaseJavaModule {
 				Log.d(LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
 			}
 			if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-				Log.d(LOG_TAG, "scan con filter");
 				getBluetoothAdapter().startLeScan(services, mLeScanCallback);
 			}else {
-				Log.d(LOG_TAG, "scan senza filter");
 				getBluetoothAdapter().startLeScan(mLeScanCallback);
 			}
 		} else {
