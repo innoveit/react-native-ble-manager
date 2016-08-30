@@ -27,9 +27,12 @@ class BleManager  {
     });
   }
 
-  writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data) {
+  writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
+    if (maxByteSize == null) {
+      maxByteSize = 20;
+    }
     return new Promise((fulfill, reject) => {
-      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, (success) => {
+      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (success) => {
         fulfill();
       }, (fail) => {
         reject(fail);
