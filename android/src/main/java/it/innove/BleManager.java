@@ -205,7 +205,6 @@ class BleManager extends ReactContextBaseJavaModule {
 			} else {
 				Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 				peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, successCallback, failCallback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-				successCallback.invoke();
 			}
 		} else
 			failCallback.invoke();
@@ -333,7 +332,7 @@ class BleManager extends ReactContextBaseJavaModule {
         }
         callback.invoke(null, map);
     }
-    
+
     @ReactMethod
     public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
         Log.d(LOG_TAG, "Get connected peripherals");
