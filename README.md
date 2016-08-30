@@ -295,6 +295,40 @@ BleManager.write('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXX
   });
 ```
 
+### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
+Write without response to the specified characteristic.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+- `data` - `String` - the data to write in Base64 format.
+- `maxByteSize` - `Integer` - specify the max byte size
+
+To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
+
+`npm install base64-js --save`
+
+To format the data before calling the write function:
+```js
+var base64 = require('base64-js');
+var data = base64.fromByteArray(yourData);
+```
+
+__Examples__
+```js
+BleManager.writeWithoutResponse('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', data)
+  .then(() => {
+    // Success code
+    console.log('Writed: ' + data);
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
+
 ### getConnectedPeripherals(serviceUUIDs)
 Return the connected peripherals.
 Returns a `Promise` object.
