@@ -196,7 +196,7 @@ RCT_EXPORT_METHOD(getDiscoveredPeripheralsPeripherals:(nonnull RCTResponseSender
         NSDictionary * obj = [peripheral asDictionary];
         [discoveredPeripherals addObject:obj];
     }
-    callback(@[[NSNull null], [NSArray arrayWithArray:discoveredPeripherals]]);
+    callback(@[[NSArray arrayWithArray:discoveredPeripherals]]);
 }
 
 RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback:(nonnull RCTResponseSenderBlock)callback)
@@ -214,7 +214,8 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
         NSDictionary * obj = [peripheral asDictionary];
         [foundedPeripherals addObject:obj];
     }
-    callback(@[[NSNull null], [NSArray arrayWithArray:foundedPeripherals]]);
+    
+    callback(@[[NSArray arrayWithArray:foundedPeripherals]]);
 }
 
 RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates callback:(nonnull RCTResponseSenderBlock)successCallback)

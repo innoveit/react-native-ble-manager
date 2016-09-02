@@ -330,9 +330,9 @@ class BleManager extends ReactContextBaseJavaModule {
 
             }
         }
-        callback.invoke(null, map);
+        callback.invoke(map);
     }
-
+    
     @ReactMethod
     public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
         Log.d(LOG_TAG, "Get connected peripherals");
@@ -361,7 +361,7 @@ class BleManager extends ReactContextBaseJavaModule {
                 }
             }
         }
-        callback.invoke(null, map);
+        callback.invoke(map);
     }
 
 
