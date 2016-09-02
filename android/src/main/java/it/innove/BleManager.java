@@ -71,6 +71,10 @@ class BleManager extends ReactContextBaseJavaModule {
 	@ReactMethod
 	public void scan(ReadableArray serviceUUIDs, final int scanSeconds, boolean allowDuplicates, Callback successCallback) {
 		Log.d(LOG_TAG, "scan");
+		if (getBluetoothAdapter() == null) {
+			Log.d(LOG_TAG, "no bluetooth support!");
+			return;
+		}
 		if (!getBluetoothAdapter().isEnabled())
 			return;
 
@@ -128,6 +132,10 @@ class BleManager extends ReactContextBaseJavaModule {
     @ReactMethod
     public void stopScan(Callback successCallback) {
         Log.d(LOG_TAG, "Stop scan");
+        if (getBluetoothAdapter() == null) {
+          Log.d(LOG_TAG, "no bluetooth support!");
+          return;
+        }
         if (!getBluetoothAdapter().isEnabled())
             return;
         getBluetoothAdapter().stopLeScan(mLeScanCallback);
@@ -268,12 +276,14 @@ class BleManager extends ReactContextBaseJavaModule {
 
 		BluetoothAdapter adapter = getBluetoothAdapter();
 		String state = "off";
-		switch (adapter.getState()){
-			case BluetoothAdapter.STATE_ON:
-				state = "on";
-				break;
-			case BluetoothAdapter.STATE_OFF:
-				state = "off";
+		if (adapter != null) {
+			switch (adapter.getState()){
+				case BluetoothAdapter.STATE_ON:
+					state = "on";
+					break;
+				case BluetoothAdapter.STATE_OFF:
+					state = "off";
+			}
 		}
 
 		WritableMap map = Arguments.createMap();
