@@ -110,10 +110,10 @@ class BleManager  {
   getConnectedPeripherals(serviceUUIDs) {
     return new Promise((fulfill, reject) => {
       bleManager.getConnectedPeripherals(serviceUUIDs, (result) => {
-        if (result[0] != null) {
-          reject(result[0])
+        if (result != null) {
+          fulfill(result);
         } else {
-          fulfill(result[1]);
+          fulfill([]);
         }
       });
     });
@@ -122,10 +122,10 @@ class BleManager  {
   getDiscoveredPeripherals() {
     return new Promise((fulfill, reject) => {
       bleManager.getDiscoveredPeripherals((result) => {
-        if (result[0] != null) {
-          reject(result[0])
+        if (result != null) {
+          fulfill(result);
         } else {
-          fulfill(result[1]);
+          fulfill([]);
         }
       });
     });
