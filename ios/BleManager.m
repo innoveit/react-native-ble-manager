@@ -188,7 +188,7 @@ RCT_EXPORT_MODULE();
         return 0;
 }
 
-RCT_EXPORT_METHOD(getDiscoveredPeripheralsPeripherals:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Get discovered peripherals");
     NSMutableArray *discoveredPeripherals = [NSMutableArray array];
