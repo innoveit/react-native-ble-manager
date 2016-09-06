@@ -360,6 +360,23 @@ BleManager.getDiscoveredPeripherals([])
 
 ```
 
+### isPeripheralConnected(peripheralId, serviceUUIDs)
+Check whether a specific peripheral is connected and return `true` or `false`.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.isPeripheralConnected('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', [])
+  .then((isConnected) => {
+    if (isConnected) {
+      console.log('Peripheral is connected!');
+    } else {
+      console.log('Peripheral is NOT connected!');
+    }
+  });
+
+```
+
 ##Events
 ### BleManagerStopScan
 The scanning for peripherals is ended.

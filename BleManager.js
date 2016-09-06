@@ -131,6 +131,15 @@ class BleManager  {
     });
   }
 
+  isPeripheralConnected(peripheralId, serviceUUIDs) {
+    return this.getConnectedPeripherals(serviceUUIDs).then(function(result) {
+      if (result.find(function(p) { return p.id === peripheralId; })) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
 }
 
 module.exports = new BleManager();
