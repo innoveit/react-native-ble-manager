@@ -2,5 +2,6 @@
 		  package="it.innove">
 	<uses-permission android:name="android.permission.BLUETOOTH" />
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 	<uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
 </manifest>
