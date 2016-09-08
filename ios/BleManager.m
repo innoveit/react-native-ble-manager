@@ -192,9 +192,11 @@ RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callb
 {
     NSLog(@"Get discovered peripherals");
     NSMutableArray *discoveredPeripherals = [NSMutableArray array];
-    for(CBPeripheral *peripheral in peripherals){
+    @synchronized(peripherals) {
+      for(CBPeripheral *peripheral in peripherals){
         NSDictionary * obj = [peripheral asDictionary];
         [discoveredPeripherals addObject:obj];
+      }
     }
     callback(@[[NSArray arrayWithArray:discoveredPeripherals]]);
 }
