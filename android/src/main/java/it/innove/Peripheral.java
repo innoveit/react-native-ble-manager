@@ -56,6 +56,12 @@ public class Peripheral extends BluetoothGattCallback {
 				.emit(eventName, params);
 	}
 
+	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
+		WritableMap map = Arguments.createMap();
+		map.putString("peripheral", device.getAddress());
+		sendEvent(eventName, map);
+		Log.d(LOG_TAG, "Peripheral event (eventName):" + device.getAddress());
+	}
 
 	public void connect(Callback connectCallback, Callback failCallback, Activity activity) {
 		if (!connected) {
@@ -76,9 +82,7 @@ public class Peripheral extends BluetoothGattCallback {
 			gatt.close();
 			gatt = null;
 			Log.d(LOG_TAG, "Disconnect");
-			WritableMap map = Arguments.createMap();
-			map.putString("peripheral", device.getAddress());
-			sendEvent("BleManagerDisconnectPeripheral", map);
+			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
 		}else
 			Log.d(LOG_TAG, "GATT is null");
 	}
@@ -198,6 +202,8 @@ public class Peripheral extends BluetoothGattCallback {
 			connected = true;
 			gatt.discoverServices();
 
+			sendConnectionEvent(device, "BleManagerConnectPeripheral");
+
 		} else if (newState == BluetoothGatt.STATE_DISCONNECTED){
 
 			if (connected) {
@@ -208,12 +214,10 @@ public class Peripheral extends BluetoothGattCallback {
 					gatt.close();
 					this.gatt = null;
 				}
-
-				WritableMap map = Arguments.createMap();
-				map.putString("peripheral", device.getAddress());
-				sendEvent("BleManagerDisconnectPeripheral", map);
-				Log.d(LOG_TAG, "BleManagerDisconnectPeripheral peripheral:" + device.getAddress());
 			}
+
+			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+
 			if (connectFailCallback != null) {
 				connectFailCallback.invoke();
 				connectFailCallback = null;
@@ -527,7 +531,6 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 
 	}
-
 
 	// Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
 	// and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)

@@ -436,8 +436,14 @@ __Arguments__
 - `characteristic` - `String` - the UUID of the characteristic
 - `value` - `String` - the read value in Hex format
 
+###  BleManagerConnectPeripheral
+A peripheral was connected.
+
+__Arguments__
+- `peripheral` - `String` - the id of the peripheral
+
 ###  BleManagerDisconnectPeripheral
-A peripheral is disconnected.
+A peripheral was disconnected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
