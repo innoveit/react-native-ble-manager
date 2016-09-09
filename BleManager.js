@@ -4,6 +4,10 @@ var bleManager = React.NativeModules.BleManager;
 
 class BleManager  {
 
+  constructor() {
+    this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
+  }
+
   read(peripheralId, serviceUUID, characteristicUUID) {
     return new Promise((fulfill, reject) => {
       bleManager.read(peripheralId, serviceUUID, characteristicUUID, (success) => {
@@ -132,8 +136,8 @@ class BleManager  {
   }
 
   isPeripheralConnected(peripheralId, serviceUUIDs) {
-    return this.getConnectedPeripherals(serviceUUIDs).then(function(result) {
-      if (result.find(function(p) { return p.id === peripheralId; })) {
+    return this.getConnectedPeripherals(serviceUUIDs).then((result) => {
+      if (result.find((p) => { return p.id === peripheralId; })) {
         return true;
       } else {
         return false;
