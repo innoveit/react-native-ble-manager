@@ -20,7 +20,7 @@ npm i --save react-native-ble-manager
 ####Android
 #####Update Gradle Settings
 
-```
+```gradle
 // file: android/settings.gradle
 ...
 
@@ -29,7 +29,7 @@ project(':react-native-ble-manager').projectDir = new File(rootProject.projectDi
 ```
 #####Update Gradle Build
 
-```
+```gradle
 // file: android/app/build.gradle
 ...
 
@@ -39,7 +39,7 @@ dependencies {
 }
 ```
 #####Register React Package
-```
+```java
 ...
 import it.innove.BleManagerPackage; // <--- import
 
@@ -60,7 +60,7 @@ public class MainApplication extends Application implements ReactApplication {
 ```
 
 ##Basic Example
-```
+```js
 class BleExample extends Component {
 
     constructor(){
