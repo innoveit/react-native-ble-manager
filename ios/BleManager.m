@@ -204,17 +204,26 @@ RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callb
 RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Get connected peripherals");
-    NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
     NSMutableArray *serviceUUIDs = [NSMutableArray new];
     for(NSString *uuidString in serviceUUIDStrings){
         CBUUID *serviceUUID =[CBUUID UUIDWithString:uuidString];
         [serviceUUIDs addObject:serviceUUID];
     }
-    NSArray *connectedPeripherals = [manager retrieveConnectedPeripheralsWithServices:serviceUUIDs];
+    
     NSMutableArray *foundedPeripherals = [NSMutableArray array];
-    for(CBPeripheral *peripheral in connectedPeripherals){
-        NSDictionary * obj = [peripheral asDictionary];
-        [foundedPeripherals addObject:obj];
+    if ([serviceUUIDs count] == 0){
+        for(CBPeripheral *peripheral in peripherals){
+            if([peripheral state] == CBPeripheralStateConnected || [peripheral state] == CBPeripheralStateConnecting){
+                NSDictionary * obj = [peripheral asDictionary];
+                [foundedPeripherals addObject:obj];
+            }
+        }
+    } else {
+        NSArray *connectedPeripherals = [manager retrieveConnectedPeripheralsWithServices:serviceUUIDs];
+        for(CBPeripheral *peripheral in connectedPeripherals){
+            NSDictionary * obj = [peripheral asDictionary];
+            [foundedPeripherals addObject:obj];
+        }
     }
     
     callback(@[[NSArray arrayWithArray:foundedPeripherals]]);
