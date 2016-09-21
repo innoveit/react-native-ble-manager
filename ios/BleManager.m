@@ -261,7 +261,8 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
 -(void)stopScanTimer:(NSTimer *)timer {
     NSLog(@"Stop scan");
     [manager stopScan];
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
+    //[self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
+    [self sendEventWithName:@"BleManagerStopScan" body:@{}];
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
@@ -272,24 +273,24 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
     [peripheral setAdvertisementData:advertisementData RSSI:RSSI];
     
     NSLog(@"Discover peripheral: %@", [peripheral name]);
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
-    
+    //[self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
+    [self sendEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
 }
 
-RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID  successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"connect");
     CBPeripheral *peripheral = [self findPeripheralByUUID:peripheralUUID];
     if (peripheral) {
         NSLog(@"Connecting to peripheral with UUID : %@", peripheralUUID);
         
-        [connectCallbacks setObject:successCallback forKey:[peripheral uuidAsString]];
+        [connectCallbacks setObject:callback forKey:[peripheral uuidAsString]];
         [manager connectPeripheral:peripheral options:nil];
         
     } else {
         NSString *error = [NSString stringWithFormat:@"Could not find peripheral %@.", peripheralUUID];
         NSLog(@"%@", error);
-        failCallback(@[error]);
+        callback(@[error, [NSNull null]]);
     }
 }
 
@@ -536,7 +537,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     if ([latch count] == 0) {
         // Call success callback for connect
         if (connectCallback) {
-            connectCallback(@[[peripheral asDictionary]]);
+            connectCallback(@[[NSNull null]]);
         }
         [connectCallbackLatches removeObjectForKey:peripheralUUIDString];
     }
