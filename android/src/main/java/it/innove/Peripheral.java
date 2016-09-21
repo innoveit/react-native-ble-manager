@@ -33,7 +33,6 @@ public class Peripheral extends BluetoothGattCallback {
 	private BluetoothGatt gatt;
 
 	private Callback connectCallback;
-	private Callback connectFailCallback;
 	private Callback readCallback;
 	private Callback readFailCallback;
 	private Callback writeCallback;
@@ -63,11 +62,10 @@ public class Peripheral extends BluetoothGattCallback {
 		Log.d(LOG_TAG, "Peripheral event (eventName):" + device.getAddress());
 	}
 
-	public void connect(Callback connectCallback, Callback failCallback, Activity activity) {
+	public void connect(Callback callback, Activity activity) {
 		if (!connected) {
 			BluetoothDevice device = getDevice();
-			this.connectCallback = connectCallback;
-			this.connectFailCallback = failCallback;
+			this.connectCallback = callback;
 			gatt = device.connectGatt(activity, false, this);
 		}else{
 			connectCallback.invoke();
@@ -187,7 +185,6 @@ public class Peripheral extends BluetoothGattCallback {
 		super.onServicesDiscovered(gatt, status);
 		connectCallback.invoke();
 		connectCallback = null;
-		connectFailCallback = null;
 	}
 
 	@Override
@@ -218,9 +215,8 @@ public class Peripheral extends BluetoothGattCallback {
 
 			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
 
-			if (connectFailCallback != null) {
-				connectFailCallback.invoke();
-				connectFailCallback = null;
+			if (connectCallback != null) {
+				connectCallback.invoke("Connection error");
 				connectCallback = null;
 			}
 

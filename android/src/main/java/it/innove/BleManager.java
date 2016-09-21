@@ -143,14 +143,14 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
 	@ReactMethod
-	public void connect(String peripheralUUID, Callback successCallback, Callback failCallback) {
+	public void connect(String peripheralUUID, Callback callback) {
 		Log.d(LOG_TAG, "Connect to: " + peripheralUUID );
 
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral != null){
-			peripheral.connect(successCallback, failCallback, getCurrentActivity());
+			peripheral.connect(callback, getCurrentActivity());
 		} else
-			failCallback.invoke();
+			callback.invoke("Peripheral not found");
 	}
 
 	@ReactMethod
