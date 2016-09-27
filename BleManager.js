@@ -10,10 +10,12 @@ class BleManager  {
 
   read(peripheralId, serviceUUID, characteristicUUID) {
     return new Promise((fulfill, reject) => {
-      bleManager.read(peripheralId, serviceUUID, characteristicUUID, (success) => {
-        fulfill(success);
-      }, (fail) => {
-        reject(fail);
+      bleManager.read(peripheralId, serviceUUID, characteristicUUID, (error, data) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(data);
+        }
       });
     });
   }
@@ -23,10 +25,12 @@ class BleManager  {
       maxByteSize = 20;
     }
     return new Promise((fulfill, reject) => {
-      bleManager.write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (success) => {
-        fulfill();
-      }, (fail) => {
-        reject(fail);
+      bleManager.write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
       });
     });
   }
@@ -36,52 +40,60 @@ class BleManager  {
       maxByteSize = 20;
     }
     return new Promise((fulfill, reject) => {
-      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (success) => {
-        fulfill();
-      }, (fail) => {
-        reject(fail);
+      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
       });
     });
   }
 
   connect(peripheralId) {
     return new Promise((fulfill, reject) => {
-      bleManager.connect(peripheralId,(error) => {
+      bleManager.connect(peripheralId, (error) => {
         if (error) {
           reject(error);
         } else {
           fulfill();
-        }        
+        }
       });
     });
   }
 
   disconnect(peripheralId) {
     return new Promise((fulfill, reject) => {
-      bleManager.disconnect(peripheralId,(success) => {
-        fulfill();
-      }, (fail) => {
-        reject(fail);
+      bleManager.disconnect(peripheralId, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
       });
     });
   }
 
   startNotification(peripheralId, serviceUUID, characteristicUUID) {
     return new Promise((fulfill, reject) => {
-      bleManager.startNotification(peripheralId, serviceUUID, characteristicUUID, (success) => {
-        fulfill();
-      }, (fail) => {
-        reject(fail);
+      bleManager.startNotification(peripheralId, serviceUUID, characteristicUUID, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
       });
     });
   }
 
   stopNotification(peripheralId, serviceUUID, characteristicUUID) {
     return new Promise((fulfill, reject) => {
-      bleManager.stopNotification(peripheralId, serviceUUID, characteristicUUID, (success) => {
-        fulfill();
-      }, (fail) => {
-        reject(fail);
+      bleManager.stopNotification(peripheralId, serviceUUID, characteristicUUID, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
       });
     });
   }
@@ -90,22 +102,41 @@ class BleManager  {
     bleManager.checkState();
   }
 
+  start(options) {
+    return new Promise((fulfill, reject) => {
+      if (options == null) {
+        options = {};
+      }
+      bleManager.start(options, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
   scan(serviceUUIDs, seconds, allowDuplicates) {
     return new Promise((fulfill, reject) => {
       if (allowDuplicates == null) {
         allowDuplicates = false;
       }
-      bleManager.scan(serviceUUIDs, seconds, allowDuplicates, (success) => {
-        fulfill();
+      bleManager.scan(serviceUUIDs, seconds, allowDuplicates, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
       });
     });
   }
 
   stopScan() {
     return new Promise((fulfill, reject) => {
-      bleManager.stopScan((result) => {
-        if (result != null) {
-          reject(result);
+      bleManager.stopScan((error) => {
+        if (error != null) {
+          reject(error);
         } else {
           fulfill();
         }
@@ -115,11 +146,15 @@ class BleManager  {
 
   getConnectedPeripherals(serviceUUIDs) {
     return new Promise((fulfill, reject) => {
-      bleManager.getConnectedPeripherals(serviceUUIDs, (result) => {
-        if (result != null) {
-          fulfill(result);
+      bleManager.getConnectedPeripherals(serviceUUIDs, (error, result) => {
+        if (error) {
+          reject(error);
         } else {
-          fulfill([]);
+          if (result != null) {
+            fulfill(result);
+          } else {
+            fulfill([]);
+          }
         }
       });
     });
@@ -127,11 +162,15 @@ class BleManager  {
 
   getDiscoveredPeripherals() {
     return new Promise((fulfill, reject) => {
-      bleManager.getDiscoveredPeripherals((result) => {
-        if (result != null) {
-          fulfill(result);
+      bleManager.getDiscoveredPeripherals((error, result) => {
+        if (error) {
+          reject(error);
         } else {
-          fulfill([]);
+          if (result != null) {
+            fulfill(result);
+          } else {
+            fulfill([]);
+          }
         }
       });
     });

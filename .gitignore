@@ -1,4 +1,5 @@
 .idea
+android/local.properties
 gen/
 
 .gradle
