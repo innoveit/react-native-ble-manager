@@ -5,6 +5,9 @@
 
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
+##Requirements
+RN 0.30+
+
 ##Supported Platforms
 - iOS
 - Android (API 18)
@@ -73,6 +76,7 @@ class BleExample extends Component {
     }
 
     componentDidMount() {
+        BleManager.start({showAlert: false});
         this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
 
         NativeAppEventEmitter
@@ -126,6 +130,26 @@ class BleExample extends Component {
 ```
 
 ##Methods
+
+### start(options)
+Init the module.
+Returns a `Promise` object.
+
+__Arguments__
+- `options` - `JSON` 
+
+[iOS only] the parameter is optional the configuration keys are:
+- `showAlert` - `Boolean` - Show or hide the alert if the bluetooth is turned off during initialization
+
+__Examples__
+```js
+BleManager.start({showAlert: false})
+  .then(() => {
+    // Success code
+    console.log('Module initialized');
+  });
+
+```
 
 ### scan(serviceUUIDs, seconds)
 Scan for availables peripherals.
