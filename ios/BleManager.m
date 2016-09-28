@@ -21,18 +21,15 @@ RCT_EXPORT_MODULE();
 {
     
     if (self = [super init]) {
-        NSLog(@"BleManager initialized");
         peripherals = [NSMutableSet set];
-        manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue()];
-        
         connectCallbacks = [NSMutableDictionary new];
         connectCallbackLatches = [NSMutableDictionary new];
         readCallbacks = [NSMutableDictionary new];
         writeCallbacks = [NSMutableDictionary new];
-        writeErrorCallbacks = [NSMutableDictionary new];
         writeQueue = [NSMutableArray array];
         notificationCallbacks = [NSMutableDictionary new];
         stopNotificationCallbacks = [NSMutableDictionary new];
+        NSLog(@"BleManager created");
     }
     
     return self;
@@ -52,7 +49,7 @@ RCT_EXPORT_MODULE();
     NSString *stringFromData = [characteristic.value hexadecimalString];
     
     if (readCallback != NULL){
-        readCallback(@[stringFromData]);
+        readCallback(@[[NSNull null], stringFromData]);
         [readCallbacks removeObjectForKey:key];
     } else {
         [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"value": stringFromData}];
@@ -64,13 +61,6 @@ RCT_EXPORT_MODULE();
         NSLog(@"Error in didUpdateNotificationStateForCharacteristic: %@", error);
         return;
     }
-    
-    // Call didUpdateValueForCharacteristic only when we have a value.
-    /*
-     if (characteristic.value)
-     {
-     NSLog(@"Received value from notification: %@", characteristic.value);
-     }*/
     
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
     
@@ -198,7 +188,7 @@ RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callb
         [discoveredPeripherals addObject:obj];
       }
     }
-    callback(@[[NSArray arrayWithArray:discoveredPeripherals]]);
+    callback(@[[NSNull null], [NSArray arrayWithArray:discoveredPeripherals]]);
 }
 
 RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback:(nonnull RCTResponseSenderBlock)callback)
@@ -226,10 +216,24 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
         }
     }
     
-    callback(@[[NSArray arrayWithArray:foundedPeripherals]]);
+    callback(@[[NSNull null], [NSArray arrayWithArray:foundedPeripherals]]);
 }
 
-RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates callback:(nonnull RCTResponseSenderBlock)successCallback)
+RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSenderBlock)callback)
+{
+    NSLog(@"BleManager initialized");
+    NSDictionary *initOptions = nil;
+    if ([[options allKeys] containsObject:@"showAlert"]){
+        BOOL showAlert = [[options valueForKey:@"showAlert"] boolValue];
+        initOptions = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:showAlert] forKey:CBCentralManagerOptionShowPowerAlertKey];
+        manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue() options:initOptions];
+    } else {
+        manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue()];
+    }
+    callback(@[]);
+}
+
+RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"scan with timeout %@", timeoutSeconds);
     NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
@@ -248,7 +252,7 @@ RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSN
     dispatch_async(dispatch_get_main_queue(), ^{
         [NSTimer scheduledTimerWithTimeInterval:[timeoutSeconds floatValue] target:self selector:@selector(stopScanTimer:) userInfo: nil repeats:NO];
     });
-    successCallback(@[]);
+    callback(@[]);
 }
 
 RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
@@ -261,8 +265,7 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
 -(void)stopScanTimer:(NSTimer *)timer {
     NSLog(@"Stop scan");
     [manager stopScan];
-    //[self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
-    [self sendEventWithName:@"BleManagerStopScan" body:@{}];
+    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
@@ -273,8 +276,7 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
     [peripheral setAdvertisementData:advertisementData RSSI:RSSI];
     
     NSLog(@"Discover peripheral: %@", [peripheral name]);
-    //[self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
-    [self sendEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
+    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
 }
 
 RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTResponseSenderBlock)callback)
@@ -294,7 +296,7 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
     }
 }
 
-RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUUID  successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUUID  callback:(nonnull RCTResponseSenderBlock)callback)
 {
     CBPeripheral *peripheral = [self findPeripheralByUUID:peripheralUUID];
     if (peripheral) {
@@ -314,12 +316,12 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUUID  successCallback:(nonnul
         }
         
         [manager cancelPeripheralConnection:peripheral];
-        successCallback(@[]);
+        callback(@[]);
         
     } else {
         NSString *error = [NSString stringWithFormat:@"Could not find peripheral %@.", peripheralUUID];
         NSLog(@"%@", error);
-        failCallback(@[error]);
+        callback(@[error]);
     }
 }
 
@@ -335,11 +337,11 @@ RCT_EXPORT_METHOD(checkState)
     NSLog(@"Peripheral connection failure: %@. (%@)", peripheral, [error localizedDescription]);
 }
 
-RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Write");
     
-    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWrite failCallback:failCallback];
+    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWrite callback:callback];
     
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
     if (context) {
@@ -347,8 +349,7 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         CBCharacteristic *characteristic = [context characteristic];
         
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-        [writeCallbacks setObject:successCallback forKey:key];
-        [writeErrorCallbacks setObject:failCallback forKey:key];
+        [writeCallbacks setObject:callback forKey:key];
         
         RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         if ([dataMessage length] > maxByteSize){
@@ -374,15 +375,15 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
             [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
         }
     }else
-        failCallback(@[@"Error"]);
+        callback(@[@"Error"]);
 }
 
 
-RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"writeWithoutResponse");
     
-    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse failCallback:failCallback];
+    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse callback:callback];
     
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
     if (context && [dataMessage length] <= maxByteSize) {
@@ -391,60 +392,60 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
         
         NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
-        successCallback(@[]);
+        callback(@[]);
     }else
-        failCallback(@[@"Error"]);
+        callback(@[@"Error"]);
 }
 
 
-RCT_EXPORT_METHOD(read:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(read:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"read");
     
-    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyRead failCallback:failCallback];
+    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyRead callback:callback];
     if (context) {
         
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-        [readCallbacks setObject:successCallback forKey:key];
+        [readCallbacks setObject:callback forKey:key];
         
         [peripheral readValueForCharacteristic:characteristic];  // callback sends value
     }
     
 }
 
-RCT_EXPORT_METHOD(startNotification:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(startNotification:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"startNotification");
     
-    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyNotify failCallback:failCallback];
+    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyNotify callback:callback];
     
     if (context) {
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-        [notificationCallbacks setObject: successCallback forKey: key];
+        [notificationCallbacks setObject: callback forKey: key];
         
         [peripheral setNotifyValue:YES forCharacteristic:characteristic];
     }
     
 }
 
-RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID successCallback:(nonnull RCTResponseSenderBlock)successCallback failCallback:(nonnull RCTResponseSenderBlock)failCallback)
+RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"stopNotification");
     
-    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyNotify failCallback:failCallback];
+    BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyNotify callback:callback];
     
     if (context) {
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-        [stopNotificationCallbacks setObject: successCallback forKey: key];
+        [stopNotificationCallbacks setObject: callback forKey: key];
         
         if ([characteristic isNotifying]){
             [peripheral setNotifyValue:NO forCharacteristic:characteristic];
@@ -587,7 +588,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 }
 
 // expecting deviceUUID, serviceUUID, characteristicUUID in command.arguments
--(BLECommandContext*) getData:(NSString*)deviceUUIDString  serviceUUIDString:(NSString*)serviceUUIDString characteristicUUIDString:(NSString*)characteristicUUIDString prop:(CBCharacteristicProperties)prop failCallback:(nonnull RCTResponseSenderBlock)failCallback
+-(BLECommandContext*) getData:(NSString*)deviceUUIDString  serviceUUIDString:(NSString*)serviceUUIDString characteristicUUIDString:(NSString*)characteristicUUIDString prop:(CBCharacteristicProperties)prop callback:(nonnull RCTResponseSenderBlock)callback
 {
     CBUUID *serviceUUID = [CBUUID UUIDWithString:serviceUUIDString];
     CBUUID *characteristicUUID = [CBUUID UUIDWithString:characteristicUUIDString];
@@ -597,7 +598,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     if (!peripheral) {
         NSString* err = [NSString stringWithFormat:@"Could not find peripherial with UUID %@", deviceUUIDString];
         NSLog(@"Could not find peripherial with UUID %@", deviceUUIDString);
-        failCallback(@[err]);
+        callback(@[err]);
         
         return nil;
     }
@@ -612,7 +613,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
         NSLog(@"Could not find service with UUID %@ on peripheral with UUID %@",
               serviceUUIDString,
               peripheral.identifier.UUIDString);
-        failCallback(@[err]);
+        callback(@[err]);
         return nil;
     }
     
@@ -635,7 +636,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
               characteristicUUIDString,
               serviceUUIDString,
               peripheral.identifier.UUIDString);
-        failCallback(@[err]);
+        callback(@[err]);
         return nil;
     }
     
