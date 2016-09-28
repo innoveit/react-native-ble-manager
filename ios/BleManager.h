@@ -1,4 +1,5 @@
 #import "RCTBridgeModule.h"
+#import "RCTEventEmitter.h"
 #import <CoreBluetooth/CoreBluetooth.h>
 
 
