@@ -1,6 +1,7 @@
 package it.innove;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -25,18 +26,21 @@ import org.json.JSONException;
 
 import java.util.*;
 
+import static android.app.Activity.RESULT_OK;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 
-class BleManager extends ReactContextBaseJavaModule {
+class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
 	private static final String LOG_TAG = "logs";
+	static final int ENABLE_REQUEST = 1;
 
 
 	private BluetoothAdapter bluetoothAdapter;
 	private Context context;
 	private ReactContext reactContext;
+	private Callback enableBluetoothCallback;
 
 	// key is the MAC Address
 	private Map<String, Peripheral> peripherals = new LinkedHashMap<>();
@@ -46,6 +50,7 @@ class BleManager extends ReactContextBaseJavaModule {
 		super(reactContext);
 		context = reactContext;
 		this.reactContext = reactContext;
+		reactContext.addActivityEventListener(this);
 		Log.d(LOG_TAG, "BleManager created");
 	}
 
@@ -81,6 +86,16 @@ class BleManager extends ReactContextBaseJavaModule {
 		context.registerReceiver(mReceiver, filter);
 		callback.invoke();
 		Log.d(LOG_TAG, "BleManager initialized");
+	}
+
+	@ReactMethod
+	public void enableBluetooth(Callback callback) {
+		if (!bluetoothAdapter.isEnabled()) {
+			enableBluetoothCallback = callback;
+			Intent intentEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			getCurrentActivity().startActivityForResult(intentEnable, ENABLE_REQUEST);
+		} else
+			callback.invoke();
 	}
 
 	@ReactMethod
@@ -485,6 +500,24 @@ class BleManager extends ReactContextBaseJavaModule {
 			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
 		}
 		return new String(hexChars);
+	}
+
+	@Override
+	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+		Log.d(LOG_TAG, "onActivityResult");
+		if (requestCode == ENABLE_REQUEST && enableBluetoothCallback != null) {
+			if (resultCode == RESULT_OK) {
+				enableBluetoothCallback.invoke();
+			} else {
+				enableBluetoothCallback.invoke("User refused to enable");
+			}
+			enableBluetoothCallback = null;
+		}
+	}
+
+	@Override
+	public void onNewIntent(Intent intent) {
+
 	}
 
 }

@@ -144,6 +144,18 @@ class BleManager  {
     });
   }
 
+  enableBluetooth() {
+    return new Promise((fulfill, reject) => {
+      bleManager.enableBluetooth((error) => {
+        if (error != null) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
   getConnectedPeripherals(serviceUUIDs) {
     return new Promise((fulfill, reject) => {
       bleManager.getConnectedPeripherals(serviceUUIDs, (error, result) => {
