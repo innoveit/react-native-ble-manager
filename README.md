@@ -138,8 +138,8 @@ Returns a `Promise` object.
 __Arguments__
 - `options` - `JSON` 
 
-[iOS only] the parameter is optional the configuration keys are:
-- `showAlert` - `Boolean` - Show or hide the alert if the bluetooth is turned off during initialization
+The parameter is optional the configuration keys are:
+- `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
 
 __Examples__
 ```js
@@ -221,6 +221,23 @@ BleManager.disconnect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   .catch((error) => {
     // Failure code
     console.log(error);
+  });
+```
+
+### enableBluetooth() [Android only]
+Create the request to the user to activate the bluetooth.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.enableBluetooth()
+  .then(() => {
+    // Success code
+    console.log('The bluetooh is already enabled or the user confirm');
+  })
+  .catch((error) => {
+    // Failure code
+    console.log('The user refuse to enable bluetooth');
   });
 ```
 
