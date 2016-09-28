@@ -374,8 +374,7 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         } else {
             [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
         }
-    }else
-        callback(@[@"Error"]);
+    }
 }
 
 
@@ -384,17 +383,19 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
     NSLog(@"writeWithoutResponse");
     
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse callback:callback];
-    
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
-    if (context && [dataMessage length] <= maxByteSize) {
+    if ([dataMessage length] <= maxByteSize) {
+        callback(@[@"Max lenght is 20 bytes"]);
+        return;
+    }
+    if (context) {
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
         NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
         callback(@[]);
-    }else
-        callback(@[@"Error"]);
+    }
 }
 
 
