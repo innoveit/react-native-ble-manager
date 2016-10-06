@@ -384,17 +384,33 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
     
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse callback:callback];
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
-    if ([dataMessage length] <= maxByteSize) {
-        callback(@[@"Max lenght is 20 bytes"]);
-        return;
-    }
     if (context) {
-        CBPeripheral *peripheral = [context peripheral];
-        CBCharacteristic *characteristic = [context characteristic];
-        
-        NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
-        [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
-        callback(@[]);
+        if ([dataMessage length] > maxByteSize) {            
+            NSUInteger length = [dataMessage length];
+            NSUInteger offset = 0;
+            CBPeripheral *peripheral = [context peripheral];
+            CBCharacteristic *characteristic = [context characteristic];
+            
+            do {
+                NSUInteger thisChunkSize = length - offset > maxByteSize ? maxByteSize : length - offset;
+                NSData* chunk = [NSData dataWithBytesNoCopy:(char *)[dataMessage bytes] + offset length:thisChunkSize freeWhenDone:NO];
+                
+                offset += thisChunkSize;
+                [peripheral writeValue:chunk forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
+                [NSThread sleepForTimeInterval:0.005];
+            } while (offset < length);
+            
+            NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
+            callback(@[]);
+        } else {
+            
+            CBPeripheral *peripheral = [context peripheral];
+            CBCharacteristic *characteristic = [context characteristic];
+            
+            NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
+            [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
+            callback(@[]);
+        }
     }
 }
 
