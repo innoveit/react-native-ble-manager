@@ -385,7 +385,7 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse callback:callback];
     NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
     if (context) {
-        if ([dataMessage length] > maxByteSize) {            
+        if ([dataMessage length] > maxByteSize) {
             NSUInteger length = [dataMessage length];
             NSUInteger offset = 0;
             CBPeripheral *peripheral = [context peripheral];
@@ -481,24 +481,20 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
     RCTResponseSenderBlock writeCallback = [writeCallbacks objectForKey:key];
-    RCTResponseSenderBlock writeErrorCallback = [writeErrorCallbacks objectForKey:key];
+    [writeCallbacks removeObjectForKey:key];
     
     if (writeCallback) {
         if (error) {
             NSLog(@"%@", error);
-            if(writeErrorCallback){
-                writeErrorCallback(@[error.localizedDescription]);
-            }
+            writeCallback(@[error.localizedDescription]);
+            
         } else {
             if ([writeQueue count] == 0) {
-                writeCallback(@[@""]);
-                [writeCallbacks removeObjectForKey:key];
+                writeCallback(@[]);
             }else{
-                // Rimuovo messaggio da coda e scrivo
+                // Remove and write the queud message
                 NSData *message = [writeQueue objectAtIndex:0];
                 [writeQueue removeObjectAtIndex:0];
-                //NSLog(@"Rimangono in coda: %i", [writeQueue count]);
-                //NSLog(@"Scrivo messaggio (%lu): %@ ", (unsigned long)[message length], [message hexadecimalString]);
                 [peripheral writeValue:message forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
             }
             
