@@ -454,13 +454,9 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Callback callback, int writeType) {
-
-
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null");
-
-		}else {
-
+		} else {
 			BluetoothGattService service = gatt.getService(serviceUUID);
 			BluetoothGattCharacteristic characteristic = findWritableCharacteristic(service, characteristicUUID, writeType);
 			characteristic.setWriteType(writeType);
@@ -481,31 +477,41 @@ public class Peripheral extends BluetoothGattCallback {
 
 					if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
 						writeCallback = callback;
-					} else {
-						writeCallback.invoke();
-						writeCallback = null;
 					}
 
 					if (data.length > maxByteSize) {
 						int dataLength = data.length;
 						int count = 0;
 						byte[] firstMessage = null;
+						List<byte[]> splittedMessage = new ArrayList<>();
+
 						while (count < dataLength && (dataLength - count > maxByteSize)) {
 							if (count == 0) {
 								firstMessage = Arrays.copyOfRange(data, count, count + maxByteSize);
 							} else {
 								byte[] splitMessage = Arrays.copyOfRange(data, count, count + maxByteSize);
-								writeQueue.add(splitMessage);
+								splittedMessage.add(splitMessage);
 							}
 							count += maxByteSize;
 						}
 						if (count < dataLength) {
 							// Other bytes in queue
 							byte[] splitMessage = Arrays.copyOfRange(data, count, data.length);
-							writeQueue.add(splitMessage);
+							splittedMessage.add(splitMessage);
 						}
 
-						doWrite(characteristic, firstMessage);
+						if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
+							writeQueue.addAll(splittedMessage);
+							doWrite(characteristic, firstMessage);
+						} else {
+							for(byte[] message : splittedMessage) {
+								doWrite(characteristic, message);
+								try {
+									Thread.sleep(50);
+								} catch (InterruptedException e) {
+								}
+							}
+						}
 					} else {
 						characteristic.setValue(data);
 
@@ -513,7 +519,7 @@ public class Peripheral extends BluetoothGattCallback {
 						if (gatt.writeCharacteristic(characteristic)) {
 							Log.d(LOG_TAG, "Write completed");
 						} else {
-							writeCallback.invoke("Write failed");
+							callback.invoke("Write failed");
 							writeCallback = null;
 						}
 					}
