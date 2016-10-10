@@ -267,10 +267,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "Connect to: " + peripheralUUID );
 
 		Peripheral peripheral = peripherals.get(peripheralUUID);
-		if (peripheral != null){
-			peripheral.connect(callback, getCurrentActivity());
-		} else
-			callback.invoke("Peripheral not found");
+		if (peripheral == null){
+			peripheralUUID = peripheralUUID.toUpperCase();
+			BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
+			peripheral = new Peripheral(device, reactContext);
+			peripherals.put(peripheralUUID, peripheral);
+		}
+		peripheral.connect(callback, getCurrentActivity());
 	}
 
 	@ReactMethod
