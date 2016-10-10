@@ -504,12 +504,16 @@ public class Peripheral extends BluetoothGattCallback {
 							writeQueue.addAll(splittedMessage);
 							doWrite(characteristic, firstMessage);
 						} else {
-							for(byte[] message : splittedMessage) {
-								doWrite(characteristic, message);
-								try {
-									Thread.sleep(50);
-								} catch (InterruptedException e) {
+							try {
+								doWrite(characteristic, firstMessage);
+								Thread.sleep(50);
+								for(byte[] message : splittedMessage) {
+									doWrite(characteristic, message);
+										Thread.sleep(50);
 								}
+								callback.invoke();
+							} catch (InterruptedException e) {
+								callback.invoke("Error during writing");
 							}
 						}
 					} else {

@@ -90,7 +90,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	@ReactMethod
 	public void enableBluetooth(Callback callback) {
-		if (!bluetoothAdapter.isEnabled()) {
+		if (getBluetoothAdapter() == null) {
+			Log.d(LOG_TAG, "No bluetooth support");
+			callback.invoke("No bluetooth support");
+			return;
+		}
+		if (!getBluetoothAdapter().isEnabled()) {
 			enableBluetoothCallback = callback;
 			Intent intentEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			getCurrentActivity().startActivityForResult(intentEnable, ENABLE_REQUEST);
@@ -303,6 +308,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 
+
 	@ReactMethod
 	public void write(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Integer maxByteSize, Callback callback) {
 		Log.d(LOG_TAG, "Write to: " + deviceUUID);
@@ -323,12 +329,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
 			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
-			if (decoded.length > maxByteSize) {
-				callback.invoke("The max data size is " + maxByteSize.toString());
-			} else {
-				Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
-				peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
-			}
+			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+			peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 		} else
 			callback.invoke("Peripheral not found");
 	}
