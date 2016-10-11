@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
@@ -71,7 +72,7 @@ public class Peripheral extends BluetoothGattCallback {
 			this.connectCallback = callback;
 			gatt = device.connectGatt(activity, false, this);
 		}else{
-			connectCallback.invoke();
+			callback.invoke();
 		}
 	}
 
@@ -79,11 +80,16 @@ public class Peripheral extends BluetoothGattCallback {
 		connectCallback = null;
 		connected = false;
 		if (gatt != null) {
-			gatt.disconnect();
-			gatt.close();
-			gatt = null;
-			Log.d(LOG_TAG, "Disconnect");
-			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+			try {
+				gatt.disconnect();
+				gatt.close();
+				gatt = null;
+				Log.d(LOG_TAG, "Disconnect");
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+			} catch (Exception e) {
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+				Log.d(LOG_TAG, "Error on disconnect", e);
+			}
 		}else
 			Log.d(LOG_TAG, "GATT is null");
 	}
@@ -320,7 +326,7 @@ public class Peripheral extends BluetoothGattCallback {
 				BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CHARACTERISTIC_NOTIFICATION_CONFIG));
 				if (descriptor != null) {
 
-					// prefer notify over indicate
+					// Prefer notify over indicate
 					if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
 						Log.d(LOG_TAG, "Characteristic " + characteristicUUID + " set NOTIFY");
 						descriptor.setValue(notify ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
@@ -331,11 +337,16 @@ public class Peripheral extends BluetoothGattCallback {
 						Log.d(LOG_TAG, "Characteristic " + characteristicUUID + " does not have NOTIFY or INDICATE property set");
 					}
 
-					if (gatt.writeDescriptor(descriptor)) {
-						Log.d(LOG_TAG, "setNotify complete");
-						callback.invoke();
-					} else {
-						callback.invoke("Failed to set client characteristic notification for " + characteristicUUID);
+					try {
+						if (gatt.writeDescriptor(descriptor)) {
+							Log.d(LOG_TAG, "setNotify complete");
+							callback.invoke();
+						} else {
+							callback.invoke("Failed to set client characteristic notification for " + characteristicUUID);
+						}
+					} catch (Exception e) {
+						Log.d(LOG_TAG, "Error on setNotify", e);
+						callback.invoke("Failed to set client characteristic notification for " + characteristicUUID + ", error: " + e.getMessage());
 					}
 
 				} else {
