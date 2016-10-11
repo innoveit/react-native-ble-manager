@@ -481,15 +481,15 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
     RCTResponseSenderBlock writeCallback = [writeCallbacks objectForKey:key];
-    [writeCallbacks removeObjectForKey:key];
     
     if (writeCallback) {
         if (error) {
             NSLog(@"%@", error);
+            [writeCallbacks removeObjectForKey:key];
             writeCallback(@[error.localizedDescription]);
-            
         } else {
             if ([writeQueue count] == 0) {
+                [writeCallbacks removeObjectForKey:key];
                 writeCallback(@[]);
             }else{
                 // Remove and write the queud message
