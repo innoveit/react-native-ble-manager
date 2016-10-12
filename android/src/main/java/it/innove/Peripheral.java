@@ -192,7 +192,7 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
-		connectCallback.invoke();
+		connectCallback.invoke(null, this.asJSONObject(gatt));
 		connectCallback = null;
 	}
 
@@ -469,7 +469,7 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
-	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Callback callback, int writeType) {
+	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Integer queueSleepTime, Callback callback, int writeType) {
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null");
 		} else {
@@ -522,10 +522,10 @@ public class Peripheral extends BluetoothGattCallback {
 						} else {
 							try {
 								doWrite(characteristic, firstMessage);
-								Thread.sleep(50);
+								Thread.sleep(queueSleepTime);
 								for(byte[] message : splittedMessage) {
 									doWrite(characteristic, message);
-										Thread.sleep(50);
+										Thread.sleep(queueSleepTime);
 								}
 								callback.invoke();
 							} catch (InterruptedException e) {

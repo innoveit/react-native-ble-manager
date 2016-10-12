@@ -327,20 +327,20 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		if (peripheral != null){
 			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
 			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
-			peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+			peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
 		} else
 			callback.invoke("Peripheral not found");
 	}
 
 	@ReactMethod
-	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Integer maxByteSize, Callback callback) {
+	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Integer maxByteSize, Integer queueSleepTime, Callback callback) {
 		Log.d(LOG_TAG, "Write without response to: " + deviceUUID);
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
 			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
 			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
-			peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+			peripheral.write(UUID.fromString(serviceUUID), UUID.fromString(characteristicUUID), decoded, maxByteSize, queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 		} else
 			callback.invoke("Peripheral not found");
 	}
