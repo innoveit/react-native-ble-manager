@@ -165,7 +165,10 @@ public class Peripheral extends BluetoothGattCallback {
 					for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
 						WritableMap descriptorMap = Arguments.createMap();
 						descriptorMap.putString("uuid", UUIDHelper.uuidToString(descriptor.getUuid()));
-						descriptorMap.putString("value", Base64.encodeToString(descriptor.getValue(), Base64.NO_WRAP)); // always blank
+						if (descriptor.getValue() != null)
+							descriptorMap.putString("value", Base64.encodeToString(descriptor.getValue(), Base64.NO_WRAP));
+						else
+							descriptorMap.putString("value", null);
 
 						if (descriptor.getPermissions() > 0) {
 							descriptorMap.putMap("permissions", Helper.decodePermissions(descriptor));
