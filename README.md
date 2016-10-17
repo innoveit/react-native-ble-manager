@@ -189,14 +189,15 @@ Attempts to connect to a peripheral.
 Returns a `Promise` object.
 
 __Arguments__
-- `peripheralId` - `String` - the id/mac address of the peripheral to connect.
+- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos.
 
 __Examples__
 ```js
 BleManager.connect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
-  .then(() => {
+  .then((peripheralInfo) => {
     // Success code
     console.log('Connected');
+    console.log(peripheralInfo);
   })
   .catch((error) => {
     // Failure code
@@ -336,7 +337,7 @@ BleManager.write('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXX
   });
 ```
 
-### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
+### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime)
 Write without response to the specified characteristic.
 Returns a `Promise` object.
 
@@ -345,7 +346,8 @@ __Arguments__
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 - `data` - `String` - the data to write in Base64 format.
-- `maxByteSize` - `Integer` - specify the max byte size
+- `maxByteSize` - `Integer` - (Optional) specify the max byte size
+- `queueSleepTime` - `Integer` - (Optional) specify the wait time before each write if the data is greater than maxByteSize
 
 To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
 
