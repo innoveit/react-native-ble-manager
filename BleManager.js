@@ -35,12 +35,15 @@ class BleManager  {
     });
   }
 
-  writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
+  writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime) {
     if (maxByteSize == null) {
       maxByteSize = 20;
     }
+    if (queueSleepTime == null) {
+      queueSleepTime = 10
+    }
     return new Promise((fulfill, reject) => {
-      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (error) => {
+      bleManager.writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime, (error) => {
         if (error) {
           reject(error);
         } else {
@@ -52,11 +55,11 @@ class BleManager  {
 
   connect(peripheralId) {
     return new Promise((fulfill, reject) => {
-      bleManager.connect(peripheralId, (error) => {
+      bleManager.connect(peripheralId, (error, peripheral) => {
         if (error) {
           reject(error);
         } else {
-          fulfill();
+          fulfill(peripheral);
         }
       });
     });

@@ -2,6 +2,7 @@ package it.innove;
 
 import android.app.Activity;
 import android.bluetooth.*;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
@@ -72,7 +73,11 @@ public class Peripheral extends BluetoothGattCallback {
 			this.connectCallback = callback;
 			gatt = device.connectGatt(activity, false, this);
 		}else{
-			callback.invoke();
+			if (gatt != null) {
+				WritableMap map = this.asWritableMap(gatt);
+				callback.invoke(null, map);
+			} else
+				callback.invoke("BluetoothGatt is null");
 		}
 	}
 
@@ -111,66 +116,90 @@ public class Peripheral extends BluetoothGattCallback {
 		return json;
 	}
 
-	public JSONObject asJSONObject(BluetoothGatt gatt) {
 
-		JSONObject json = asJSONObject();
+	public WritableMap asWritableMap() {
+
+		WritableMap map = Arguments.createMap();
 
 		try {
-			JSONArray servicesArray = new JSONArray();
-			JSONArray characteristicsArray = new JSONArray();
-			json.put("services", servicesArray);
-			json.put("characteristics", characteristicsArray);
-
-			if (connected && gatt != null) {
-				for (BluetoothGattService service : gatt.getServices()) {
-					servicesArray.put(UUIDHelper.uuidToString(service.getUuid()));
-
-					for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-						JSONObject characteristicsJSON = new JSONObject();
-						characteristicsArray.put(characteristicsJSON);
-
-						characteristicsJSON.put("service", UUIDHelper.uuidToString(service.getUuid()));
-						characteristicsJSON.put("characteristic", UUIDHelper.uuidToString(characteristic.getUuid()));
-						//characteristicsJSON.put("instanceId", characteristic.getInstanceId());
-
-						characteristicsJSON.put("properties", Helper.decodeProperties(characteristic));
-						// characteristicsJSON.put("propertiesValue", characteristic.getProperties());
-
-						if (characteristic.getPermissions() > 0) {
-							characteristicsJSON.put("permissions", Helper.decodePermissions(characteristic));
-							// characteristicsJSON.put("permissionsValue", characteristic.getPermissions());
-						}
-
-						JSONArray descriptorsArray = new JSONArray();
-
-						for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-							JSONObject descriptorJSON = new JSONObject();
-							descriptorJSON.put("uuid", UUIDHelper.uuidToString(descriptor.getUuid()));
-							descriptorJSON.put("value", descriptor.getValue()); // always blank
-
-							if (descriptor.getPermissions() > 0) {
-								descriptorJSON.put("permissions", Helper.decodePermissions(descriptor));
-								// descriptorJSON.put("permissionsValue", descriptor.getPermissions());
-							}
-							descriptorsArray.put(descriptorJSON);
-						}
-						if (descriptorsArray.length() > 0) {
-							characteristicsJSON.put("descriptors", descriptorsArray);
-						}
-					}
-				}
-			}
-		} catch (JSONException e) { // TODO better error handling
+			map.putString("name", device.getName());
+			map.putString("id", device.getAddress()); // mac address
+			map.putMap("advertising", byteArrayToWritableMap(advertisingData));
+			map.putInt("rssi", advertisingRSSI);
+		} catch (Exception e) { // this shouldn't happen
 			e.printStackTrace();
 		}
 
-		return json;
+		return map;
+	}
+
+	public WritableMap asWritableMap(BluetoothGatt gatt) {
+
+		WritableMap map = asWritableMap();
+
+		WritableArray servicesArray = Arguments.createArray();
+		WritableArray characteristicsArray = Arguments.createArray();
+
+		if (connected && gatt != null) {
+			for (BluetoothGattService service : gatt.getServices()) {
+				WritableMap serviceMap = Arguments.createMap();
+				serviceMap.putString("uuid", UUIDHelper.uuidToString(service.getUuid()));
+
+
+
+				for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+					WritableMap characteristicsMap = Arguments.createMap();
+
+					characteristicsMap.putString("service", UUIDHelper.uuidToString(service.getUuid()));
+					characteristicsMap.putString("characteristic", UUIDHelper.uuidToString(characteristic.getUuid()));
+
+					characteristicsMap.putMap("properties", Helper.decodeProperties(characteristic));
+
+					if (characteristic.getPermissions() > 0) {
+						characteristicsMap.putMap("permissions", Helper.decodePermissions(characteristic));
+					}
+
+
+					WritableArray descriptorsArray = Arguments.createArray();
+
+					for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+						WritableMap descriptorMap = Arguments.createMap();
+						descriptorMap.putString("uuid", UUIDHelper.uuidToString(descriptor.getUuid()));
+						if (descriptor.getValue() != null)
+							descriptorMap.putString("value", Base64.encodeToString(descriptor.getValue(), Base64.NO_WRAP));
+						else
+							descriptorMap.putString("value", null);
+
+						if (descriptor.getPermissions() > 0) {
+							descriptorMap.putMap("permissions", Helper.decodePermissions(descriptor));
+						}
+						descriptorsArray.pushMap(descriptorMap);
+					}
+					if (descriptorsArray.size() > 0) {
+						characteristicsMap.putArray("descriptors", descriptorsArray);
+					}
+					characteristicsArray.pushMap(characteristicsMap);
+				}
+				servicesArray.pushMap(serviceMap);
+			}
+			map.putArray("services", servicesArray);
+			map.putArray("characteristics", characteristicsArray);
+		}
+
+		return map;
 	}
 
 	static JSONObject byteArrayToJSON(byte[] bytes) throws JSONException {
 		JSONObject object = new JSONObject();
 		object.put("CDVType", "ArrayBuffer");
 		object.put("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
+		return object;
+	}
+
+	static WritableMap byteArrayToWritableMap(byte[] bytes) throws JSONException {
+		WritableMap object = Arguments.createMap();
+		object.putString("CDVType", "ArrayBuffer");
+		object.putString("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
 		return object;
 	}
 
@@ -183,16 +212,17 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public Boolean hasService(UUID uuid){
-        if(gatt == null){
-            return null;
-        }
+		if(gatt == null){
+			return null;
+		}
 		return gatt.getService(uuid) != null;
 	}
 
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
-		connectCallback.invoke();
+		WritableMap map = this.asWritableMap(gatt);
+		connectCallback.invoke(null, map);
 		connectCallback = null;
 	}
 
@@ -469,7 +499,7 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
-	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Callback callback, int writeType) {
+	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Integer queueSleepTime, Callback callback, int writeType) {
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null");
 		} else {
@@ -522,10 +552,10 @@ public class Peripheral extends BluetoothGattCallback {
 						} else {
 							try {
 								doWrite(characteristic, firstMessage);
-								Thread.sleep(50);
+								Thread.sleep(queueSleepTime);
 								for(byte[] message : splittedMessage) {
 									doWrite(characteristic, message);
-										Thread.sleep(50);
+									Thread.sleep(queueSleepTime);
 								}
 								callback.invoke();
 							} catch (InterruptedException e) {

@@ -378,7 +378,7 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
 }
 
 
-RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize callback:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize queueSleepTime:(NSInteger)queueSleepTime callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"writeWithoutResponse");
     
@@ -397,7 +397,7 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
                 
                 offset += thisChunkSize;
                 [peripheral writeValue:chunk forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
-                [NSThread sleepForTimeInterval:0.005];
+                [NSThread sleepForTimeInterval:(queueSleepTime / 1000)];
             } while (offset < length);
             
             NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
@@ -551,17 +551,10 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     if ([latch count] == 0) {
         // Call success callback for connect
         if (connectCallback) {
-            connectCallback(@[[NSNull null]]);
+            connectCallback(@[[NSNull null], [peripheral asDictionary]]);
         }
         [connectCallbackLatches removeObjectForKey:peripheralUUIDString];
     }
-    
-    /*
-     NSLog(@"Found characteristics for service %@", service);
-     for (CBCharacteristic *characteristic in service.characteristics) {
-     NSLog(@"Characteristic %@", characteristic);
-     }*/
-    
 }
 
 // Find a characteristic in service with a specific property
