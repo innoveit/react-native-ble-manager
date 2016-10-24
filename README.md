@@ -64,6 +64,16 @@ public class MainApplication extends Application implements ReactApplication {
 
 ##Basic Example
 ```js
+import React, { Component } from 'react';
+import {
+  AppRegistry,
+  Text,
+  View,
+  TouchableHighlight,
+  NativeAppEventEmitter
+} from 'react-native';
+import BleManager from 'react-native-ble-manager';
+
 class BleExample extends Component {
 
     constructor(){
