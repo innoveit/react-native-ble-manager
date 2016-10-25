@@ -223,6 +223,7 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
 {
     NSLog(@"BleManager initialized");
     NSDictionary *initOptions = nil;
+    [peripherals removeAllObjects];
     if ([[options allKeys] containsObject:@"showAlert"]){
         BOOL showAlert = [[options valueForKey:@"showAlert"] boolValue];
         initOptions = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:showAlert] forKey:CBCentralManagerOptionShowPowerAlertKey];
