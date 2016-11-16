@@ -61,6 +61,9 @@ public class MainApplication extends Application implements ReactApplication {
     ...
 }
 ```
+##Note
+Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals.
+React Native >= 0.33 natively support PermissionsAndroid like in the example.
 
 ##Basic Example
 ```js
@@ -70,7 +73,9 @@ import {
   Text,
   View,
   TouchableHighlight,
-  NativeAppEventEmitter
+  NativeAppEventEmitter,
+  Platform
+  PermissionsAndroid
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 
@@ -91,6 +96,22 @@ class BleExample extends Component {
 
         NativeAppEventEmitter
             .addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
+            
+        if (Platform.OS === 'android' && Platform.Version >= 23) {
+            PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+                if (result) {
+                  console.log("Permission is OK");
+                } else {
+                  PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+                    if (result) {
+                      console.log("User accept");
+                    } else {
+                      console.log("User refuse");
+                    }
+                  });
+                }
+          });
+        }
     }
 
     handleScan() {
