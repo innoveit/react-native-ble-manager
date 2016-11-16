@@ -213,6 +213,7 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
         for(CBPeripheral *peripheral in connectedPeripherals){
             NSDictionary * obj = [peripheral asDictionary];
             [foundedPeripherals addObject:obj];
+            [peripherals addObject:peripheral];
         }
     }
     
@@ -223,6 +224,7 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
 {
     NSLog(@"BleManager initialized");
     NSDictionary *initOptions = nil;
+    
     if ([[options allKeys] containsObject:@"showAlert"]){
         BOOL showAlert = [[options valueForKey:@"showAlert"] boolValue];
         initOptions = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:showAlert] forKey:CBCentralManagerOptionShowPowerAlertKey];
@@ -230,6 +232,7 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
     } else {
         manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue()];
     }
+    
     callback(@[]);
 }
 
@@ -274,7 +277,7 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
 {
     [peripherals addObject:peripheral];
     [peripheral setAdvertisementData:advertisementData RSSI:RSSI];
-    
+        
     NSLog(@"Discover peripheral: %@", [peripheral name]);
     [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
 }
@@ -283,6 +286,18 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
 {
     NSLog(@"connect");
     CBPeripheral *peripheral = [self findPeripheralByUUID:peripheralUUID];
+    if (peripheral == nil){
+        // Try to retrieve the peripheral
+        NSLog(@"Retrieving peripheral with UUID : %@", peripheralUUID);
+        NSMutableArray *deviceUUIDs = [NSMutableArray new];
+        [deviceUUIDs addObject:[CBUUID UUIDWithString:peripheralUUID]];
+        NSArray<CBPeripheral *> *peripheralArray = [manager retrievePeripheralsWithIdentifiers:deviceUUIDs];
+        if([peripheralArray count] > 0){
+            peripheral = [peripheralArray objectAtIndex:0];
+            [peripherals addObject:peripheral];
+            NSLog(@"Successfull retrieved peripheral with UUID : %@", peripheralUUID);
+        }
+    }
     if (peripheral) {
         NSLog(@"Connecting to peripheral with UUID : %@", peripheralUUID);
         
