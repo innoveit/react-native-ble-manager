@@ -30,7 +30,7 @@ import static android.app.Activity.RESULT_OK;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
-
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
 	private static final String LOG_TAG = "logs";
@@ -141,49 +141,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			}
 		}
 
-		final ScanCallback mScanCallback = new ScanCallback() {
-			@Override
-			public void onScanResult(final int callbackType, final ScanResult result) {
-
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Log.i(LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
-						String address = result.getDevice().getAddress();
-
-						if (!peripherals.containsKey(address)) {
-
-							Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
-							peripherals.put(address, peripheral);
-
-							BundleJSONConverter bjc = new BundleJSONConverter();
-							try {
-								Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
-								WritableMap map = Arguments.fromBundle(bundle);
-								sendEvent("BleManagerDiscoverPeripheral", map);
-							} catch (JSONException ignored) {
-
-							}
-
-
-						} else {
-							// this isn't necessary
-							Peripheral peripheral = peripherals.get(address);
-							peripheral.updateRssi(result.getRssi());
-						}
-					}
-				});
-			}
-
-			@Override
-			public void onBatchScanResults(final List<ScanResult> results) {
-			}
-
-			@Override
-			public void onScanFailed(final int errorCode) {
-			}
-		};
-
 		getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, mScanCallback);
 		if (scanSeconds > 0) {
 			Thread thread = new Thread() {
@@ -255,7 +212,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke("Bluetooth not enabled");
 			return;
 		}
-		getBluetoothAdapter().stopLeScan(mLeScanCallback);
+		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
+			getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
+		} else {
+			getBluetoothAdapter().stopLeScan(mLeScanCallback);
+		}
 		callback.invoke();
 	}
 
@@ -345,10 +306,53 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "Read from: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
-			peripheral.read(UUIDHelper.uuidFromString(serviceUUID).getUuid(), UUIDHelper.uuidFromString(characteristicUUID), callback);
+			peripheral.read(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
 		} else
 			callback.invoke("Peripheral not found", null);
 	}
+
+	private final ScanCallback mScanCallback = new ScanCallback() {
+		@Override
+		public void onScanResult(final int callbackType, final ScanResult result) {
+
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Log.i(LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
+					String address = result.getDevice().getAddress();
+
+					if (!peripherals.containsKey(address)) {
+
+						Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
+						peripherals.put(address, peripheral);
+
+						BundleJSONConverter bjc = new BundleJSONConverter();
+						try {
+							Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+							WritableMap map = Arguments.fromBundle(bundle);
+							sendEvent("BleManagerDiscoverPeripheral", map);
+						} catch (JSONException ignored) {
+
+						}
+
+
+					} else {
+						// this isn't necessary
+						Peripheral peripheral = peripherals.get(address);
+						peripheral.updateRssi(result.getRssi());
+					}
+				}
+			});
+		}
+
+		@Override
+		public void onBatchScanResults(final List<ScanResult> results) {
+		}
+
+		@Override
+		public void onScanFailed(final int errorCode) {
+		}
+	};
 
 	private BluetoothAdapter.LeScanCallback mLeScanCallback =
 			new BluetoothAdapter.LeScanCallback() {
