@@ -1,4 +1,5 @@
 #import "RCTBridgeModule.h"
+#import "RCTEventEmitter.h"
 #import <CoreBluetooth/CoreBluetooth.h>
 
 
@@ -7,7 +8,6 @@
     NSMutableDictionary* connectCallbacks;
     NSMutableDictionary *readCallbacks;
     NSMutableDictionary *writeCallbacks;
-    NSMutableDictionary *writeErrorCallbacks;
     NSMutableArray *writeQueue;
     NSMutableDictionary *notificationCallbacks;
     NSMutableDictionary *stopNotificationCallbacks;

@@ -2,6 +2,7 @@ package it.innove;
 
 import android.app.Activity;
 import android.bluetooth.*;
+import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
@@ -33,11 +35,8 @@ public class Peripheral extends BluetoothGattCallback {
 	private BluetoothGatt gatt;
 
 	private Callback connectCallback;
-	private Callback connectFailCallback;
 	private Callback readCallback;
-	private Callback readFailCallback;
 	private Callback writeCallback;
-	private Callback writeFailCallback;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
 
@@ -50,21 +49,35 @@ public class Peripheral extends BluetoothGattCallback {
 
 	}
 
+	public Peripheral(BluetoothDevice device, ReactContext reactContext) {
+		this.device = device;
+		this.reactContext = reactContext;
+	}
+
 	private void sendEvent(String eventName, @Nullable WritableMap params) {
 		reactContext
 				.getJSModule(RCTNativeAppEventEmitter.class)
 				.emit(eventName, params);
 	}
 
+	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
+		WritableMap map = Arguments.createMap();
+		map.putString("peripheral", device.getAddress());
+		sendEvent(eventName, map);
+		Log.d(LOG_TAG, "Peripheral event (eventName):" + device.getAddress());
+	}
 
-	public void connect(Callback connectCallback, Callback failCallback, Activity activity) {
+	public void connect(Callback callback, Activity activity) {
 		if (!connected) {
 			BluetoothDevice device = getDevice();
-			this.connectCallback = connectCallback;
-			this.connectFailCallback = failCallback;
+			this.connectCallback = callback;
 			gatt = device.connectGatt(activity, false, this);
 		}else{
-			connectCallback.invoke();
+			if (gatt != null) {
+				WritableMap map = this.asWritableMap(gatt);
+				callback.invoke(null, map);
+			} else
+				callback.invoke("BluetoothGatt is null");
 		}
 	}
 
@@ -72,13 +85,16 @@ public class Peripheral extends BluetoothGattCallback {
 		connectCallback = null;
 		connected = false;
 		if (gatt != null) {
-			gatt.disconnect();
-			gatt.close();
-			gatt = null;
-			Log.d(LOG_TAG, "Disconnect");
-			WritableMap map = Arguments.createMap();
-			map.putString("peripheral", device.getAddress());
-			sendEvent("BleManagerDisconnectPeripheral", map);
+			try {
+				gatt.disconnect();
+				gatt.close();
+				gatt = null;
+				Log.d(LOG_TAG, "Disconnect");
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+			} catch (Exception e) {
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+				Log.d(LOG_TAG, "Error on disconnect", e);
+			}
 		}else
 			Log.d(LOG_TAG, "GATT is null");
 	}
@@ -100,66 +116,90 @@ public class Peripheral extends BluetoothGattCallback {
 		return json;
 	}
 
-	public JSONObject asJSONObject(BluetoothGatt gatt) {
 
-		JSONObject json = asJSONObject();
+	public WritableMap asWritableMap() {
+
+		WritableMap map = Arguments.createMap();
 
 		try {
-			JSONArray servicesArray = new JSONArray();
-			JSONArray characteristicsArray = new JSONArray();
-			json.put("services", servicesArray);
-			json.put("characteristics", characteristicsArray);
-
-			if (connected && gatt != null) {
-				for (BluetoothGattService service : gatt.getServices()) {
-					servicesArray.put(UUIDHelper.uuidToString(service.getUuid()));
-
-					for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-						JSONObject characteristicsJSON = new JSONObject();
-						characteristicsArray.put(characteristicsJSON);
-
-						characteristicsJSON.put("service", UUIDHelper.uuidToString(service.getUuid()));
-						characteristicsJSON.put("characteristic", UUIDHelper.uuidToString(characteristic.getUuid()));
-						//characteristicsJSON.put("instanceId", characteristic.getInstanceId());
-
-						characteristicsJSON.put("properties", Helper.decodeProperties(characteristic));
-						// characteristicsJSON.put("propertiesValue", characteristic.getProperties());
-
-						if (characteristic.getPermissions() > 0) {
-							characteristicsJSON.put("permissions", Helper.decodePermissions(characteristic));
-							// characteristicsJSON.put("permissionsValue", characteristic.getPermissions());
-						}
-
-						JSONArray descriptorsArray = new JSONArray();
-
-						for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
-							JSONObject descriptorJSON = new JSONObject();
-							descriptorJSON.put("uuid", UUIDHelper.uuidToString(descriptor.getUuid()));
-							descriptorJSON.put("value", descriptor.getValue()); // always blank
-
-							if (descriptor.getPermissions() > 0) {
-								descriptorJSON.put("permissions", Helper.decodePermissions(descriptor));
-								// descriptorJSON.put("permissionsValue", descriptor.getPermissions());
-							}
-							descriptorsArray.put(descriptorJSON);
-						}
-						if (descriptorsArray.length() > 0) {
-							characteristicsJSON.put("descriptors", descriptorsArray);
-						}
-					}
-				}
-			}
-		} catch (JSONException e) { // TODO better error handling
+			map.putString("name", device.getName());
+			map.putString("id", device.getAddress()); // mac address
+			map.putMap("advertising", byteArrayToWritableMap(advertisingData));
+			map.putInt("rssi", advertisingRSSI);
+		} catch (Exception e) { // this shouldn't happen
 			e.printStackTrace();
 		}
 
-		return json;
+		return map;
+	}
+
+	public WritableMap asWritableMap(BluetoothGatt gatt) {
+
+		WritableMap map = asWritableMap();
+
+		WritableArray servicesArray = Arguments.createArray();
+		WritableArray characteristicsArray = Arguments.createArray();
+
+		if (connected && gatt != null) {
+			for (BluetoothGattService service : gatt.getServices()) {
+				WritableMap serviceMap = Arguments.createMap();
+				serviceMap.putString("uuid", UUIDHelper.uuidToString(service.getUuid()));
+
+
+
+				for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+					WritableMap characteristicsMap = Arguments.createMap();
+
+					characteristicsMap.putString("service", UUIDHelper.uuidToString(service.getUuid()));
+					characteristicsMap.putString("characteristic", UUIDHelper.uuidToString(characteristic.getUuid()));
+
+					characteristicsMap.putMap("properties", Helper.decodeProperties(characteristic));
+
+					if (characteristic.getPermissions() > 0) {
+						characteristicsMap.putMap("permissions", Helper.decodePermissions(characteristic));
+					}
+
+
+					WritableArray descriptorsArray = Arguments.createArray();
+
+					for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
+						WritableMap descriptorMap = Arguments.createMap();
+						descriptorMap.putString("uuid", UUIDHelper.uuidToString(descriptor.getUuid()));
+						if (descriptor.getValue() != null)
+							descriptorMap.putString("value", Base64.encodeToString(descriptor.getValue(), Base64.NO_WRAP));
+						else
+							descriptorMap.putString("value", null);
+
+						if (descriptor.getPermissions() > 0) {
+							descriptorMap.putMap("permissions", Helper.decodePermissions(descriptor));
+						}
+						descriptorsArray.pushMap(descriptorMap);
+					}
+					if (descriptorsArray.size() > 0) {
+						characteristicsMap.putArray("descriptors", descriptorsArray);
+					}
+					characteristicsArray.pushMap(characteristicsMap);
+				}
+				servicesArray.pushMap(serviceMap);
+			}
+			map.putArray("services", servicesArray);
+			map.putArray("characteristics", characteristicsArray);
+		}
+
+		return map;
 	}
 
 	static JSONObject byteArrayToJSON(byte[] bytes) throws JSONException {
 		JSONObject object = new JSONObject();
 		object.put("CDVType", "ArrayBuffer");
 		object.put("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
+		return object;
+	}
+
+	static WritableMap byteArrayToWritableMap(byte[] bytes) throws JSONException {
+		WritableMap object = Arguments.createMap();
+		object.putString("CDVType", "ArrayBuffer");
+		object.putString("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
 		return object;
 	}
 
@@ -172,18 +212,18 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public Boolean hasService(UUID uuid){
-        if(gatt == null){
-            return null;
-        }
+		if(gatt == null){
+			return null;
+		}
 		return gatt.getService(uuid) != null;
 	}
 
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
-		connectCallback.invoke();
+		WritableMap map = this.asWritableMap(gatt);
+		connectCallback.invoke(null, map);
 		connectCallback = null;
-		connectFailCallback = null;
 	}
 
 	@Override
@@ -198,6 +238,8 @@ public class Peripheral extends BluetoothGattCallback {
 			connected = true;
 			gatt.discoverServices();
 
+			sendConnectionEvent(device, "BleManagerConnectPeripheral");
+
 		} else if (newState == BluetoothGatt.STATE_DISCONNECTED){
 
 			if (connected) {
@@ -208,15 +250,12 @@ public class Peripheral extends BluetoothGattCallback {
 					gatt.close();
 					this.gatt = null;
 				}
-
-				WritableMap map = Arguments.createMap();
-				map.putString("peripheral", device.getAddress());
-				sendEvent("BleManagerDisconnectPeripheral", map);
-				Log.d(LOG_TAG, "BleManagerDisconnectPeripheral peripheral:" + device.getAddress());
 			}
-			if (connectFailCallback != null) {
-				connectFailCallback.invoke();
-				connectFailCallback = null;
+
+			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+
+			if (connectCallback != null) {
+				connectCallback.invoke("Connection error");
 				connectCallback = null;
 			}
 
@@ -258,12 +297,10 @@ public class Peripheral extends BluetoothGattCallback {
 				String value = BleManager.bytesToHex(dataValue);
 
 				if (readCallback != null) {
-					readCallback.invoke(value);
-					readCallback = null;
+					readCallback.invoke(null, value);
 				}
 			} else {
-				readFailCallback.invoke("Error reading " + characteristic.getUuid() + " status=" + status);
-				readFailCallback = null;
+				readCallback.invoke("Error reading " + characteristic.getUuid() + " status=" + status, null);
 			}
 
 			readCallback = null;
@@ -288,11 +325,10 @@ public class Peripheral extends BluetoothGattCallback {
 					writeCallback.invoke();
 				} else {
 					Log.e(LOG_TAG, "Error onCharacteristicWrite:" + status);
-					writeFailCallback.invoke("Error writing status: " + status);
+					writeCallback.invoke("Error writing status: " + status);
 				}
 
 				writeCallback = null;
-				writeFailCallback = null;
 			}
 		}else
 			Log.e(LOG_TAG, "No callback on write");
@@ -303,11 +339,11 @@ public class Peripheral extends BluetoothGattCallback {
 		super.onDescriptorWrite(gatt, descriptor, status);
 	}
 
-	private void setNotify(UUID serviceUUID, UUID characteristicUUID, Boolean notify, Callback success, Callback fail){
+	private void setNotify(UUID serviceUUID, UUID characteristicUUID, Boolean notify, Callback callback){
 		Log.d(LOG_TAG, "setNotify");
 
 		if (gatt == null) {
-			fail.invoke("BluetoothGatt is null");
+			callback.invoke("BluetoothGatt is null");
 			return;
 		}
 
@@ -320,7 +356,7 @@ public class Peripheral extends BluetoothGattCallback {
 				BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CHARACTERISTIC_NOTIFICATION_CONFIG));
 				if (descriptor != null) {
 
-					// prefer notify over indicate
+					// Prefer notify over indicate
 					if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0) {
 						Log.d(LOG_TAG, "Characteristic " + characteristicUUID + " set NOTIFY");
 						descriptor.setValue(notify ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
@@ -331,35 +367,40 @@ public class Peripheral extends BluetoothGattCallback {
 						Log.d(LOG_TAG, "Characteristic " + characteristicUUID + " does not have NOTIFY or INDICATE property set");
 					}
 
-					if (gatt.writeDescriptor(descriptor)) {
-						Log.d(LOG_TAG, "setNotify complete");
-						success.invoke();
-					} else {
-						fail.invoke("Failed to set client characteristic notification for " + characteristicUUID);
+					try {
+						if (gatt.writeDescriptor(descriptor)) {
+							Log.d(LOG_TAG, "setNotify complete");
+							callback.invoke();
+						} else {
+							callback.invoke("Failed to set client characteristic notification for " + characteristicUUID);
+						}
+					} catch (Exception e) {
+						Log.d(LOG_TAG, "Error on setNotify", e);
+						callback.invoke("Failed to set client characteristic notification for " + characteristicUUID + ", error: " + e.getMessage());
 					}
 
 				} else {
-					fail.invoke("Set notification failed for " + characteristicUUID);
+					callback.invoke("Set notification failed for " + characteristicUUID);
 				}
 
 			} else {
-				fail.invoke("Failed to register notification for " + characteristicUUID);
+				callback.invoke("Failed to register notification for " + characteristicUUID);
 			}
 
 		} else {
-			fail.invoke("Characteristic " + characteristicUUID + " not found");
+			callback.invoke("Characteristic " + characteristicUUID + " not found");
 		}
 
 	}
 
-	public void registerNotify(UUID serviceUUID, UUID characteristicUUID, Callback success, Callback fail) {
+	public void registerNotify(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 		Log.d(LOG_TAG, "registerNotify");
-		this.setNotify(serviceUUID, characteristicUUID, true, success, fail);
+		this.setNotify(serviceUUID, characteristicUUID, true, callback);
 	}
 
-	public void removeNotify(UUID serviceUUID, UUID characteristicUUID, Callback success, Callback fail) {
+	public void removeNotify(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 		Log.d(LOG_TAG, "removeNotify");
-		this.setNotify(serviceUUID, characteristicUUID, false, success, fail);
+		this.setNotify(serviceUUID, characteristicUUID, false, callback);
 	}
 
 	// Some devices reuse UUIDs across characteristics, so we can't use service.getCharacteristic(characteristicUUID)
@@ -400,10 +441,10 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
-	public void read(UUID serviceUUID, UUID characteristicUUID, Callback successCallback, Callback failCallback) {
+	public void read(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 
 		if (gatt == null) {
-			failCallback.invoke("BluetoothGatt is null");
+			callback.invoke("BluetoothGatt is null", null);
 			return;
 		}
 
@@ -411,13 +452,12 @@ public class Peripheral extends BluetoothGattCallback {
 		BluetoothGattCharacteristic characteristic = findReadableCharacteristic(service, characteristicUUID);
 
 		if (characteristic == null) {
-			failCallback.invoke("Characteristic " + characteristicUUID + " not found.");
+			callback.invoke("Characteristic " + characteristicUUID + " not found.", null);
 		} else {
-			readCallback = successCallback;
-			readFailCallback = failCallback;
+			readCallback = callback;
 			if (!gatt.readCharacteristic(characteristic)) {
 				readCallback = null;
-				failCallback.invoke("Read failed");
+				callback.invoke("Read failed", null);
 			}
 		}
 
@@ -459,67 +499,81 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
-	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Callback successCallback, Callback failCallback, int writeType) {
-
-
+	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Integer queueSleepTime, Callback callback, int writeType) {
 		if (gatt == null) {
-			failCallback.invoke("BluetoothGatt is null");
-
-		}else {
-
+			callback.invoke("BluetoothGatt is null");
+		} else {
 			BluetoothGattService service = gatt.getService(serviceUUID);
 			BluetoothGattCharacteristic characteristic = findWritableCharacteristic(service, characteristicUUID, writeType);
 			characteristic.setWriteType(writeType);
 
 			if (characteristic == null) {
-				failCallback.invoke("Characteristic " + characteristicUUID + " not found.");
+				callback.invoke("Characteristic " + characteristicUUID + " not found.");
 			} else {
 
 				if (writeQueue.size() > 0) {
-					failCallback.invoke("You have already an queued message");
+					callback.invoke("You have already an queued message");
 				}
 
 				if ( writeCallback != null) {
-					failCallback.invoke("You're already writing");
+					callback.invoke("You're already writing");
 				}
 
 				if (writeQueue.size() == 0 && writeCallback == null) {
 
 					if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
-						writeCallback = successCallback;
-						writeFailCallback = failCallback;
-					} else
-						successCallback.invoke();
+						writeCallback = callback;
+					}
 
 					if (data.length > maxByteSize) {
 						int dataLength = data.length;
 						int count = 0;
 						byte[] firstMessage = null;
+						List<byte[]> splittedMessage = new ArrayList<>();
+
 						while (count < dataLength && (dataLength - count > maxByteSize)) {
 							if (count == 0) {
 								firstMessage = Arrays.copyOfRange(data, count, count + maxByteSize);
 							} else {
 								byte[] splitMessage = Arrays.copyOfRange(data, count, count + maxByteSize);
-								writeQueue.add(splitMessage);
+								splittedMessage.add(splitMessage);
 							}
 							count += maxByteSize;
 						}
 						if (count < dataLength) {
 							// Other bytes in queue
 							byte[] splitMessage = Arrays.copyOfRange(data, count, data.length);
-							writeQueue.add(splitMessage);
+							splittedMessage.add(splitMessage);
 						}
 
-						doWrite(characteristic, firstMessage);
+						if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
+							writeQueue.addAll(splittedMessage);
+							doWrite(characteristic, firstMessage);
+						} else {
+							try {
+								doWrite(characteristic, firstMessage);
+								Thread.sleep(queueSleepTime);
+								for(byte[] message : splittedMessage) {
+									doWrite(characteristic, message);
+									Thread.sleep(queueSleepTime);
+								}
+								callback.invoke();
+							} catch (InterruptedException e) {
+								callback.invoke("Error during writing");
+							}
+						}
 					} else {
 						characteristic.setValue(data);
 
 
 						if (gatt.writeCharacteristic(characteristic)) {
 							Log.d(LOG_TAG, "Write completed");
+							if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
+								callback.invoke();
+							}
 						} else {
+							callback.invoke("Write failed");
 							writeCallback = null;
-							failCallback.invoke("Write failed");
 						}
 					}
 				}
@@ -527,7 +581,6 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 
 	}
-
 
 	// Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
 	// and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)

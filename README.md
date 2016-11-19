@@ -5,6 +5,9 @@
 
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
+##Requirements
+RN 0.30+
+
 ##Supported Platforms
 - iOS
 - Android (API 18)
@@ -20,7 +23,7 @@ npm i --save react-native-ble-manager
 ####Android
 #####Update Gradle Settings
 
-```
+```gradle
 // file: android/settings.gradle
 ...
 
@@ -29,7 +32,7 @@ project(':react-native-ble-manager').projectDir = new File(rootProject.projectDi
 ```
 #####Update Gradle Build
 
-```
+```gradle
 // file: android/app/build.gradle
 ...
 
@@ -39,7 +42,7 @@ dependencies {
 }
 ```
 #####Register React Package
-```
+```java
 ...
 import it.innove.BleManagerPackage; // <--- import
 
@@ -58,9 +61,24 @@ public class MainApplication extends Application implements ReactApplication {
     ...
 }
 ```
+##Note
+Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals.
+React Native >= 0.33 natively support PermissionsAndroid like in the example.
 
 ##Basic Example
-```
+```js
+import React, { Component } from 'react';
+import {
+  AppRegistry,
+  Text,
+  View,
+  TouchableHighlight,
+  NativeAppEventEmitter,
+  Platform
+  PermissionsAndroid
+} from 'react-native';
+import BleManager from 'react-native-ble-manager';
+
 class BleExample extends Component {
 
     constructor(){
@@ -73,10 +91,27 @@ class BleExample extends Component {
     }
 
     componentDidMount() {
+        BleManager.start({showAlert: false});
         this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
 
         NativeAppEventEmitter
             .addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
+            
+        if (Platform.OS === 'android' && Platform.Version >= 23) {
+            PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+                if (result) {
+                  console.log("Permission is OK");
+                } else {
+                  PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+                    if (result) {
+                      console.log("User accept");
+                    } else {
+                      console.log("User refuse");
+                    }
+                  });
+                }
+          });
+        }
     }
 
     handleScan() {
@@ -127,6 +162,26 @@ class BleExample extends Component {
 
 ##Methods
 
+### start(options)
+Init the module.
+Returns a `Promise` object.
+
+__Arguments__
+- `options` - `JSON` 
+
+The parameter is optional the configuration keys are:
+- `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
+
+__Examples__
+```js
+BleManager.start({showAlert: false})
+  .then(() => {
+    // Success code
+    console.log('Module initialized');
+  });
+
+```
+
 ### scan(serviceUUIDs, seconds)
 Scan for availables peripherals.
 Returns a `Promise` object.
@@ -165,14 +220,15 @@ Attempts to connect to a peripheral.
 Returns a `Promise` object.
 
 __Arguments__
-- `peripheralId` - `String` - the id/mac address of the peripheral to connect.
+- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos.
 
 __Examples__
 ```js
 BleManager.connect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
-  .then(() => {
+  .then((peripheralInfo) => {
     // Success code
     console.log('Connected');
+    console.log(peripheralInfo);
   })
   .catch((error) => {
     // Failure code
@@ -197,6 +253,23 @@ BleManager.disconnect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   .catch((error) => {
     // Failure code
     console.log(error);
+  });
+```
+
+### enableBluetooth() [Android only]
+Create the request to the user to activate the bluetooth.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.enableBluetooth()
+  .then(() => {
+    // Success code
+    console.log('The bluetooh is already enabled or the user confirm');
+  })
+  .catch((error) => {
+    // Failure code
+    console.log('The user refuse to enable bluetooth');
   });
 ```
 
@@ -295,7 +368,7 @@ BleManager.write('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXX
   });
 ```
 
-### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
+### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime)
 Write without response to the specified characteristic.
 Returns a `Promise` object.
 
@@ -304,7 +377,8 @@ __Arguments__
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 - `data` - `String` - the data to write in Base64 format.
-- `maxByteSize` - `Integer` - specify the max byte size
+- `maxByteSize` - `Integer` - (Optional) specify the max byte size
+- `queueSleepTime` - `Integer` - (Optional) specify the wait time before each write if the data is greater than maxByteSize
 
 To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
 
@@ -356,6 +430,23 @@ BleManager.getDiscoveredPeripherals([])
   .then((peripheralsArray) => {
     // Success code
     console.log('Discovered peripherals: ' + peripheralsArray.length);
+  });
+
+```
+
+### isPeripheralConnected(peripheralId, serviceUUIDs)
+Check whether a specific peripheral is connected and return `true` or `false`.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.isPeripheralConnected('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', [])
+  .then((isConnected) => {
+    if (isConnected) {
+      console.log('Peripheral is connected!');
+    } else {
+      console.log('Peripheral is NOT connected!');
+    }
   });
 
 ```
@@ -419,8 +510,14 @@ __Arguments__
 - `characteristic` - `String` - the UUID of the characteristic
 - `value` - `String` - the read value in Hex format
 
+###  BleManagerConnectPeripheral
+A peripheral was connected.
+
+__Arguments__
+- `peripheral` - `String` - the id of the peripheral
+
 ###  BleManagerDisconnectPeripheral
-A peripheral is disconnected.
+A peripheral was disconnected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
