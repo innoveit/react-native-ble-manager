@@ -281,7 +281,7 @@ public class Peripheral extends BluetoothGattCallback {
 		WritableMap map = Arguments.createMap();
 		map.putString("peripheral", device.getAddress());
 		map.putString("characteristic", characteristic.getUuid().toString());
-		map.putString("value", BleManager.bytesToHex(dataValue));
+		map.putString("value", Base64.encodeToString(dataValue, Base64.NO_WRAP));
 		sendEvent("BleManagerDidUpdateValueForCharacteristic", map);
 	}
 

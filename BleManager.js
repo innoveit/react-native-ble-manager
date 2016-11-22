@@ -1,4 +1,6 @@
 'use strict';
+
+const { Buffer } = require('buffer')
 var React = require('react-native');
 var bleManager = React.NativeModules.BleManager;
 
@@ -20,19 +22,17 @@ class BleManager  {
     });
   }
 
-  write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
-    if (maxByteSize == null) {
-      maxByteSize = 20;
-    }
+  write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize = 20) {
+    var d = Array.isArray(data) || typeof(data) === 'string' ? d = new Buffer(data) : data
     return new Promise((fulfill, reject) => {
-      bleManager.write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
-        }
-      });
-    });
+        bleManager.write(peripheralId, serviceUUID, characteristicUUID, d.toString('base64'), maxByteSize, (error) => {
+            if (error) {
+                reject(error)
+            } else {
+                fulfill()
+            }
+        })
+    })
   }
 
   writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime) {
