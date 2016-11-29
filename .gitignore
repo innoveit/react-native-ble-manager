@@ -26,3 +26,5 @@ DerivedData
 *.xcuserstate
 
 xcuserdata
+
+*.iml

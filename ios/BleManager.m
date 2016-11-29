@@ -289,9 +289,8 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
     if (peripheral == nil){
         // Try to retrieve the peripheral
         NSLog(@"Retrieving peripheral with UUID : %@", peripheralUUID);
-        NSMutableArray *deviceUUIDs = [NSMutableArray new];
-        [deviceUUIDs addObject:[CBUUID UUIDWithString:peripheralUUID]];
-        NSArray<CBPeripheral *> *peripheralArray = [manager retrievePeripheralsWithIdentifiers:deviceUUIDs];
+        NSUUID *uuid = [[NSUUID alloc]initWithUUIDString:peripheralUUID];
+        NSArray<CBPeripheral *> *peripheralArray = [manager retrievePeripheralsWithIdentifiers:@[uuid]];
         if([peripheralArray count] > 0){
             peripheral = [peripheralArray objectAtIndex:0];
             [peripherals addObject:peripheral];
@@ -448,6 +447,21 @@ RCT_EXPORT_METHOD(read:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID
     
 }
 
+RCT_EXPORT_METHOD(readRSSI:(NSString *)deviceUUID callback:(nonnull RCTResponseSenderBlock)callback)
+{
+    NSLog(@"readRSSI");
+    
+    CBPeripheral *peripheral = [self findPeripheralByUUID:deviceUUID];
+    
+    if (peripheral && peripheral.state == CBPeripheralStateConnected) {
+        [readRSSICallbacks setObject:callback forKey:[peripheral uuidAsString]];
+        [peripheral readRSSI];
+    } else {
+        callback(@[@"Peripheral not found or not connected"]);
+    }
+    
+}
+
 RCT_EXPORT_METHOD(startNotification:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"startNotification");
@@ -517,6 +531,21 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     }
     
 }
+
+- (void)peripheralDidUpdateRSSI:(CBPeripheral*)peripheral error:(NSError*)error {
+    [self peripheral: peripheral didReadRSSI: [peripheral RSSI] error: error];
+}
+
+- (void)peripheral:(CBPeripheral*)peripheral didReadRSSI:(NSNumber*)rssi error:(NSError*)error {
+    NSLog(@"didReadRSSI %@", rssi);
+    NSString *key = [peripheral uuidAsString];
+    RCTResponseSenderBlock readRSSICallback = [readRSSICallbacks objectForKey: key];
+    if (readRSSICallback) {
+        readRSSICallback(@[[NSNull null], [NSNumber numberWithInteger:[rssi integerValue]]]);
+        [readRSSICallbacks removeObjectForKey:readRSSICallback];
+    }
+}
+
 
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
