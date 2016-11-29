@@ -245,6 +245,25 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 
+	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	private void stopScan21(Callback callback) {
+
+		final ScanCallback mScanCallback = new ScanCallback() {
+			@Override
+			public void onScanResult(final int callbackType, final ScanResult result) {
+			}
+
+		};
+
+		getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
+		callback.invoke();
+	}
+
+	private void stopScan19(Callback callback) {
+		getBluetoothAdapter().stopLeScan(mLeScanCallback);
+		callback.invoke();
+	}
+
 
 	@ReactMethod
 	public void stopScan(Callback callback) {
@@ -258,8 +277,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke("Bluetooth not enabled");
 			return;
 		}
-		getBluetoothAdapter().stopLeScan(mLeScanCallback);
-		callback.invoke();
+		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
+			stopScan21(callback);
+		} else {
+			stopScan19(callback);
+		}
 	}
 
 	@ReactMethod
@@ -350,7 +372,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "Read from: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
-			peripheral.read(ParcelUuid.fromString(serviceUUID).getUuid(), UUIDHelper.uuidFromString(characteristicUUID), callback);
+			peripheral.read(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
 		} else
 			callback.invoke("Peripheral not found", null);
 	}
