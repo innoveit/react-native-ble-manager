@@ -20,6 +20,18 @@ class BleManager  {
     });
   }
 
+  readRSSI(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.readRSSI(peripheralId, (error, rssi) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(rssi);
+        }
+      });
+    });
+  }
+
   write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
     if (maxByteSize == null) {
       maxByteSize = 20;
