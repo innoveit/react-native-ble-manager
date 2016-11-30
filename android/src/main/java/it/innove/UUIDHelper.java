@@ -15,7 +15,7 @@ public class UUIDHelper {
 		if (uuid.length() == 4) {
 			uuid = UUID_BASE.replace("XXXX", uuid);
 		}
-		return UUIDHelper.uuidFromString(uuid);
+		return UUID.fromString(uuid);
 	}
 
 	// return 16 bit UUIDs where possible
