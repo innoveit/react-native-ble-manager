@@ -36,6 +36,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	private Callback connectCallback;
 	private Callback readCallback;
+	private Callback readRSSICallback;
 	private Callback writeCallback;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
@@ -339,6 +340,21 @@ public class Peripheral extends BluetoothGattCallback {
 		super.onDescriptorWrite(gatt, descriptor, status);
 	}
 
+	@Override
+	public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+		super.onReadRemoteRssi(gatt, rssi, status);
+		if (readRSSICallback != null) {
+			if (status == BluetoothGatt.GATT_SUCCESS) {
+				updateRssi(rssi);
+				readRSSICallback.invoke(null, rssi);
+			} else {
+				readRSSICallback.invoke("Error reading RSSI status=" + status, null);
+			}
+
+			readRSSICallback = null;
+		}
+	}
+
 	private void setNotify(UUID serviceUUID, UUID characteristicUUID, Boolean notify, Callback callback){
 		Log.d(LOG_TAG, "setNotify");
 
@@ -353,7 +369,7 @@ public class Peripheral extends BluetoothGattCallback {
 		if (characteristic != null) {
 			if (gatt.setCharacteristicNotification(characteristic, notify)) {
 
-				BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CHARACTERISTIC_NOTIFICATION_CONFIG));
+				BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUIDHelper.uuidFromString(CHARACTERISTIC_NOTIFICATION_CONFIG));
 				if (descriptor != null) {
 
 					// Prefer notify over indicate
@@ -460,7 +476,21 @@ public class Peripheral extends BluetoothGattCallback {
 				callback.invoke("Read failed", null);
 			}
 		}
+	}
 
+	public void readRSSI(Callback callback) {
+		if (gatt == null) {
+			callback.invoke("BluetoothGatt is null", null);
+			return;
+		}
+
+		readRSSICallback = callback;
+
+		if (gatt.readRemoteRssi()) {
+		} else {
+			readCallback = null;
+			callback.invoke("Read RSSI failed", null);
+		}
 	}
 
 

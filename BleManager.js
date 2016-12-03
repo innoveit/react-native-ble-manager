@@ -22,6 +22,18 @@ class BleManager  {
     });
   }
 
+  readRSSI(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.readRSSI(peripheralId, (error, rssi) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(rssi);
+        }
+      });
+    });
+  }
+
   write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize = 20) {
     var d = Array.isArray(data) || typeof(data) === 'string' ? d = new Buffer(data) : data
     return new Promise((fulfill, reject) => {
