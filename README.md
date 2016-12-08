@@ -74,7 +74,7 @@ import {
   View,
   TouchableHighlight,
   NativeAppEventEmitter,
-  Platform
+  Platform,
   PermissionsAndroid
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
@@ -116,7 +116,7 @@ class BleExample extends Component {
 
     handleScan() {
         BleManager.scan([], 30, true)
-            .then((results) => console.log('Scanning...'); );
+            .then((results) => {console.log('Scanning...'); });
     }
 
     toggleScanning(bool){
@@ -158,6 +158,8 @@ class BleExample extends Component {
         );
     }
 }
+
+AppRegistry.registerComponent('BleExample', () => BleExample);
 ```
 
 ##Methods
