@@ -9,8 +9,8 @@ This is a porting of https://github.com/don/cordova-plugin-ble-central project t
 RN 0.30+
 
 ##Supported Platforms
-- iOS
-- Android (API 18)
+- iOS 8+
+- Android (API 19+)
 
 ##Install
 ```shell
@@ -222,7 +222,7 @@ Attempts to connect to a peripheral.
 Returns a `Promise` object.
 
 __Arguments__
-- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos.
+- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos. In many case if you can't connect you have to scan for the peripheral before.
 
 __Examples__
 ```js
