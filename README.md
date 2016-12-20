@@ -218,11 +218,11 @@ BleManager.stopScan()
 ```
 
 ### connect(peripheralId)
-Attempts to connect to a peripheral.
+Attempts to connect to a peripheral. In many case if you can't connect you have to scan for the peripheral before.
 Returns a `Promise` object.
 
 __Arguments__
-- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos. In many case if you can't connect you have to scan for the peripheral before.
+- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos.
 
 __Examples__
 ```js
