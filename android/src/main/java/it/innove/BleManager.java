@@ -98,7 +98,10 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		if (!getBluetoothAdapter().isEnabled()) {
 			enableBluetoothCallback = callback;
 			Intent intentEnable = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			getCurrentActivity().startActivityForResult(intentEnable, ENABLE_REQUEST);
+			if (getCurrentActivity() == null)
+				callback.invoke("Current activity not available");
+			else
+				getCurrentActivity().startActivityForResult(intentEnable, ENABLE_REQUEST);
 		} else
 			callback.invoke();
 	}
