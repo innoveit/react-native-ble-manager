@@ -514,7 +514,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			Peripheral peripheral = entry.getValue();
 			Boolean accept = false;
 
-			if (serviceUUIDs.size() > 0) {
+			if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
 				for (int i = 0; i < serviceUUIDs.size(); i++) {
 					accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
 				}
