@@ -7,6 +7,7 @@ This is a porting of https://github.com/don/cordova-plugin-ble-central project t
 
 ##Requirements
 RN 0.40+
+
 RN 0.30-0.39 supported until 2.4.3
 
 ##Supported Platforms
