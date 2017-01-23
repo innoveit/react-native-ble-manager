@@ -17,6 +17,7 @@
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
 @property (strong, nonatomic) CBCentralManager *manager;
+@property (weak, nonatomic) NSTimer *scanTimer;
 
 
 @end

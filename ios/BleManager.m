@@ -16,6 +16,7 @@ RCT_EXPORT_MODULE();
 
 @synthesize manager;
 @synthesize peripherals;
+@synthesize scanTimer;
 
 - (instancetype)init
 {
@@ -253,13 +254,17 @@ RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSN
     [manager scanForPeripheralsWithServices:serviceUUIDs options:options];
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [NSTimer scheduledTimerWithTimeInterval:[timeoutSeconds floatValue] target:self selector:@selector(stopScanTimer:) userInfo: nil repeats:NO];
+        self.scanTimer = [NSTimer scheduledTimerWithTimeInterval:[timeoutSeconds floatValue] target:self selector:@selector(stopScanTimer:) userInfo: nil repeats:NO];
     });
     callback(@[]);
 }
 
 RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
 {
+    if (self.scanTimer) {
+        [self.scanTimer invalidate];
+        self.scanTimer = nil;
+    }
     [manager stopScan];
     callback(@[[NSNull null]]);
 }
@@ -267,6 +272,7 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
 
 -(void)stopScanTimer:(NSTimer *)timer {
     NSLog(@"Stop scan");
+    self.scanTimer = nil;
     [manager stopScan];
     [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
 }
