@@ -205,9 +205,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
+							BluetoothAdapter btAdapter = getBluetoothAdapter();
 							// check current scan session was not stopped
 							if (scanSessionId.intValue() == currentScanSession) {
-								getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
+								if(btAdapter.getState() == BluetoothAdapter.STATE_ON) {
+									btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
+								}
 								WritableMap map = Arguments.createMap();
 								sendEvent("BleManagerStopScan", map);
 							}
@@ -239,9 +242,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
+							BluetoothAdapter btAdapter = getBluetoothAdapter();
 							// check current scan session was not stopped
 							if (scanSessionId.intValue() == currentScanSession) {
-								getBluetoothAdapter().stopLeScan(mLeScanCallback);
+								if(btAdapter.getState() == BluetoothAdapter.STATE_ON) {
+									btAdapter.stopLeScan(mLeScanCallback);
+								}
 								WritableMap map = Arguments.createMap();
 								sendEvent("BleManagerStopScan", map);
 							}
