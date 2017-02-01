@@ -48,12 +48,11 @@ RCT_EXPORT_MODULE();
     RCTResponseSenderBlock readCallback = [readCallbacks objectForKey:key];
     
     NSString *stringFromData = [characteristic.value hexadecimalString];
-    
     if (readCallback != NULL){
         readCallback(@[[NSNull null], stringFromData]);
         [readCallbacks removeObjectForKey:key];
     } else {
-        [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"value": stringFromData}];
+        [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"service":characteristic.service.UUID.UUIDString, @"value": stringFromData}];
     }
 }
 
