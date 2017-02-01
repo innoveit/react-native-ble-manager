@@ -35,7 +35,7 @@ import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
 	private static final String LOG_TAG = "logs";
-	static final int ENABLE_REQUEST = 1;
+	static final int ENABLE_REQUEST = 539;
 
 
 	private BluetoothAdapter bluetoothAdapter;
