@@ -35,7 +35,7 @@ import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
 	private static final String LOG_TAG = "logs";
-	static final int ENABLE_REQUEST = 539;
+	private static final int ENABLE_REQUEST = 539;
 
 
 	private BluetoothAdapter bluetoothAdapter;
@@ -163,15 +163,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 							Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
 							peripherals.put(address, peripheral);
 
-							BundleJSONConverter bjc = new BundleJSONConverter();
 							try {
-								Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+								Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
 								WritableMap map = Arguments.fromBundle(bundle);
 								sendEvent("BleManagerDiscoverPeripheral", map);
 							} catch (JSONException ignored) {
 
 							}
-
 
 						} else {
 							// this isn't necessary
@@ -309,7 +307,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			if (peripheralUUID != null) {
 				peripheralUUID = peripheralUUID.toUpperCase();
 			}
-			if (bluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
+			if (BluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
 				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
 				peripheral = new Peripheral(device, reactContext);
 				peripherals.put(peripheralUUID, peripheral);
@@ -421,15 +419,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 								Peripheral peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
 								peripherals.put(device.getAddress(), peripheral);
 
-								BundleJSONConverter bjc = new BundleJSONConverter();
 								try {
-									Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+									Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
 									WritableMap map = Arguments.fromBundle(bundle);
 									sendEvent("BleManagerDiscoverPeripheral", map);
 								} catch (JSONException ignored) {
 
 								}
-
 
 							} else {
 								// this isn't necessary
@@ -450,7 +446,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		BluetoothAdapter adapter = getBluetoothAdapter();
 		String state = "off";
 		if (adapter != null) {
-			switch (adapter.getState()){
+			switch (adapter.getState()) {
 				case BluetoothAdapter.STATE_ON:
 					state = "on";
 					break;
@@ -502,12 +498,10 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getDiscoveredPeripherals(Callback callback) {
 		Log.d(LOG_TAG, "Get discovered peripherals");
 		WritableArray map = Arguments.createArray();
-		BundleJSONConverter bjc = new BundleJSONConverter();
-		for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-			Map.Entry<String, Peripheral> entry = iterator.next();
+		for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
 			Peripheral peripheral = entry.getValue();
 			try {
-				Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+				Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
 				WritableMap jsonBundle = Arguments.fromBundle(bundle);
 				map.pushMap(jsonBundle);
 			} catch (JSONException ignored) {
@@ -521,9 +515,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
 		Log.d(LOG_TAG, "Get connected peripherals");
 		WritableArray map = Arguments.createArray();
-		BundleJSONConverter bjc = new BundleJSONConverter();
-		for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-			Map.Entry<String, Peripheral> entry = iterator.next();
+		for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
 			Peripheral peripheral = entry.getValue();
 			Boolean accept = false;
 
@@ -537,7 +529,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 			if (peripheral.isConnected() && accept) {
 				try {
-					Bundle bundle = bjc.convertToBundle(peripheral.asJSONObject());
+					Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
 					WritableMap jsonBundle = Arguments.fromBundle(bundle);
 					map.pushMap(jsonBundle);
 				} catch (JSONException ignored) {
