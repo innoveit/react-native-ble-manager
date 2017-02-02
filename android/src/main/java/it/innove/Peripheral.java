@@ -1,14 +1,23 @@
 package it.innove;
 
 import android.app.Activity;
-import android.bluetooth.*;
-import android.os.Bundle;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
-import com.facebook.react.bridge.*;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
-import org.json.JSONArray;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
@@ -487,8 +495,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 		readRSSICallback = callback;
 
-		if (gatt.readRemoteRssi()) {
-		} else {
+		if (!gatt.readRemoteRssi()) {
 			readCallback = null;
 			callback.invoke("Read RSSI failed", null);
 		}
@@ -536,11 +543,11 @@ public class Peripheral extends BluetoothGattCallback {
 		} else {
 			BluetoothGattService service = gatt.getService(serviceUUID);
 			BluetoothGattCharacteristic characteristic = findWritableCharacteristic(service, characteristicUUID, writeType);
-			characteristic.setWriteType(writeType);
 
 			if (characteristic == null) {
 				callback.invoke("Characteristic " + characteristicUUID + " not found.");
 			} else {
+				characteristic.setWriteType(writeType);
 
 				if (writeQueue.size() > 0) {
 					callback.invoke("You have already an queued message");
@@ -595,7 +602,6 @@ public class Peripheral extends BluetoothGattCallback {
 						}
 					} else {
 						characteristic.setValue(data);
-
 
 						if (gatt.writeCharacteristic(characteristic)) {
 							Log.d(LOG_TAG, "Write completed");
