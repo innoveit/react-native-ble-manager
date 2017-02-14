@@ -134,6 +134,46 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		}
 	}
 
+	ScanCallback mScanCallback = new ScanCallback() {
+		@Override
+		public void onScanResult(final int callbackType, final ScanResult result) {
+
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Log.i(LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
+					String address = result.getDevice().getAddress();
+
+					if (!peripherals.containsKey(address)) {
+
+						Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
+						peripherals.put(address, peripheral);
+
+						try {
+							Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
+							WritableMap map = Arguments.fromBundle(bundle);
+							sendEvent("BleManagerDiscoverPeripheral", map);
+						} catch (JSONException ignored) {
+
+						}
+					} else {
+						// this isn't necessary
+						Peripheral peripheral = peripherals.get(address);
+						peripheral.updateRssi(result.getRssi());
+					}
+				}
+			});
+		}
+
+		@Override
+		public void onBatchScanResults(final List<ScanResult> results) {
+		}
+
+		@Override
+		public void onScanFailed(final int errorCode) {
+		}
+	};
+
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	private void scan21(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback) {
 		ScanSettings settings = new ScanSettings.Builder().build();
@@ -147,47 +187,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				Log.d(LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
 			}
 		}
-
-		final ScanCallback mScanCallback = new ScanCallback() {
-			@Override
-			public void onScanResult(final int callbackType, final ScanResult result) {
-
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Log.i(LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
-						String address = result.getDevice().getAddress();
-
-						if (!peripherals.containsKey(address)) {
-
-							Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
-							peripherals.put(address, peripheral);
-
-							try {
-								Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-								WritableMap map = Arguments.fromBundle(bundle);
-								sendEvent("BleManagerDiscoverPeripheral", map);
-							} catch (JSONException ignored) {
-
-							}
-
-						} else {
-							// this isn't necessary
-							Peripheral peripheral = peripherals.get(address);
-							peripheral.updateRssi(result.getRssi());
-						}
-					}
-				});
-			}
-
-			@Override
-			public void onBatchScanResults(final List<ScanResult> results) {
-			}
-
-			@Override
-			public void onScanFailed(final int errorCode) {
-			}
-		};
 
 		getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, mScanCallback);
 		if (scanSeconds > 0) {
@@ -265,14 +264,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 	private void stopScan21(Callback callback) {
-
-		final ScanCallback mScanCallback = new ScanCallback() {
-			@Override
-			public void onScanResult(final int callbackType, final ScanResult result) {
-			}
-
-		};
-
 		getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
 		callback.invoke();
 	}
