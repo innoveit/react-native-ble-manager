@@ -1,22 +1,16 @@
 package it.innove;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanFilter;
-import android.bluetooth.le.ScanResult;
-import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.ParcelUuid;
 import android.support.annotation.Nullable;
 import android.util.Base64;
 import android.util.Log;
@@ -25,7 +19,6 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import org.json.JSONException;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static android.app.Activity.RESULT_OK;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
@@ -34,7 +27,7 @@ import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
-	private static final String LOG_TAG = "logs";
+	public static final String LOG_TAG = "logs";
 	private static final int ENABLE_REQUEST = 539;
 
 
@@ -42,11 +35,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	private Context context;
 	private ReactContext reactContext;
 	private Callback enableBluetoothCallback;
+	private ScanManager scanManager;
 
 	// key is the MAC Address
-	private Map<String, Peripheral> peripherals = new LinkedHashMap<>();
+	public Map<String, Peripheral> peripherals = new LinkedHashMap<>();
 	// scan session id
-	private AtomicInteger scanSessionId = new AtomicInteger();
 
 
 	public BleManager(ReactApplicationContext reactContext) {
@@ -54,6 +47,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		context = reactContext;
 		this.reactContext = reactContext;
 		reactContext.addActivityEventListener(this);
+		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
+			scanManager = new LollipopScanManager(reactContext, this);
+		} else {
+			scanManager = new LegacyScanManager(reactContext, this);
+		}
 		Log.d(LOG_TAG, "BleManager created");
 	}
 
@@ -70,7 +68,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		return bluetoothAdapter;
 	}
 
-	private void sendEvent(String eventName,
+	public void sendEvent(String eventName,
 						   @Nullable WritableMap params) {
 		getReactApplicationContext()
 				.getJSModule(RCTNativeAppEventEmitter.class)
@@ -127,161 +125,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			}
 		}
 
-		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-			scan21(serviceUUIDs, scanSeconds, callback);
-		} else {
-			scan19(serviceUUIDs, scanSeconds, callback);
-		}
+		scanManager.scan(serviceUUIDs, scanSeconds, callback);
 	}
-
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-	private void scan21(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback) {
-		ScanSettings settings = new ScanSettings.Builder().build();
-		List<ScanFilter> filters = new ArrayList<>();
-
-		if (serviceUUIDs.size() > 0) {
-			for(int i = 0; i < serviceUUIDs.size(); i++){
-				ScanFilter.Builder builder = new ScanFilter.Builder();
-				builder.setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i))));
-				filters.add(builder.build());
-				Log.d(LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
-			}
-		}
-
-		final ScanCallback mScanCallback = new ScanCallback() {
-			@Override
-			public void onScanResult(final int callbackType, final ScanResult result) {
-
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						Log.i(LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
-						String address = result.getDevice().getAddress();
-
-						if (!peripherals.containsKey(address)) {
-
-							Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
-							peripherals.put(address, peripheral);
-
-							try {
-								Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-								WritableMap map = Arguments.fromBundle(bundle);
-								sendEvent("BleManagerDiscoverPeripheral", map);
-							} catch (JSONException ignored) {
-
-							}
-
-						} else {
-							// this isn't necessary
-							Peripheral peripheral = peripherals.get(address);
-							peripheral.updateRssi(result.getRssi());
-						}
-					}
-				});
-			}
-
-			@Override
-			public void onBatchScanResults(final List<ScanResult> results) {
-			}
-
-			@Override
-			public void onScanFailed(final int errorCode) {
-			}
-		};
-
-		getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, mScanCallback);
-		if (scanSeconds > 0) {
-			Thread thread = new Thread() {
-				private int currentScanSession = scanSessionId.incrementAndGet();
-				
-				@Override
-				public void run() {
-
-					try {
-						Thread.sleep(scanSeconds * 1000);
-					} catch (InterruptedException ignored) {
-					}
-
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							BluetoothAdapter btAdapter = getBluetoothAdapter();
-							// check current scan session was not stopped
-							if (scanSessionId.intValue() == currentScanSession) {
-								if(btAdapter.getState() == BluetoothAdapter.STATE_ON) {
-									btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
-								}
-								WritableMap map = Arguments.createMap();
-								sendEvent("BleManagerStopScan", map);
-							}
-						}
-					});
-
-				}
-
-			};
-			thread.start();
-		}
-		callback.invoke();
-	}
-
-	private void scan19(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback) {
-		getBluetoothAdapter().startLeScan(mLeScanCallback);
-		if (scanSeconds > 0) {
-			Thread thread = new Thread() {
-				private int currentScanSession = scanSessionId.incrementAndGet();
-
-				@Override
-				public void run() {
-
-					try {
-						Thread.sleep(scanSeconds * 1000);
-					} catch (InterruptedException ignored) {
-					}
-
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							BluetoothAdapter btAdapter = getBluetoothAdapter();
-							// check current scan session was not stopped
-							if (scanSessionId.intValue() == currentScanSession) {
-								if(btAdapter.getState() == BluetoothAdapter.STATE_ON) {
-									btAdapter.stopLeScan(mLeScanCallback);
-								}
-								WritableMap map = Arguments.createMap();
-								sendEvent("BleManagerStopScan", map);
-							}
-						}
-					});
-
-				}
-
-			};
-			thread.start();
-		}
-		callback.invoke();
-	}
-
-
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-	private void stopScan21(Callback callback) {
-
-		final ScanCallback mScanCallback = new ScanCallback() {
-			@Override
-			public void onScanResult(final int callbackType, final ScanResult result) {
-			}
-
-		};
-
-		getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
-		callback.invoke();
-	}
-
-	private void stopScan19(Callback callback) {
-		getBluetoothAdapter().stopLeScan(mLeScanCallback);
-		callback.invoke();
-	}
-
 
 	@ReactMethod
 	public void stopScan(Callback callback) {
@@ -295,13 +140,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke("Bluetooth not enabled");
 			return;
 		}
-		// update scanSessionId to prevent stopping next scan by running timeout thread
-		scanSessionId.incrementAndGet();
-		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-			stopScan21(callback);
-		} else {
-			stopScan19(callback);
-		}
+		scanManager.stopScan(callback);
 	}
 
 	@ReactMethod
