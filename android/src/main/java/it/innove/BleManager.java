@@ -33,7 +33,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	private BluetoothAdapter bluetoothAdapter;
 	private Context context;
-	private ReactContext reactContext;
+	private ReactApplicationContext reactContext;
 	private Callback enableBluetoothCallback;
 	private ScanManager scanManager;
 
@@ -47,11 +47,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		context = reactContext;
 		this.reactContext = reactContext;
 		reactContext.addActivityEventListener(this);
-		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-			scanManager = new LollipopScanManager(reactContext, this);
-		} else {
-			scanManager = new LegacyScanManager(reactContext, this);
-		}
 		Log.d(LOG_TAG, "BleManager created");
 	}
 
@@ -83,6 +78,17 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke("No bluetooth support");
 			return;
 		}
+		boolean forceLegacy = false;
+		if (options.hasKey("forceLegacy")) {
+			forceLegacy = options.getBoolean("forceLegacy");
+		}
+
+		if (Build.VERSION.SDK_INT >= LOLLIPOP && !forceLegacy) {
+			scanManager = new LollipopScanManager(reactContext, this);
+		} else {
+			scanManager = new LegacyScanManager(reactContext, this);
+		}
+
 		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 		context.registerReceiver(mReceiver, filter);
 		callback.invoke();
