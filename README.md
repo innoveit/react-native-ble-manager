@@ -38,6 +38,17 @@ project(':react-native-ble-manager').projectDir = new File(rootProject.projectDi
 // file: android/app/build.gradle
 ...
 
+android {
+    ...
+
+    defaultConfig {
+        ...
+        minSdkVersion 18 // <--- make sure this is 18 or greater
+        ...
+    }
+    ...
+}
+
 dependencies {
     ...
     compile project(':react-native-ble-manager')
@@ -64,8 +75,8 @@ public class MainApplication extends Application implements ReactApplication {
 }
 ```
 ##Note
-Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals.
-React Native >= 0.33 natively support PermissionsAndroid like in the example.
+- Remember to use the `start` method before anything.
+- Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 
 ##Basic Example
 ```js
