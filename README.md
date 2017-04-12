@@ -186,6 +186,7 @@ __Arguments__
 
 The parameter is optional the configuration keys are:
 - `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
+- `forceLegacy` - `Boolean` - [Android only] Force to use the LegacyScanManager
 
 __Examples__
 ```js
