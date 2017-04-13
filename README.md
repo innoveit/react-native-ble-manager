@@ -467,6 +467,18 @@ BleManager.isPeripheralConnected('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', [])
 
 ```
 
+To get the `data` into base64 format, you will need `buffer`, which doesn't port natively on iOS. Install `rn-nodeify` like so:
+
+`npm install -g rn-nodeify`
+
+And then install `buffer` using `rn-nodeify` using its `hack` flag:
+
+`rn-nodeify --install "buffer" --hack`
+
+Finally, to format the string before calling the write function:
+
+`var data = Buffer("data string").toString('base64');`
+
 ##Events
 ### BleManagerStopScan
 The scanning for peripherals is ended.
