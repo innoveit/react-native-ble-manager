@@ -5,25 +5,25 @@
 
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
-##Requirements
+## Requirements
 RN 0.40+
 
 RN 0.30-0.39 supported until 2.4.3
 
-##Supported Platforms
+## Supported Platforms
 - iOS 8+
 - Android (API 19+)
 
-##Install
-```shell
-npm i --save react-native-ble-manager
+## Install
 ```
-####iOS
+$ npm i --save react-native-ble-manager
+```
+### iOS
 - Open the node_modules/react-native-ble-manager/ios folder and drag BleManager.xcodeproj into your Libraries group.
 - Check the "Build Phases"of your project and add "libBleManager.a" in the "Link Binary With Libraries" section.
 
-####Android
-#####Update Gradle Settings
+### Android
+#### Update Gradle Settings
 
 ```gradle
 // file: android/settings.gradle
@@ -32,7 +32,7 @@ npm i --save react-native-ble-manager
 include ':react-native-ble-manager'
 project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-ble-manager/android')
 ```
-#####Update Gradle Build
+#### Update Gradle Build
 
 ```gradle
 // file: android/app/build.gradle
@@ -54,7 +54,7 @@ dependencies {
     compile project(':react-native-ble-manager')
 }
 ```
-#####Register React Package
+#### Register React Package
 ```java
 ...
 import it.innove.BleManagerPackage; // <--- import
@@ -74,11 +74,11 @@ public class MainApplication extends Application implements ReactApplication {
     ...
 }
 ```
-##Note
-- Remember to use the `start` method before anything.
-- Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
+## Note
+> - Remember to use the `start` method before anything.
+> - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 
-##Basic Example
+## Basic Example
 ```js
 import React, { Component } from 'react';
 import {
@@ -175,7 +175,7 @@ class BleExample extends Component {
 AppRegistry.registerComponent('BleExample', () => BleExample);
 ```
 
-##Methods
+## Methods
 
 ### start(options)
 Init the module.
@@ -467,7 +467,7 @@ BleManager.isPeripheralConnected('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', [])
 
 ```
 
-##Events
+## Events
 ### BleManagerStopScan
 The scanning for peripherals is ended.
 
@@ -484,7 +484,7 @@ NativeAppEventEmitter.addListener(
 );
 ```
 
-###  BleManagerDidUpdateState
+### BleManagerDidUpdateState
 The BLE change state.
 
 __Arguments__
@@ -500,7 +500,7 @@ NativeAppEventEmitter.addListener(
 );
 ```
 
-###  BleManagerDiscoverPeripheral
+### BleManagerDiscoverPeripheral
 The scanning find a new peripheral.
 
 __Arguments__
@@ -518,7 +518,7 @@ NativeAppEventEmitter.addListener(
 );
 ```
 
-###  BleManagerDidUpdateValueForCharacteristic
+### BleManagerDidUpdateValueForCharacteristic
 A characteristic notify a new value.
 
 __Arguments__
@@ -526,13 +526,13 @@ __Arguments__
 - `characteristic` - `String` - the UUID of the characteristic
 - `value` - `String` - the read value in Hex format
 
-###  BleManagerConnectPeripheral
+### BleManagerConnectPeripheral
 A peripheral was connected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
 
-###  BleManagerDisconnectPeripheral
+### BleManagerDisconnectPeripheral
 A peripheral was disconnected.
 
 __Arguments__
