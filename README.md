@@ -450,6 +450,14 @@ BleManager.getDiscoveredPeripherals([])
 
 ```
 
+### removePeripheral(peripheralId)
+Removes a disconnected peripheral from the cached list.
+It is useful if the device is turned off, because it will be re-discovered upon turning on again.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+
 ### isPeripheralConnected(peripheralId, serviceUUIDs)
 Check whether a specific peripheral is connected and return `true` or `false`.
 Returns a `Promise` object.
