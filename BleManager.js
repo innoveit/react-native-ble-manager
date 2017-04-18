@@ -203,6 +203,18 @@ class BleManager  {
     });
   }
 
+  removePeripheral(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.removePeripheral(peripheralId, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
   isPeripheralConnected(peripheralId, serviceUUIDs) {
     return this.getConnectedPeripherals(serviceUUIDs).then((result) => {
       if (result.find((p) => { return p.id === peripheralId; })) {

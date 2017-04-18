@@ -391,6 +391,19 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		callback.invoke(null, map);
 	}
 
+	@ReactMethod
+	public void removePeripheral(String deviceUUID, Callback callback) {
+		Log.d(LOG_TAG, "Removing from list: " + deviceUUID);
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null){
+      if (peripheral.isConnected()) {
+				callback.invoke("Peripheral can not be removed while connected");
+      } else {
+				peripherals.remove(deviceUUID);
+      }
+		} else
+			callback.invoke("Peripheral not found");
+  }
 
 	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
