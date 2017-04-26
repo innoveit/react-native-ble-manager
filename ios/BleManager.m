@@ -289,17 +289,23 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
 
 RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
-    NSLog(@"connect");
+    NSLog(@"Connect");
     CBPeripheral *peripheral = [self findPeripheralByUUID:peripheralUUID];
     if (peripheral == nil){
         // Try to retrieve the peripheral
         NSLog(@"Retrieving peripheral with UUID : %@", peripheralUUID);
         NSUUID *uuid = [[NSUUID alloc]initWithUUIDString:peripheralUUID];
-        NSArray<CBPeripheral *> *peripheralArray = [manager retrievePeripheralsWithIdentifiers:@[uuid]];
-        if([peripheralArray count] > 0){
-            peripheral = [peripheralArray objectAtIndex:0];
-            [peripherals addObject:peripheral];
-            NSLog(@"Successfull retrieved peripheral with UUID : %@", peripheralUUID);
+        if (uuid != nil) {
+            NSArray<CBPeripheral *> *peripheralArray = [manager retrievePeripheralsWithIdentifiers:@[uuid]];
+            if([peripheralArray count] > 0){
+                peripheral = [peripheralArray objectAtIndex:0];
+                [peripherals addObject:peripheral];
+                NSLog(@"Successfull retrieved peripheral with UUID : %@", peripheralUUID);
+            }
+        } else {
+            NSString *error = [NSString stringWithFormat:@"Wrong UUID format %@", peripheralUUID];
+            callback(@[error, [NSNull null]]);
+            return;
         }
     }
     if (peripheral) {
