@@ -12,11 +12,10 @@
 
 RCT_EXPORT_MODULE();
 
-@synthesize bridge = _bridge;
-
 @synthesize manager;
 @synthesize peripherals;
 @synthesize scanTimer;
+bool hasListeners;
 
 - (instancetype)init
 {
@@ -36,6 +35,19 @@ RCT_EXPORT_MODULE();
     return self;
 }
 
+-(void)startObserving {
+    hasListeners = YES;
+}
+
+-(void)stopObserving {
+    hasListeners = NO;
+}
+
+- (NSArray<NSString *> *)supportedEvents
+{
+    return @[@"BleManagerDidUpdateValueForCharacteristic", @"BleManagerStopScan", @"BleManagerDiscoverPeripheral", @"BleManagerConnectPeripheral", @"BleManagerDisconnectPeripheral", @"BleManagerDidUpdateState"];
+}
+
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     if (error) {
@@ -52,7 +64,9 @@ RCT_EXPORT_MODULE();
         readCallback(@[[NSNull null], stringFromData]);
         [readCallbacks removeObjectForKey:key];
     } else {
-        [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"service":characteristic.service.UUID.UUIDString, @"value": stringFromData}];
+        if (hasListeners) {
+            [self sendEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"service":characteristic.service.UUID.UUIDString, @"value": stringFromData}];
+        }
     }
 }
 
@@ -273,7 +287,9 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
     NSLog(@"Stop scan");
     self.scanTimer = nil;
     [manager stopScan];
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerStopScan" body:@{}];
+    if (hasListeners) {
+        [self sendEventWithName:@"BleManagerStopScan" body:@{}];
+    }
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
@@ -284,7 +300,9 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
     [peripheral setAdvertisementData:advertisementData RSSI:RSSI];
         
     NSLog(@"Discover peripheral: %@", [peripheral name]);
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
+    if (hasListeners) {
+        [self sendEventWithName:@"BleManagerDiscoverPeripheral" body:[peripheral asDictionary]];
+    }
 }
 
 RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTResponseSenderBlock)callback)
@@ -564,7 +582,9 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     NSLog(@"Peripheral Connected: %@", [peripheral uuidAsString]);
     peripheral.delegate = self;
     [peripheral discoverServices:nil];
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerConnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
+    if (hasListeners) {
+        [self sendEventWithName:@"BleManagerConnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
+    }
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
@@ -572,7 +592,9 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     if (error) {
         NSLog(@"Error: %@", error);
     }
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDisconnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
+    if (hasListeners) {
+        [self sendEventWithName:@"BleManagerDisconnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
+    }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
@@ -645,7 +667,9 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
     NSString *stateName = [self centralManagerStateToString:central.state];
-    [self.bridge.eventDispatcher sendAppEventWithName:@"BleManagerDidUpdateState" body:@{@"state":stateName}];
+    if (hasListeners) {
+        [self sendEventWithName:@"BleManagerDidUpdateState" body:@{@"state":stateName}];
+    }
 }
 
 // expecting deviceUUID, serviceUUID, characteristicUUID in command.arguments
