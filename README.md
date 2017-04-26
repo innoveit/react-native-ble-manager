@@ -18,6 +18,39 @@ RN 0.30-0.39 supported until 2.4.3
 ```shell
 npm i --save react-native-ble-manager
 ```
+After installing, you need to link the native library. You can either:
+* Link native library with `react-native link`, or
+* Link native library manually
+
+Both approaches are described below.
+
+### Link Native Library with `react-native link`
+
+```shell
+react-native link react-native-ble-manager
+```
+
+After this step:
+ * iOS should be linked properly.
+ * Android will need one more step, you need to edit `android/app/build.gradle`:
+```gradle
+// file: android/app/build.gradle
+...
+
+android {
+    ...
+
+    defaultConfig {
+        ...
+        minSdkVersion 18 // <--- make sure this is 18 or greater
+        ...
+    }
+    ...
+}
+```
+
+### Link Native Library Manually
+
 #### iOS
 - Open the node_modules/react-native-ble-manager/ios folder and drag BleManager.xcodeproj into your Libraries group.
 - Check the "Build Phases"of your project and add "libBleManager.a" in the "Link Binary With Libraries" section.
