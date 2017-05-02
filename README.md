@@ -109,6 +109,7 @@ public class MainApplication extends Application implements ReactApplication {
 ```
 ## Note
 - Remember to use the `start` method before anything.
+- Avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 
 ## Basic Example
