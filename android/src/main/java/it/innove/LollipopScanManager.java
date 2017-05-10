@@ -35,55 +35,62 @@ public class LollipopScanManager extends ScanManager {
 		callback.invoke();
 	}
 
-	@Override
-	public void scan(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback) {
-		ScanSettings settings = new ScanSettings.Builder().build();
-		List<ScanFilter> filters = new ArrayList<>();
-
-		if (serviceUUIDs.size() > 0) {
-			for(int i = 0; i < serviceUUIDs.size(); i++){
-				ScanFilter.Builder builder = new ScanFilter.Builder();
-				builder.setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i))));
-				filters.add(builder.build());
-				Log.d(bleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
-			}
-		}
-
-		getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, settings, mScanCallback);
-		if (scanSeconds > 0) {
-			Thread thread = new Thread() {
-				private int currentScanSession = scanSessionId.incrementAndGet();
-
-				@Override
-				public void run() {
-
-					try {
-						Thread.sleep(scanSeconds * 1000);
-					} catch (InterruptedException ignored) {
-					}
-
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							BluetoothAdapter btAdapter = getBluetoothAdapter();
-							// check current scan session was not stopped
-							if (scanSessionId.intValue() == currentScanSession) {
-								if(btAdapter.getState() == BluetoothAdapter.STATE_ON) {
-									btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
-								}
-								WritableMap map = Arguments.createMap();
-								bleManager.sendEvent("BleManagerStopScan", map);
-							}
-						}
-					});
-
-				}
-
-			};
-			thread.start();
-		}
-		callback.invoke();
-	}
+    @Override
+    public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options,  Callback callback) {
+        ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
+        List<ScanFilter> filters = new ArrayList<>();
+        
+        scanSettingsBuilder.setScanMode(options.getInt("scanMode"));
+        
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
+            scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
+        }
+        
+        if (serviceUUIDs.size() > 0) {
+            for(int i = 0; i < serviceUUIDs.size(); i++){
+                ScanFilter.Builder builder = new ScanFilter.Builder();
+                builder.setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i))));
+                filters.add(builder.build());
+                Log.d(bleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
+            }
+        }
+        
+        getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, scanSettingsBuilder.build(), mScanCallback);
+        if (scanSeconds > 0) {
+            Thread thread = new Thread() {
+                private int currentScanSession = scanSessionId.incrementAndGet();
+                
+                @Override
+                public void run() {
+                    
+                    try {
+                        Thread.sleep(scanSeconds * 1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                    
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            BluetoothAdapter btAdapter = getBluetoothAdapter();
+                            // check current scan session was not stopped
+                            if (scanSessionId.intValue() == currentScanSession) {
+                                if(btAdapter.getState() == BluetoothAdapter.STATE_ON) {
+                                    btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
+                                }
+                                WritableMap map = Arguments.createMap();
+                                bleManager.sendEvent("BleManagerStopScan", map);
+                            }
+                        }
+                    });
+                    
+                }
+                
+            };
+            thread.start();
+        }
+        callback.invoke();
+    }
 
 	private ScanCallback mScanCallback = new ScanCallback() {
 		@Override

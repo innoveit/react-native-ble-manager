@@ -7,6 +7,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,5 +35,5 @@ public abstract class ScanManager {
 
 	public abstract void stopScan(Callback callback);
 
-	public abstract void scan(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback);
+	public abstract void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback);
 }
