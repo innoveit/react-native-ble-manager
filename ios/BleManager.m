@@ -6,6 +6,7 @@
 #import "CBPeripheral+Extensions.h"
 #import "BLECommandContext.h"
 
+static CBCentralManager *_sharedManager = nil;
 
 @implementation BleManager
 
@@ -233,11 +234,21 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
     if ([[options allKeys] containsObject:@"restoreIdentifierKey"]) {
         [initOptions setObject:[options valueForKey:@"restoreIdentifierKey"]
                         forKey:CBCentralManagerOptionRestoreIdentifierKey];
-    }
 
-    manager = [[CBCentralManager alloc] initWithDelegate:self
-                                                   queue:dispatch_get_main_queue()
-                                                 options:initOptions];
+    if (_sharedManager) {
+        manager = _sharedManager;
+        manager.delegate = self;
+    } else {
+        manager = [[CBCentralManager alloc] initWithDelegate:self
+                                                       queue:dispatch_get_main_queue()
+                                                     options:initOptions];
+        _sharedManager = manager;
+      }
+    } else {
+        manager = [[CBCentralManager alloc] initWithDelegate:self
+                                                       queue:dispatch_get_main_queue()
+                                                     options:initOptions];
+    }
 
     callback(@[]);
 }
