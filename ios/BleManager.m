@@ -6,6 +6,7 @@
 #import "CBPeripheral+Extensions.h"
 #import "BLECommandContext.h"
 
+static CBCentralManager *_sharedManager = nil;
 
 @implementation BleManager
 
@@ -223,16 +224,32 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
 RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"BleManager initialized");
-    NSDictionary *initOptions = nil;
-    
+    NSMutableDictionary *initOptions = [[NSMutableDictionary alloc] init];
+
     if ([[options allKeys] containsObject:@"showAlert"]){
-        BOOL showAlert = [[options valueForKey:@"showAlert"] boolValue];
-        initOptions = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:showAlert] forKey:CBCentralManagerOptionShowPowerAlertKey];
-        manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue() options:initOptions];
-    } else {
-        manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue()];
+        [initOptions setObject:[NSNumber numberWithBool:[[options valueForKey:@"showAlert"] boolValue]]
+                        forKey:CBCentralManagerOptionShowPowerAlertKey];
     }
-    
+
+    if ([[options allKeys] containsObject:@"restoreIdentifierKey"]) {
+        [initOptions setObject:[options valueForKey:@"restoreIdentifierKey"]
+                        forKey:CBCentralManagerOptionRestoreIdentifierKey];
+
+    if (_sharedManager) {
+        manager = _sharedManager;
+        manager.delegate = self;
+    } else {
+        manager = [[CBCentralManager alloc] initWithDelegate:self
+                                                       queue:dispatch_get_main_queue()
+                                                     options:initOptions];
+        _sharedManager = manager;
+      }
+    } else {
+        manager = [[CBCentralManager alloc] initWithDelegate:self
+                                                       queue:dispatch_get_main_queue()
+                                                     options:initOptions];
+    }
+
     callback(@[]);
 }
 
@@ -711,6 +728,11 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 
 -(NSString *) keyForPeripheral: (CBPeripheral *)peripheral andCharacteristic:(CBCharacteristic *)characteristic {
     return [NSString stringWithFormat:@"%@|%@", [peripheral uuidAsString], [characteristic UUID]];
+}
+
+-(void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary<NSString *,id> *)dict
+{
+    NSLog(@"centralManager willRestoreState");
 }
 
 @end
