@@ -63,7 +63,7 @@ public class LegacyScanManager extends ScanManager {
 			};
 
 	@Override
-	public void scan(ReadableArray serviceUUIDs, final int scanSeconds, Callback callback) {
+	public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback) {
 		getBluetoothAdapter().startLeScan(mLeScanCallback);
 		if (scanSeconds > 0) {
 			Thread thread = new Thread() {
