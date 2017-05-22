@@ -162,7 +162,7 @@ class BleExample extends Component {
     }
 
     handleScan() {
-        BleManager.scan([], 30, true)
+        BleManager.scan([], 3, true)
             .then((results) => {console.log('Scanning...'); });
     }
 
