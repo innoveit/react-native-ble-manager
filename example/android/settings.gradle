@@ -1,3 +1,6 @@
 rootProject.name = 'ExampleBle'
 
 include ':app'
+
+include ':react-native-ble-manager'
+project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../../android')
