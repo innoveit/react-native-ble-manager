@@ -112,102 +112,8 @@ public class MainApplication extends Application implements ReactApplication {
 - Avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 
-## Basic Example
-```js
-import React, { Component } from 'react';
-import {
-  AppRegistry,
-  Text,
-  View,
-  TouchableHighlight,
-  NativeAppEventEmitter,
-  Platform,
-  PermissionsAndroid
-} from 'react-native';
-import BleManager from 'react-native-ble-manager';
-
-class BleExample extends Component {
-
-    constructor(){
-        super()
-
-        this.state = {
-            ble:null,
-            scanning:false,
-        }
-    }
-
-    componentDidMount() {
-        BleManager.start({showAlert: false});
-        this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
-
-        NativeAppEventEmitter
-            .addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
-            
-        if (Platform.OS === 'android' && Platform.Version >= 23) {
-            PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-                if (result) {
-                  console.log("Permission is OK");
-                } else {
-                  PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
-                    if (result) {
-                      console.log("User accept");
-                    } else {
-                      console.log("User refuse");
-                    }
-                  });
-                }
-          });
-        }
-    }
-
-    handleScan() {
-        BleManager.scan([], 3, true)
-            .then((results) => {console.log('Scanning...'); });
-    }
-
-    toggleScanning(bool){
-        if (bool) {
-            this.setState({scanning:true})
-            this.scanning = setInterval( ()=> this.handleScan(), 3000);
-        } else{
-            this.setState({scanning:false, ble: null})
-            clearInterval(this.scanning);
-        }
-    }
-
-    handleDiscoverPeripheral(data){
-        console.log('Got ble data', data);
-        this.setState({ ble: data })
-    }
-
-    render() {
-
-        const container = {
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: '#F5FCFF',
-        }
-
-        const bleList = this.state.ble
-            ? <Text> Device found: {this.state.ble.name} </Text>
-            : <Text>no devices nearby</Text>
-
-        return (
-            <View style={container}>
-                <TouchableHighlight style={{padding:20, backgroundColor:'#ccc'}} onPress={() => this.toggleScanning(!this.state.scanning) }>
-                    <Text>Scan Bluetooth ({this.state.scanning ? 'on' : 'off'})</Text>
-                </TouchableHighlight>
-
-                {bleList}
-            </View>
-        );
-    }
-}
-
-AppRegistry.registerComponent('BleExample', () => BleExample);
-```
+## Example
+Look in the [example](https://github.com/innoveit/react-native-ble-manager/tree/master/example) project.
 
 ## Methods
 
@@ -271,15 +177,14 @@ Attempts to connect to a peripheral. In many case if you can't connect you have 
 Returns a `Promise` object.
 
 __Arguments__
-- `peripheralId` - `String` - the id/mac address of the peripheral to connect, if succeeded contains the peripheral's services and characteristics infos.
+- `peripheralId` - `String` - the id/mac address of the peripheral to connect.
 
 __Examples__
 ```js
 BleManager.connect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
-  .then((peripheralInfo) => {
+  .then(() => {
     // Success code
     console.log('Connected');
-    console.log(peripheralInfo);
   })
   .catch((error) => {
     // Failure code
@@ -452,6 +357,42 @@ BleManager.writeWithoutResponse('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXX
     // Failure code
     console.log(error);
   });
+```
+
+### readRSSI(peripheralId)
+Read the current value of the RSSI.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+
+__Examples__
+```js
+BleManager.readRSSI('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
+  .then((rssi) => {
+    // Success code
+    console.log('Current RSSI: ' + rssi);
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
+
+### retrieveServices(peripheralId)
+Retrieve the peripheral's services and characteristics.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+
+__Examples__
+```js
+BleManager.retrieveServices('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
+  .then((peripheralInfo) => {
+    // Success code
+    console.log('Peripheral info:', peripheralInfo);
+  });  
 ```
 
 ### getConnectedPeripherals(serviceUUIDs)
