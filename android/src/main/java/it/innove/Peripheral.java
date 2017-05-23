@@ -245,7 +245,9 @@ public class Peripheral extends BluetoothGattCallback {
 		if (newState == BluetoothGatt.STATE_CONNECTED) {
 
 			connected = true;
-			gatt.discoverServices();
+			WritableMap map = this.asWritableMap(gatt);
+			connectCallback.invoke(null, map);
+			connectCallback = null;
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral");
 
@@ -499,6 +501,17 @@ public class Peripheral extends BluetoothGattCallback {
 			readCallback = null;
 			callback.invoke("Read RSSI failed", null);
 		}
+	}
+
+	public void retrieveServices(Callback callback) {
+		if (gatt == null) {
+			callback.invoke("BluetoothGatt is null", null);
+			return;
+		}
+
+		gatt.discoverServices();
+		WritableMap map = this.asWritableMap(gatt);
+		callback.invoke(null, map);
 	}
 
 

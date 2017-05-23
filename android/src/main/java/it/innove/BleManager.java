@@ -243,6 +243,17 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
+	public void retrieveServices(String deviceUUID, Callback callback) {
+		Log.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null){
+			peripheral.retrieveServices(callback);
+		} else
+			callback.invoke("Peripheral not found", null);
+	}
+
+
+	@ReactMethod
 	public void readRSSI(String deviceUUID,  Callback callback) {
 		Log.d(LOG_TAG, "Read RSSI from: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);

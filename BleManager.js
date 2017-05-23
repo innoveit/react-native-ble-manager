@@ -32,6 +32,18 @@ class BleManager  {
     });
   }
 
+  retrieveServices(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.retrieveServices(peripheralId, (error, peripheral) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(peripheral);
+        }
+      });
+    });
+  }
+
   write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
     if (maxByteSize == null) {
       maxByteSize = 20;

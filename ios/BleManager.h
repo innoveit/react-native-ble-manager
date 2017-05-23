@@ -3,16 +3,17 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 
-@interface BleManager : NSObject <RCTBridgeModule, CBCentralManagerDelegate, CBPeripheralDelegate>{
+@interface BleManager : RCTEventEmitter <RCTBridgeModule, CBCentralManagerDelegate, CBPeripheralDelegate>{
     NSString* discoverPeripherialCallbackId;
     NSMutableDictionary* connectCallbacks;
     NSMutableDictionary *readCallbacks;
     NSMutableDictionary *writeCallbacks;
     NSMutableDictionary *readRSSICallbacks;
+    NSMutableDictionary *retrieveServicesCallbacks;
     NSMutableArray *writeQueue;
     NSMutableDictionary *notificationCallbacks;
     NSMutableDictionary *stopNotificationCallbacks;
-    NSMutableDictionary *connectCallbackLatches;
+    NSMutableDictionary *retrieveServicesLatches;
 }
 
 @property (strong, nonatomic) NSMutableSet *peripherals;
