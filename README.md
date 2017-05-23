@@ -87,6 +87,17 @@ dependencies {
     compile project(':react-native-ble-manager')
 }
 ```
+##### Update Android Manifest
+
+```xml
+// file: android/app/src/main/AndroidManifest.xml
+...
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+...
+```
+
 ##### Register React Package
 ```java
 ...
