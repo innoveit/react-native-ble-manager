@@ -9,6 +9,8 @@
 	"dependencies": {
 		"react": "16.0.0-alpha.6",
 		"react-native": "0.44.0",
+		"react-mixin": "^3.0.5",
+		"react-timer-mixin": "^0.13.3",
 		"react-native-ble-manager": "file:../"
 	},
 	"devDependencies": {
