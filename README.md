@@ -122,6 +122,7 @@ public class MainApplication extends Application implements ReactApplication {
 - Remember to use the `start` method before anything.
 - Avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
+- Before write, read or start notification you need to call `retrieveServices` method
 
 ## Example
 Look in the [example](https://github.com/innoveit/react-native-ble-manager/tree/master/example) project.
@@ -471,7 +472,7 @@ __Arguments__
 
 __Examples__
 ```js
-NativeAppEventEmitter.addListener(
+bleManagerEmitter.addListener(
     'BleManagerStopScan',
     () => {
         // Scanning is stopped
@@ -487,7 +488,7 @@ __Arguments__
 
 __Examples__
 ```js
-NativeAppEventEmitter.addListener(
+bleManagerEmitter.addListener(
     'BleManagerDidUpdateState',
     (args) => {
         // The new state: args.state
@@ -504,7 +505,7 @@ __Arguments__
 
 __Examples__
 ```js
-NativeAppEventEmitter.addListener(
+bleManagerEmitter.addListener(
     'BleManagerDiscoverPeripheral',
     (args) => {
         // The id: args.id
