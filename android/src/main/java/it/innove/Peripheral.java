@@ -21,10 +21,7 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
@@ -150,13 +147,14 @@ public class Peripheral extends BluetoothGattCallback {
 		WritableArray characteristicsArray = Arguments.createArray();
 
 		if (connected && gatt != null) {
-			for (BluetoothGattService service : gatt.getServices()) {
+			for (Iterator<BluetoothGattService> it = gatt.getServices().iterator(); it.hasNext(); ) {
+				BluetoothGattService service = it.next();
 				WritableMap serviceMap = Arguments.createMap();
 				serviceMap.putString("uuid", UUIDHelper.uuidToString(service.getUuid()));
 
 
-
-				for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+				for (Iterator<BluetoothGattCharacteristic> itCharacteristic = service.getCharacteristics().iterator(); itCharacteristic.hasNext(); ) {
+					BluetoothGattCharacteristic characteristic = itCharacteristic.next();
 					WritableMap characteristicsMap = Arguments.createMap();
 
 					characteristicsMap.putString("service", UUIDHelper.uuidToString(service.getUuid()));
