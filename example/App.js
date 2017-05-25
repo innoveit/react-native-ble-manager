@@ -130,16 +130,19 @@ export default class App extends Component {
             });
 
 
-            /*
-            BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
-              console.log('Started notification on ' + peripheral.id);
-              this.setTimeout(() => {
+            /*            
+            BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
+              BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
+                console.log('Started notification on ' + peripheral.id);
+                this.setTimeout(() => {
 
-              }, 500);
-            }).catch((error) => {
-              console.log('Notification error', error);
-              reject(error);
-            });*/
+                }, 500);
+              }).catch((error) => {
+                console.log('Notification error', error);
+                reject(error);
+              });
+            });
+            ;*/
 
           }, 900);
         }).catch((error) => {
