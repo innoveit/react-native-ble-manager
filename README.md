@@ -310,18 +310,8 @@ __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `data` - `String` - the data to write in Base64 format.
+- `data` - `Array` - the data to write.
 - `maxByteSize` - `Integer` - specify the max byte size before splitting message
-
-To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
-
-`npm install base64-js --save`
-
-To format the data before calling the write function:
-```js
-var base64 = require('base64-js');
-var data = base64.fromByteArray(yourData);
-```
 
 __Examples__
 ```js
@@ -344,19 +334,9 @@ __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `data` - `String` - the data to write in Base64 format.
+- `data` - `Array` - the data to write.
 - `maxByteSize` - `Integer` - (Optional) specify the max byte size
 - `queueSleepTime` - `Integer` - (Optional) specify the wait time before each write if the data is greater than maxByteSize
-
-To get the `data` into base64 format, you will need a library like `base64-js`. Install `base64-js`:
-
-`npm install base64-js --save`
-
-To format the data before calling the write function:
-```js
-var base64 = require('base64-js');
-var data = base64.fromByteArray(yourData);
-```
 
 __Examples__
 ```js
