@@ -407,7 +407,6 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
     
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWrite callback:callback];
     
-    //NSData *dataMessage = [RCTConvert NSData:message];
     unsigned long c = [message count];
     uint8_t *bytes = malloc(sizeof(*bytes) * c);
     
@@ -420,8 +419,6 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
     }
     NSData *dataMessage = [NSData dataWithBytesNoCopy:bytes length:c freeWhenDone:YES];
     
-    //NSData *dataMessage = [NSData dataWithBytes:(__bridge const void * _Nullable)(message) length:sizeof(message)];
-    //NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
     if (context) {
         RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[message count], message);
         CBPeripheral *peripheral = [context peripheral];
@@ -457,12 +454,22 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
 }
 
 
-RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize queueSleepTime:(NSInteger)queueSleepTime callback:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSArray*)message maxByteSize:(NSInteger)maxByteSize queueSleepTime:(NSInteger)queueSleepTime callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"writeWithoutResponse");
     
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWriteWithoutResponse callback:callback];
-    NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
+    unsigned long c = [message count];
+    uint8_t *bytes = malloc(sizeof(*bytes) * c);
+    
+    unsigned i;
+    for (i = 0; i < c; i++)
+    {
+        NSNumber *number = [message objectAtIndex:i];
+        int byte = [number intValue];
+        bytes[i] = byte;
+    }
+    NSData *dataMessage = [NSData dataWithBytesNoCopy:bytes length:c freeWhenDone:YES];
     if (context) {
         if ([dataMessage length] > maxByteSize) {
             NSUInteger length = [dataMessage length];
