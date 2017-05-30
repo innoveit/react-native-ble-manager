@@ -79,11 +79,11 @@ class BleManager  {
 
   connect(peripheralId) {
     return new Promise((fulfill, reject) => {
-      bleManager.connect(peripheralId, (error, peripheral) => {
+      bleManager.connect(peripheralId, (error) => {
         if (error) {
           reject(error);
         } else {
-          fulfill(peripheral);
+          fulfill();
         }
       });
     });

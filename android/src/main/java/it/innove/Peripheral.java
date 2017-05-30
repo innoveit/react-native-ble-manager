@@ -40,6 +40,7 @@ public class Peripheral extends BluetoothGattCallback {
 	private BluetoothGatt gatt;
 
 	private Callback connectCallback;
+	private Callback retrieveServicesCallback;
 	private Callback readCallback;
 	private Callback readRSSICallback;
 	private Callback writeCallback;
@@ -70,7 +71,7 @@ public class Peripheral extends BluetoothGattCallback {
 		WritableMap map = Arguments.createMap();
 		map.putString("peripheral", device.getAddress());
 		sendEvent(eventName, map);
-		Log.d(LOG_TAG, "Peripheral event (eventName):" + device.getAddress());
+		Log.d(LOG_TAG, "Peripheral event ("+ eventName +"):" + device.getAddress());
 	}
 
 	public void connect(Callback callback, Activity activity) {
@@ -80,8 +81,7 @@ public class Peripheral extends BluetoothGattCallback {
 			gatt = device.connectGatt(activity, false, this);
 		}else{
 			if (gatt != null) {
-				WritableMap map = this.asWritableMap(gatt);
-				callback.invoke(null, map);
+				callback.invoke(null);
 			} else
 				callback.invoke("BluetoothGatt is null");
 		}
@@ -228,9 +228,11 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
-		WritableMap map = this.asWritableMap(gatt);
-		connectCallback.invoke(null, map);
-		connectCallback = null;
+		if (retrieveServicesCallback != null) {
+			WritableMap map = this.asWritableMap(gatt);
+			retrieveServicesCallback.invoke(null, map);
+			retrieveServicesCallback = null;
+		}
 	}
 
 	@Override
@@ -243,11 +245,15 @@ public class Peripheral extends BluetoothGattCallback {
 		if (newState == BluetoothGatt.STATE_CONNECTED) {
 
 			connected = true;
-			connectCallback.invoke(null);
-			connectCallback = null;
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral");
 
+			if (connectCallback != null) {
+				Log.d(LOG_TAG, "Connected to: " + device.getAddress());
+				connectCallback.invoke();
+				connectCallback = null;
+			}
+			
 		} else if (newState == BluetoothGatt.STATE_DISCONNECTED){
 
 			if (connected) {
@@ -504,10 +510,9 @@ public class Peripheral extends BluetoothGattCallback {
 			callback.invoke("BluetoothGatt is null", null);
 			return;
 		}
+		this.retrieveServicesCallback = callback;
 
 		gatt.discoverServices();
-		WritableMap map = this.asWritableMap(gatt);
-		callback.invoke(null, map);
 	}
 
 
