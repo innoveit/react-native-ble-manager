@@ -243,8 +243,7 @@ public class Peripheral extends BluetoothGattCallback {
 		if (newState == BluetoothGatt.STATE_CONNECTED) {
 
 			connected = true;
-			WritableMap map = this.asWritableMap(gatt);
-			connectCallback.invoke(null, map);
+			connectCallback.invoke(null);
 			connectCallback = null;
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral");
@@ -291,7 +290,7 @@ public class Peripheral extends BluetoothGattCallback {
 		map.putString("peripheral", device.getAddress());
 		map.putString("characteristic", characteristic.getUuid().toString());
 		map.putString("service", characteristic.getService().getUuid().toString());
-		map.putString("value", BleManager.bytesToHex(dataValue));
+		map.putArray("value", BleManager.bytesToWritableArray(dataValue));
 		sendEvent("BleManagerDidUpdateValueForCharacteristic", map);
 	}
 
@@ -304,10 +303,9 @@ public class Peripheral extends BluetoothGattCallback {
 
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				byte[] dataValue = characteristic.getValue();
-				String value = BleManager.bytesToHex(dataValue);
 
 				if (readCallback != null) {
-					readCallback.invoke(null, value);
+					readCallback.invoke(null, BleManager.bytesToWritableArray(dataValue));
 				}
 			} else {
 				readCallback.invoke("Error reading " + characteristic.getUuid() + " status=" + status, null);

@@ -64,13 +64,13 @@ bool hasListeners;
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
     RCTResponseSenderBlock readCallback = [readCallbacks objectForKey:key];
     
-    NSString *stringFromData = [characteristic.value hexadecimalString];
     if (readCallback != NULL){
-        readCallback(@[[NSNull null], stringFromData]);
+        readCallback(@[[NSNull null], [characteristic.value toArray]]);
         [readCallbacks removeObjectForKey:key];
     } else {
         if (hasListeners) {
-            [self sendEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"service":characteristic.service.UUID.UUIDString, @"value": stringFromData}];
+
+            [self sendEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"service":characteristic.service.UUID.UUIDString, @"value": [characteristic.value toArray]}];
         }
     }
 }
@@ -401,14 +401,29 @@ RCT_EXPORT_METHOD(checkState)
     NSLog(@"Peripheral connection failure: %@. (%@)", peripheral, [error localizedDescription]);
 }
 
-RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSString*)message maxByteSize:(NSInteger)maxByteSize callback:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUID  characteristicUUID:(NSString*)characteristicUUID message:(NSArray*)message maxByteSize:(NSInteger)maxByteSize callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Write");
     
     BLECommandContext *context = [self getData:deviceUUID serviceUUIDString:serviceUUID characteristicUUIDString:characteristicUUID prop:CBCharacteristicPropertyWrite callback:callback];
     
-    NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
+    //NSData *dataMessage = [RCTConvert NSData:message];
+    unsigned long c = [message count];
+    uint8_t *bytes = malloc(sizeof(*bytes) * c);
+    
+    unsigned i;
+    for (i = 0; i < c; i++)
+    {
+        NSNumber *number = [message objectAtIndex:i];
+        int byte = [number intValue];
+        bytes[i] = byte;
+    }
+    NSData *dataMessage = [NSData dataWithBytesNoCopy:bytes length:c freeWhenDone:YES];
+    
+    //NSData *dataMessage = [NSData dataWithBytes:(__bridge const void * _Nullable)(message) length:sizeof(message)];
+    //NSData* dataMessage = [[NSData alloc] initWithBase64EncodedString:message options:0];
     if (context) {
+        RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[message count], message);
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         

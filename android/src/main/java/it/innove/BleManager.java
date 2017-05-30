@@ -207,12 +207,15 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 
 	@ReactMethod
-	public void write(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Integer maxByteSize, Callback callback) {
+	public void write(String deviceUUID, String serviceUUID, String characteristicUUID, ReadableArray message, Integer maxByteSize, Callback callback) {
 		Log.d(LOG_TAG, "Write to: " + deviceUUID);
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
-			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
+			byte[] decoded = new byte[message.size()];
+			for (int i = 0; i < message.size(); i++) {
+				decoded[i] = new Integer(message.getInt(i)).byteValue();
+			}
 			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 			peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
 		} else
@@ -220,12 +223,15 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
-	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID, String message, Integer maxByteSize, Integer queueSleepTime, Callback callback) {
+	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID, ReadableArray message, Integer maxByteSize, Integer queueSleepTime, Callback callback) {
 		Log.d(LOG_TAG, "Write without response to: " + deviceUUID);
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null){
-			byte[] decoded = Base64.decode(message.getBytes(), Base64.DEFAULT);
+			byte[] decoded = new byte[message.size()];
+			for (int i = 0; i < message.size(); i++) {
+				decoded[i] = new Integer(message.getInt(i)).byteValue();
+			}
 			Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
 			peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), decoded, maxByteSize, queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 		} else
@@ -426,6 +432,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
 		}
 		return new String(hexChars);
+	}
+
+	public static WritableArray bytesToWritableArray(byte[] bytes) {
+		WritableArray value = Arguments.createArray();
+		for(int i = 0; i < bytes.length; i++)
+			value.pushInt((bytes[i] & 0xFF));
+		return value;
 	}
 
 	@Override

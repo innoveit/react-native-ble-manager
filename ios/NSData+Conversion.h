@@ -5,4 +5,7 @@
 #pragma mark - String Conversion
 - (NSString *)hexadecimalString;
 
+#pragma mark - NSArray Conversion
+- (NSArray *)toArray;
+
 @end
