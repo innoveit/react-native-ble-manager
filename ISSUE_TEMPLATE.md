@@ -4,6 +4,7 @@ Tell us which versions you are using:
 
 - react-native-ble-manager v?.?.?
 - react-native v?.?
+- iOS/Android v.?
 
 ### Expected behaviour
 
