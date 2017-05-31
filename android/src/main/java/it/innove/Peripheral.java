@@ -281,6 +281,10 @@ public class Peripheral extends BluetoothGattCallback {
 		advertisingRSSI = rssi;
 	}
 
+	public void updateData(byte[] data) {
+		advertisingData = data;
+	}
+
 	public int unsignedToBytes(byte b) {
 		return b & 0xFF;
 	}

@@ -101,24 +101,23 @@ public class LollipopScanManager extends ScanManager {
 				public void run() {
 					Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
 					String address = result.getDevice().getAddress();
+                    Peripheral peripheral = null;
 
 					if (!bleManager.peripherals.containsKey(address)) {
-
-						Peripheral peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
+						peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
 						bleManager.peripherals.put(address, peripheral);
-
-						try {
-							Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-							WritableMap map = Arguments.fromBundle(bundle);
-							bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
-						} catch (JSONException ignored) {
-
-						}
-
 					} else {
-						// this isn't necessary
-						Peripheral peripheral = bleManager.peripherals.get(address);
+						peripheral = bleManager.peripherals.get(address);
 						peripheral.updateRssi(result.getRssi());
+						peripheral.updateData(result.getScanRecord().getBytes());
+					}
+
+					try {
+						Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
+						WritableMap map = Arguments.fromBundle(bundle);
+						bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
+					} catch (JSONException ignored) {
+
 					}
 				}
 			});
