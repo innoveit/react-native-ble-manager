@@ -36,24 +36,23 @@ public class LegacyScanManager extends ScanManager {
 						public void run() {
 							Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + device.getName());
 							String address = device.getAddress();
+							Peripheral peripheral;
 
 							if (!bleManager.peripherals.containsKey(address)) {
-
-								Peripheral peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
+								peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
 								bleManager.peripherals.put(device.getAddress(), peripheral);
-
-								try {
-									Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-									WritableMap map = Arguments.fromBundle(bundle);
-									bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
-								} catch (JSONException ignored) {
-
-								}
-
 							} else {
-								// this isn't necessary
-								Peripheral peripheral = bleManager.peripherals.get(address);
+								peripheral = bleManager.peripherals.get(address);
 								peripheral.updateRssi(rssi);
+								peripheral.updateData(scanRecord);
+							}
+
+							try {
+								Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
+								WritableMap map = Arguments.fromBundle(bundle);
+								bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
+							} catch (JSONException ignored) {
+
 							}
 						}
 					});
