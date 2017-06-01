@@ -1,6 +1,6 @@
 {
   "name": "react-native-ble-manager",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "A BLE module for react native.",
   "main": "BleManager",
   "repository": {
