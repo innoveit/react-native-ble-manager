@@ -44,6 +44,7 @@ public class Peripheral extends BluetoothGattCallback {
 	private Callback readCallback;
 	private Callback readRSSICallback;
 	private Callback writeCallback;
+	private Callback registerNotifyCallback;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
 
@@ -355,6 +356,15 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
 		super.onDescriptorWrite(gatt, descriptor, status);
+		if (registerNotifyCallback != null) {
+			if (status == BluetoothGatt.GATT_SUCCESS) {
+				registerNotifyCallback.invoke();
+			} else {
+				registerNotifyCallback.invoke("Error writing descriptor stats=" + status, null);
+			}
+
+			registerNotifyCallback = null;
+		}
 	}
 
 	@Override
@@ -403,7 +413,7 @@ public class Peripheral extends BluetoothGattCallback {
 					try {
 						if (gatt.writeDescriptor(descriptor)) {
 							Log.d(LOG_TAG, "setNotify complete");
-							callback.invoke();
+							registerNotifyCallback = callback;
 						} else {
 							callback.invoke("Failed to set client characteristic notification for " + characteristicUUID);
 						}
