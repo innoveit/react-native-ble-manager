@@ -134,7 +134,7 @@ Init the module.
 Returns a `Promise` object.
 
 __Arguments__
-- `options` - `JSON` 
+- `options` - `JSON`
 
 The parameter is optional the configuration keys are:
 - `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
@@ -250,7 +250,7 @@ BleManager.checkState();
 ```
 
 ### startNotification(peripheralId, serviceUUID, characteristicUUID)
-Start the notification on the specified characteristic.
+Start the notification on the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
 
 __Arguments__
@@ -281,7 +281,7 @@ __Arguments__
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 
 ### read(peripheralId, serviceUUID, characteristicUUID)
-Read the current value of the specified characteristic.
+Read the current value of the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
 
 __Arguments__
@@ -303,7 +303,7 @@ BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX
 ```
 
 ### write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
-Write with response to the specified characteristic.
+Write with response to the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
 
 __Arguments__
@@ -327,7 +327,7 @@ BleManager.write('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXX
 ```
 
 ### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime)
-Write without response to the specified characteristic.
+Write without response to the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
 
 __Arguments__
