@@ -82,7 +82,7 @@ public class Peripheral extends BluetoothGattCallback {
 			gatt = device.connectGatt(activity, false, this);
 		}else{
 			if (gatt != null) {
-				callback.invoke(null);
+				callback.invoke();
 			} else
 				callback.invoke("BluetoothGatt is null");
 		}
