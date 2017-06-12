@@ -43,7 +43,6 @@ export default class App extends Component {
     BleManager.start({showAlert: false, allowDuplicates: false});
 
     bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
-    bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
     bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
     bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
