@@ -51,7 +51,7 @@ export default class App extends Component {
 
 
     if (Platform.OS === 'android' && Platform.Version >= 23) {
-        PermissionsAndroid.checkPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+        PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
             if (result) {
               console.log("Permission is OK");
             } else {
@@ -130,7 +130,7 @@ export default class App extends Component {
             });
 
 
-            /*            
+            /*
             BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
               BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
                 console.log('Started notification on ' + peripheral.id);
