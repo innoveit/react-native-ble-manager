@@ -43,7 +43,6 @@ export default class App extends Component {
     BleManager.start({showAlert: false, allowDuplicates: false});
 
     bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
-    bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral);
     bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
     bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
     bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
@@ -130,7 +129,7 @@ export default class App extends Component {
             });
 
 
-            /*            
+            /*
             BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
               BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
                 console.log('Started notification on ' + peripheral.id);
