@@ -151,7 +151,7 @@ BleManager.start({showAlert: false})
 
 ```
 
-### scan(serviceUUIDs, seconds)
+### scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions)
 Scan for availables peripherals.
 Returns a `Promise` object.
 
@@ -159,6 +159,11 @@ __Arguments__
 - `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for. On Android the filter works only for 5.0 or newer.
 - `seconds` - `Integer` - the amount of seconds to scan.
 - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
+- `scanningOptions` - `JSON` - [Android only] after Android 5.0, user can control specific ble scan behaviors:
+  - `numberOfMatches` - `Number` - corresponding to [`setNumOfMatches`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int))
+  - `matchMode` - `Number` - corresponding to [`setMatchMode`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int))
+  - `scanMode` - `Number` - corresponding to [`setScanMode`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int))
+  
 
 __Examples__
 ```js
