@@ -112,13 +112,8 @@ public class LollipopScanManager extends ScanManager {
 						peripheral.updateData(result.getScanRecord().getBytes());
 					}
 
-					try {
-						Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-						WritableMap map = Arguments.fromBundle(bundle);
-						bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
-					} catch (JSONException ignored) {
-
-					}
+					WritableMap map = peripheral.asWritableMap();
+					bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
 				}
 			});
 		}

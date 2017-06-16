@@ -47,13 +47,8 @@ public class LegacyScanManager extends ScanManager {
 								peripheral.updateData(scanRecord);
 							}
 
-							try {
-								Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-								WritableMap map = Arguments.fromBundle(bundle);
-								bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
-							} catch (JSONException ignored) {
-
-							}
+							WritableMap map = peripheral.asWritableMap();
+							bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
 						}
 					});
 				}
