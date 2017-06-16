@@ -125,9 +125,11 @@ export default class App extends Component {
             this.setState({peripherals});
           }
           console.log('Connected to ' + peripheral.id);
+
+          /*
           this.setTimeout(() => {
 
-            /*
+
             BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
               console.log('Retrieved peripheral services', peripheralData);
 
