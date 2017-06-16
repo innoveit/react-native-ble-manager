@@ -2,10 +2,8 @@ package it.innove;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.os.Bundle;
 import android.util.Log;
 import com.facebook.react.bridge.*;
-import org.json.JSONException;
 
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
@@ -58,7 +56,11 @@ public class LegacyScanManager extends ScanManager {
 
 	@Override
 	public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback) {
+		if (serviceUUIDs.size() > 0) {
+			Log.d(bleManager.LOG_TAG, "Filter is not working in pre-lollipop devices");
+		}
 		getBluetoothAdapter().startLeScan(mLeScanCallback);
+
 		if (scanSeconds > 0) {
 			Thread thread = new Thread() {
 				private int currentScanSession = scanSessionId.incrementAndGet();
