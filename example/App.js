@@ -42,10 +42,10 @@ export default class App extends Component {
   componentDidMount() {
     BleManager.start({showAlert: false, allowDuplicates: false});
 
-    bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
-    bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
-    bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
-    bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
+    this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
+    this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
+    this.handlerDisconnect = bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', this.handleDisconnectedPeripheral );
+    this.handlerUpdate = bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic );
 
 
 
@@ -66,6 +66,13 @@ export default class App extends Component {
     }
   }
 
+  componentWillUnmount() {
+    this.handlerDiscover.remove();
+    this.handlerStop.remove();
+    this.handlerDisconnect.remove();
+    this.handlerUpdate.update();
+  }
+
   handleDisconnectedPeripheral(data) {
     let peripherals = this.state.peripherals;
     let peripheral = peripherals.get(data.peripheral);
@@ -78,7 +85,7 @@ export default class App extends Component {
   }
 
   handleUpdateValueForCharacteristic(data) {
-    console.log('Received '+ data.value + ' from ' + data.peripheral + ' characteristic ' + data.characteristic);
+    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
   }
 
   handleStopScan() {
@@ -120,6 +127,7 @@ export default class App extends Component {
           console.log('Connected to ' + peripheral.id);
           this.setTimeout(() => {
 
+            /*
             BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
               console.log('Retrieved peripheral services', peripheralData);
 
@@ -128,22 +136,28 @@ export default class App extends Component {
               });
             });
 
-
-            /*
+            // Specific to test my device
             BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
-              BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
-                console.log('Started notification on ' + peripheral.id);
-                this.setTimeout(() => {
+              this.setTimeout(() => {
+                BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
+                  console.log('Started notification on ' + peripheral.id);
+                  this.setTimeout(() => {
 
-                }, 500);
-              }).catch((error) => {
-                console.log('Notification error', error);
-                reject(error);
-              });
+                    let messages = [[0, 7, 2, 52, 2, 19, 181],[0, 7, 2, 103, 2, 47, 69],[0, 7, 2, 32, 2, 28, 181], [0, 7, 2, 120, 2, 39, 117]];
+                    let message = messages[Math.floor(Math.random() * 3)];
+                    //console.log(message);
+                    BleManager.write(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301', message).then(() => {
+                      console.log('Write confirmed');
+                    });
+
+                  }, 500);
+                }).catch((error) => {
+                  console.log('Notification error', error);
+                });
+              }, 200);
             });
-            ;*/
 
-          }, 900);
+          }, 900);*/
         }).catch((error) => {
           console.log('Connection error', error);
         });
