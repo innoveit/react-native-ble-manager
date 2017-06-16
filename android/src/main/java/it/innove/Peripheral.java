@@ -20,6 +20,7 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.util.*;
 
@@ -106,24 +107,6 @@ public class Peripheral extends BluetoothGattCallback {
 			Log.d(LOG_TAG, "GATT is null");
 	}
 
-	public JSONObject asJSONObject() {
-
-		JSONObject json = new JSONObject();
-
-		try {
-			json.put("name", device.getName());
-			json.put("id", device.getAddress()); // mac address
-			json.put("advertising", byteArrayToJSON(advertisingData));
-			// TODO real RSSI if we have it, else
-			json.put("rssi", advertisingRSSI);
-		} catch (JSONException e) { // this shouldn't happen
-			e.printStackTrace();
-		}
-
-		return json;
-	}
-
-
 	public WritableMap asWritableMap() {
 
 		WritableMap map = Arguments.createMap();
@@ -208,6 +191,7 @@ public class Peripheral extends BluetoothGattCallback {
 		WritableMap object = Arguments.createMap();
 		object.putString("CDVType", "ArrayBuffer");
 		object.putString("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
+		object.putArray("bytes", BleManager.bytesToWritableArray(bytes));
 		return object;
 	}
 

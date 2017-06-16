@@ -1,4 +1,5 @@
 #import "CBPeripheral+Extensions.h"
+#import "NSData+Conversion.h"
 
 static char ADVERTISING_IDENTIFER;
 static char ADVERTISEMENT_RSSI_IDENTIFER;
@@ -240,7 +241,8 @@ id dataToArrayBuffer(NSData* data)
 {
   return @{
            @"CDVType" : @"ArrayBuffer",
-           @"data" :[data base64EncodedStringWithOptions:0]
+           @"data" :[data base64EncodedStringWithOptions:0],
+           @"bytes" :[data toArray]
            };
 }
 

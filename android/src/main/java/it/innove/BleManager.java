@@ -283,18 +283,10 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 							String address = device.getAddress();
 
 							if (!peripherals.containsKey(address)) {
-
 								Peripheral peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
 								peripherals.put(device.getAddress(), peripheral);
-
-								try {
-									Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-									WritableMap map = Arguments.fromBundle(bundle);
-									sendEvent("BleManagerDiscoverPeripheral", map);
-								} catch (JSONException ignored) {
-
-								}
-
+								WritableMap map = peripheral.asWritableMap();
+								sendEvent("BleManagerDiscoverPeripheral", map);
 							} else {
 								// this isn't necessary
 								Peripheral peripheral = peripherals.get(address);
@@ -368,13 +360,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		WritableArray map = Arguments.createArray();
 		for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
 			Peripheral peripheral = entry.getValue();
-			try {
-				Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-				WritableMap jsonBundle = Arguments.fromBundle(bundle);
-				map.pushMap(jsonBundle);
-			} catch (JSONException ignored) {
-				callback.invoke("Peripheral json conversion error", null);
-			}
+			WritableMap jsonBundle = peripheral.asWritableMap();
+			map.pushMap(jsonBundle);
 		}
 		callback.invoke(null, map);
 	}
@@ -396,13 +383,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			}
 
 			if (peripheral.isConnected() && accept) {
-				try {
-					Bundle bundle = BundleJSONConverter.convertToBundle(peripheral.asJSONObject());
-					WritableMap jsonBundle = Arguments.fromBundle(bundle);
-					map.pushMap(jsonBundle);
-				} catch (JSONException ignored) {
-					callback.invoke("Peripheral json conversion error", null);
-				}
+				WritableMap jsonBundle = peripheral.asWritableMap();
+				map.pushMap(jsonBundle);
 			}
 		}
 		callback.invoke(null, map);
