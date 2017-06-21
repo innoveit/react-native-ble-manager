@@ -358,7 +358,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getDiscoveredPeripherals(Callback callback) {
 		Log.d(LOG_TAG, "Get discovered peripherals");
 		WritableArray map = Arguments.createArray();
-		for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
+		Map <String, Peripheral> peripheralsCopy = new LinkedHashMap<>(peripherals);
+		for (Map.Entry<String, Peripheral> entry : peripheralsCopy.entrySet()) {
 			Peripheral peripheral = entry.getValue();
 			WritableMap jsonBundle = peripheral.asWritableMap();
 			map.pushMap(jsonBundle);
@@ -370,7 +371,8 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
 		Log.d(LOG_TAG, "Get connected peripherals");
 		WritableArray map = Arguments.createArray();
-		for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
+		Map <String, Peripheral> peripheralsCopy = new LinkedHashMap<>(peripherals);
+		for (Map.Entry<String, Peripheral> entry : peripheralsCopy.entrySet()) {
 			Peripheral peripheral = entry.getValue();
 			Boolean accept = false;
 
