@@ -253,6 +253,24 @@ class BleManager  {
       }
     });
   }
+
+  getCentralManagerAddress() {
+    if (React.Platform.OS !== 'ios') {
+      return new Promise((_, reject) => {
+        reject('getCentralManagerAddress is an ios only function');
+      });
+    }
+
+    return new Promise((fulfill, reject) => {
+      bleManager.getCentralManagerAddress((address, error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(address);
+        }
+      });
+    });
+  }
 }
 
 module.exports = new BleManager();

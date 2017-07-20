@@ -808,4 +808,15 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     NSLog(@"centralManager willRestoreState");
 }
 
+RCT_EXPORT_METHOD(getCentralManagerAddress:(nonnull RCTResponseSenderBlock)callback)
+{
+  NSLog(@"getCentralManagerAddress");
+
+  if(!manager) {
+    callback(@[[NSNull null], @"CentralManager not yet initialized"]);
+  } else {
+    callback(@[[NSString stringWithFormat:@"%p", manager], [NSNull null]]);
+  }
+}
+
 @end
