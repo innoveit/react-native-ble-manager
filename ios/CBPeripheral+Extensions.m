@@ -30,10 +30,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     [dictionary setObject: [self name] forKey: @"name"];
   }
   
-  
-  if ([self RSSI]) {
-    [dictionary setObject: [self RSSI] forKey: @"rssi"];
-  } else if ([self advertisementRSSI]) {
+  if ([self advertisementRSSI]) {
     [dictionary setObject: [self advertisementRSSI] forKey: @"rssi"];
   }
   
