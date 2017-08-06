@@ -163,7 +163,7 @@ __Arguments__
   - `numberOfMatches` - `Number` - corresponding to [`setNumOfMatches`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int))
   - `matchMode` - `Number` - corresponding to [`setMatchMode`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int))
   - `scanMode` - `Number` - corresponding to [`setScanMode`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int))
-  
+
 
 __Examples__
 ```js
@@ -315,8 +315,24 @@ __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `data` - `Array` - the data to write.
+- `data` - `Byte array` - the data to write.
 - `maxByteSize` - `Integer` - specify the max byte size before splitting message
+
+__Data preparation__
+
+If your data is not in byte array format you should convert it first. For strings you can use `convert-string` or other npm package in order to achieve that.
+Install the package first:
+```shell
+npm install convert-string
+```
+Then use it in your application:
+```js
+// Import/require in the beginning of the file
+import { stringToBytes } from 'convert-string';
+// Convert data to byte array before write/writeWithoutResponse
+const data = stringToBytes(yourStringData);
+```
+Feel free to use other packages or google how to convert into byte array if your data has other format.
 
 __Examples__
 ```js
@@ -339,11 +355,15 @@ __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `data` - `Array` - the data to write.
+- `data` - `Byte array` - the data to write.
 - `maxByteSize` - `Integer` - (Optional) specify the max byte size
 - `queueSleepTime` - `Integer` - (Optional) specify the wait time before each write if the data is greater than maxByteSize
 
-__Examples__
+__Data preparation__
+
+If your data is not in byte array format check info for the write function above.
+
+__Example__
 ```js
 BleManager.writeWithoutResponse('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', data)
   .then(() => {
