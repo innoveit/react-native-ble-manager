@@ -448,22 +448,6 @@ BleManager.isPeripheralConnected('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', [])
 
 ```
 
-### getCentralManagerAddress()
-iOS only function, for advanced used only. Returns the address of the CBCentralManager instance used by this library. Mainly intended to be used with external libraries that require a reference to the CBCentralManager instance used by this lib. Use with extreme caution.
-
-Returns a `Promise` object that resolves with the instance's address as string formatted by "%p", rejects if instance isn't initialized yet.
-
-__Examples_
-```js
-BleManager.getCentralManagerAddress()
-  .then((address) => {
-    console.log(`The CBCentralManager instance's address is: '${address}'`);
-  })
-  .catch((err) => {
-  console.log('The CBCentralManager instance hasn't been initialized yet');
-  });
-```
-
 ## Events
 ### BleManagerStopScan
 The scanning for peripherals is ended.

@@ -266,6 +266,7 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
         manager = [[CBCentralManager alloc] initWithDelegate:self
                                                        queue:dispatch_get_main_queue()
                                                      options:initOptions];
+        _sharedManager = manager;
     }
 
     callback(@[]);
@@ -808,15 +809,9 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     NSLog(@"centralManager willRestoreState");
 }
 
-RCT_EXPORT_METHOD(getCentralManagerAddress:(nonnull RCTResponseSenderBlock)callback)
++(CBCentralManager *)getCentralManager
 {
-  NSLog(@"getCentralManagerAddress");
-
-  if(!manager) {
-    callback(@[[NSNull null], @"CentralManager not yet initialized"]);
-  } else {
-    callback(@[[NSString stringWithFormat:@"%p", manager], [NSNull null]]);
-  }
+    return _sharedManager;
 }
 
 @end
