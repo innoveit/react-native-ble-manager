@@ -266,6 +266,7 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
         manager = [[CBCentralManager alloc] initWithDelegate:self
                                                        queue:dispatch_get_main_queue()
                                                      options:initOptions];
+        _sharedManager = manager;
     }
 
     callback(@[]);
@@ -802,6 +803,11 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 -(void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary<NSString *,id> *)dict
 {
     NSLog(@"centralManager willRestoreState");
+}
+
++(CBCentralManager *)getCentralManager
+{
+    return _sharedManager;
 }
 
 @end
