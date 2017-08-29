@@ -40,7 +40,7 @@ export default class App extends Component {
   }
 
   componentDidMount() {
-    BleManager.start({showAlert: false, allowDuplicates: false});
+    BleManager.start({showAlert: false});
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
     this.handlerStop = bleManagerEmitter.addListener('BleManagerStopScan', this.handleStopScan );
@@ -70,7 +70,7 @@ export default class App extends Component {
     this.handlerDiscover.remove();
     this.handlerStop.remove();
     this.handlerDisconnect.remove();
-    this.handlerUpdate.update();
+    this.handlerUpdate.remove();
   }
 
   handleDisconnectedPeripheral(data) {
