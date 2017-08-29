@@ -457,7 +457,7 @@ BleManager.getDiscoveredPeripherals([])
 
 ```
 
-### removePeripheral(peripheralId)
+### removePeripheral(peripheralId) [Android only] 
 Removes a disconnected peripheral from the cached list.
 It is useful if the device is turned off, because it will be re-discovered upon turning on again.
 Returns a `Promise` object.
