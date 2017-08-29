@@ -429,6 +429,20 @@ BleManager.getConnectedPeripherals([])
 
 ```
 
+### getBondedPeripherals() [Android only]
+Return the bonded peripherals.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.getBondedPeripherals([])
+  .then((bondedPeripheralsArray) => {
+    // Each peripheral in returned array will have id and name properties
+    console.log('Bonded peripherals: ' + bondedPeripheralsArray.length);
+  });
+
+```
+
 ### getDiscoveredPeripherals()
 Return the discovered peripherals after a scan.
 Returns a `Promise` object.

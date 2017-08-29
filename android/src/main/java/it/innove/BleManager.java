@@ -393,6 +393,19 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
+	public void getBondedPeripherals(Callback callback) {
+		Log.d(LOG_TAG, "Get bonded peripherals");
+		WritableArray map = Arguments.createArray();
+		Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
+		for (BluetoothDevice device : deviceSet) {
+			Peripheral peripheral = new Peripheral(device, reactContext);
+			WritableMap jsonBundle = peripheral.asWritableMap();
+			map.pushMap(jsonBundle);
+		}
+		callback.invoke(null, map);
+	}
+
+	@ReactMethod
 	public void removePeripheral(String deviceUUID, Callback callback) {
 		Log.d(LOG_TAG, "Removing from list: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);
