@@ -7,6 +7,7 @@
 #import "BLECommandContext.h"
 
 static CBCentralManager *_sharedManager = nil;
+static BleManager * _instance = nil;
 
 @implementation BleManager
 
@@ -34,6 +35,7 @@ bool hasListeners;
         writeQueue = [NSMutableArray array];
         notificationCallbacks = [NSMutableDictionary new];
         stopNotificationCallbacks = [NSMutableDictionary new];
+        _instance = self;
         NSLog(@"BleManager created");
     }
     
@@ -805,6 +807,11 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 +(CBCentralManager *)getCentralManager
 {
     return _sharedManager;
+}
+
++(BleManager *)getInstance
+{
+  return _instance;
 }
 
 @end
