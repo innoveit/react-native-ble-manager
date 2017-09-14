@@ -7,8 +7,8 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"react": "16.0.0-alpha.6",
-		"react-native": "0.44.0",
+		"react": "16.0.0-alpha.12",
+		"react-native": "0.48.0",
 		"react-mixin": "^3.0.5",
 		"react-timer-mixin": "^0.13.3",
 		"react-native-ble-manager": "file:../"
@@ -17,7 +17,7 @@
 		"babel-jest": "20.0.3",
 		"babel-preset-react-native": "1.9.2",
 		"jest": "20.0.3",
-		"react-test-renderer": "16.0.0-alpha.6"
+		"react-test-renderer": "16.0.0-alpha.12"
 	},
 	"jest": {
 		"preset": "react-native"

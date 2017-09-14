@@ -126,31 +126,44 @@ export default class App extends Component {
           }
           console.log('Connected to ' + peripheral.id);
 
-          /*
+
           this.setTimeout(() => {
 
-
+            /* Test read current RSSI value
             BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
               console.log('Retrieved peripheral services', peripheralData);
 
               BleManager.readRSSI(peripheral.id).then((rssi) => {
                 console.log('Retrieved actual RSSI value', rssi);
               });
-            });
+            });*/
 
-            // Specific to test my device
+            // Test using bleno's pizza example
+            // https://github.com/sandeepmistry/bleno/tree/master/examples/pizza
             BleManager.retrieveServices(peripheral.id).then((peripheralInfo) => {
+              console.log(peripheralInfo);
+              var service = '13333333-3333-3333-3333-333333333337';
+              var bakeCharacteristic = '13333333-3333-3333-3333-333333330003';
+              var crustCharacteristic = '13333333-3333-3333-3333-333333330001';
+
               this.setTimeout(() => {
-                BleManager.startNotification(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301').then(() => {
+                BleManager.startNotification(peripheral.id, service, bakeCharacteristic).then(() => {
                   console.log('Started notification on ' + peripheral.id);
                   this.setTimeout(() => {
-
-                    let messages = [[0, 7, 2, 52, 2, 19, 181],[0, 7, 2, 103, 2, 47, 69],[0, 7, 2, 32, 2, 28, 181], [0, 7, 2, 120, 2, 39, 117]];
-                    let message = messages[Math.floor(Math.random() * 3)];
-                    //console.log(message);
-                    BleManager.write(peripheral.id, '00035B03-58E6-07DD-021A-08123A000300', '00035B03-58E6-07DD-021A-08123A000301', message).then(() => {
-                      console.log('Write confirmed');
-                    });
+                    BleManager.write(peripheral.id, service, crustCharacteristic, [0]).then(() => {
+                      console.log('Writed NORMAL crust');
+                      BleManager.write(peripheral.id, service, bakeCharacteristic, [1,95]).then(() => {
+                        console.log('Writed 351 temperature, the pizza should be BAKED');
+                        /*
+                        var PizzaBakeResult = {
+                          HALF_BAKED: 0,
+                          BAKED:      1,
+                          CRISPY:     2,
+                          BURNT:      3,
+                          ON_FIRE:    4
+                        };*/
+                      });
+                    });                    
 
                   }, 500);
                 }).catch((error) => {
@@ -159,7 +172,7 @@ export default class App extends Component {
               }, 200);
             });
 
-          }, 900);*/
+          }, 900);
         }).catch((error) => {
           console.log('Connection error', error);
         });
