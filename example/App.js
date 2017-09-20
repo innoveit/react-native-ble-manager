@@ -11,7 +11,8 @@ import {
   Platform,
   PermissionsAndroid,
   ListView,
-  ScrollView
+  ScrollView,
+  AppState
 } from 'react-native';
 import Dimensions from 'Dimensions';
 import BleManager from 'react-native-ble-manager';
@@ -30,16 +31,20 @@ export default class App extends Component {
 
     this.state = {
       scanning:false,
-      peripherals: new Map()
+      peripherals: new Map(),
+      appState: ''
     }
 
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
     this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
     this.handleDisconnectedPeripheral = this.handleDisconnectedPeripheral.bind(this);
+    this.handleAppStateChange = this.handleAppStateChange.bind(this);
   }
 
   componentDidMount() {
+    AppState.addEventListener('change', this.handleAppStateChange);
+
     BleManager.start({showAlert: false});
 
     this.handlerDiscover = bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', this.handleDiscoverPeripheral );
@@ -64,6 +69,17 @@ export default class App extends Component {
             }
       });
     }
+
+  }
+
+  handleAppStateChange(nextAppState) {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('App has come to the foreground!')
+      BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
+        console.log('Connected peripherals: ' + peripheralsArray.length);
+      });
+    }
+    this.setState({appState: nextAppState});
   }
 
   componentWillUnmount() {
@@ -163,7 +179,7 @@ export default class App extends Component {
                           ON_FIRE:    4
                         };*/
                       });
-                    });                    
+                    });
 
                   }, 500);
                 }).catch((error) => {
