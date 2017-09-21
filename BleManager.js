@@ -89,6 +89,18 @@ class BleManager  {
     });
   }
 
+  createBond(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.createBond(peripheralId, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
   disconnect(peripheralId) {
     return new Promise((fulfill, reject) => {
       bleManager.disconnect(peripheralId, (error) => {
