@@ -429,6 +429,22 @@ BleManager.getConnectedPeripherals([])
 
 ```
 
+### createBond(peripheralId) [Android only]
+Start the bonding (pairing) process with the remote device.
+Returns a `Promise` object. The promise is resolved when either `new bond successfully created` or `bond already existed`, otherwise it will be rejected.
+
+__Examples__
+```js
+BleManager.createBond(peripheralId)
+  .then(() => {
+    console.log('createBond success or there is already an existing one');
+  })
+  .catch(() => {
+    console.log('fail to bond');
+  })
+
+```
+
 ### getBondedPeripherals() [Android only]
 Return the bonded peripherals.
 Returns a `Promise` object.

@@ -30,12 +30,21 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public static final String LOG_TAG = "logs";
 	private static final int ENABLE_REQUEST = 539;
 
+    private class BondRequest {
+        private String uuid;
+        private Callback callback;
+        BondRequest(String _uuid, Callback _callback) {
+            uuid = _uuid;
+            callback = _callback;
+        }
+    }
 
 	private BluetoothAdapter bluetoothAdapter;
 	private Context context;
 	private ReactApplicationContext reactContext;
 	private Callback enableBluetoothCallback;
 	private ScanManager scanManager;
+    private BondRequest bondRequest;
 
 	// key is the MAC Address
 	public Map<String, Peripheral> peripherals = new LinkedHashMap<>();
@@ -90,6 +99,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		}
 
 		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
 		context.registerReceiver(mReceiver, filter);
 		callback.invoke();
 		Log.d(LOG_TAG, "BleManager initialized");
@@ -150,22 +160,38 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
+	public void createBond(String peripheralUUID, Callback callback) {
+		Log.d(LOG_TAG, "Request bond to: " + peripheralUUID );
+
+		Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
+		for (BluetoothDevice device : deviceSet) {
+            if (peripheralUUID.equalsIgnoreCase(device.getAddress())) {
+        		callback.invoke();
+                return;
+            }
+		}
+
+        Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
+        if (peripheral == null) {
+            callback.invoke("Invalid peripheral uuid");
+        } else if (bondRequest != null) {
+            callback.invoke("Only allow one bond request at a time");
+        } else if (peripheral.getDevice().createBond()) {
+            bondRequest = new BondRequest(peripheralUUID, callback); // request bond success, waiting for boradcast
+            return;
+        }
+
+        callback.invoke("Create bond request fail");
+    }
+
+	@ReactMethod
 	public void connect(String peripheralUUID, Callback callback) {
 		Log.d(LOG_TAG, "Connect to: " + peripheralUUID );
 
-		Peripheral peripheral = peripherals.get(peripheralUUID);
+        Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
 		if (peripheral == null) {
-			if (peripheralUUID != null) {
-				peripheralUUID = peripheralUUID.toUpperCase();
-			}
-			if (BluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
-				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
-				peripheral = new Peripheral(device, reactContext);
-				peripherals.put(peripheralUUID, peripheral);
-			} else {
-				callback.invoke("Invalid peripheral uuid");
-				return;
-			}
+			callback.invoke("Invalid peripheral uuid");
+			return;
 		}
 		peripheral.connect(callback, getCurrentActivity());
 	}
@@ -327,10 +353,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			Log.d(LOG_TAG, "onReceive");
 			final String action = intent.getAction();
 
-			String stringState = "";
 			if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
 				final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
 						BluetoothAdapter.ERROR);
+				String stringState = "";
+
 				switch (state) {
 					case BluetoothAdapter.STATE_OFF:
 						stringState = "off";
@@ -345,12 +372,40 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 						stringState = "turning_on";
 						break;
 				}
-			}
 
-			WritableMap map = Arguments.createMap();
-			map.putString("state", stringState);
-			Log.d(LOG_TAG, "state: " + stringState);
-			sendEvent("BleManagerDidUpdateState", map);
+			    WritableMap map = Arguments.createMap();
+			    map.putString("state", stringState);
+			    Log.d(LOG_TAG, "state: " + stringState);
+				sendEvent("BleManagerDidUpdateState", map);
+
+			} else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
+                final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
+				BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+				String bondStateStr = "UNKNOWN";
+				switch (bondState) {
+					case BluetoothDevice.BOND_BONDED:
+						bondStateStr = "BOND_BONDED";
+						break;
+					case BluetoothDevice.BOND_BONDING:
+						bondStateStr = "BOND_BONDING";
+						break;
+					case BluetoothDevice.BOND_NONE:
+						bondStateStr = "BOND_NONE";
+						break;
+				}
+				Log.d(LOG_TAG, "bond state: " + bondStateStr);
+
+                if (bondRequest != null && bondRequest.uuid.equals(device.getAddress())) {
+                    if (bondState == BluetoothDevice.BOND_BONDED) {
+                        bondRequest.callback.invoke();
+                        bondRequest = null;
+                    } else if (bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.ERROR) {
+                        bondRequest.callback.invoke("Bond request has been denied");
+                        bondRequest = null;
+                    }
+                }
+            }
 		}
 	};
 
@@ -455,5 +510,20 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void onNewIntent(Intent intent) {
 
 	}
+
+    private Peripheral retrieveOrCreatePeripheral(String peripheralUUID) {
+		Peripheral peripheral = peripherals.get(peripheralUUID);
+		if (peripheral == null) {
+			if (peripheralUUID != null) {
+				peripheralUUID = peripheralUUID.toUpperCase();
+			}
+			if (BluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
+				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
+				peripheral = new Peripheral(device, reactContext);
+				peripherals.put(peripheralUUID, peripheral);
+			}
+		}
+        return peripheral;
+    }
 
 }
