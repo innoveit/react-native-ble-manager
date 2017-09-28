@@ -746,14 +746,15 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     NSLog(@"Characteristics For Service Discover");
     
     NSString *peripheralUUIDString = [peripheral uuidAsString];
-    RCTResponseSenderBlock retrieveServiceCallback = [retrieveServicesCallbacks valueForKey:peripheralUUIDString];
     NSMutableSet *latch = [retrieveServicesLatches valueForKey:peripheralUUIDString];
     [latch removeObject:service];
     
     if ([latch count] == 0) {
         // Call success callback for connect
+        RCTResponseSenderBlock retrieveServiceCallback = [retrieveServicesCallbacks valueForKey:peripheralUUIDString];
         if (retrieveServiceCallback) {
             retrieveServiceCallback(@[[NSNull null], [peripheral asDictionary]]);
+            [retrieveServicesCallbacks removeObjectForKey:peripheralUUIDString];
         }
         [retrieveServicesLatches removeObjectForKey:peripheralUUIDString];
     }
