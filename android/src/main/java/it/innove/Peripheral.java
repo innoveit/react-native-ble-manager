@@ -252,11 +252,21 @@ public class Peripheral extends BluetoothGattCallback {
 			}
 
 			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
-
+            List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback);
+            for (Callback currentCallback : callbacks) {
+                if (currentCallback != null) {
+                    currentCallback.invoke("Device disconnected");
+                }
+            }
 			if (connectCallback != null) {
 				connectCallback.invoke("Connection error");
 				connectCallback = null;
 			}
+            writeCallback = null;
+            readCallback = null;
+            retrieveServicesCallback = null;
+            readRSSICallback = null;
+            registerNotifyCallback = null;
 
 		}
 
