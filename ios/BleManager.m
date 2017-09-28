@@ -404,7 +404,7 @@ RCT_EXPORT_METHOD(checkState)
 
     if (connectCallback) {
         connectCallback(@[errorStr]);
-        [connectCallbacks removeObjectForKey:connectCallback];
+        [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
     }
 }
 
