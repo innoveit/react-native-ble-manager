@@ -648,7 +648,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
     
     if (connectCallback) {
         connectCallback(@[[NSNull null], [peripheral asDictionary]]);
-        [connectCallbacks removeObjectForKey:connectCallback];
+        [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
     }
     if (hasListeners) {
         [self sendEventWithName:@"BleManagerConnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
