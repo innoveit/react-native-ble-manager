@@ -252,11 +252,21 @@ public class Peripheral extends BluetoothGattCallback {
 			}
 
 			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
-
+            List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback);
+            for (Callback currentCallback : callbacks) {
+                if (currentCallback != null) {
+                    currentCallback.invoke("Device disconnected");
+                }
+            }
 			if (connectCallback != null) {
 				connectCallback.invoke("Connection error");
 				connectCallback = null;
 			}
+            writeCallback = null;
+            readCallback = null;
+            retrieveServicesCallback = null;
+            readRSSICallback = null;
+            registerNotifyCallback = null;
 
 		}
 
@@ -367,6 +377,9 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	private void setNotify(UUID serviceUUID, UUID characteristicUUID, Boolean notify, Callback callback){
+        if (!isConnected()) {
+            callback.invoke("Device is not connected", null);
+        }
 		Log.d(LOG_TAG, "setNotify");
 
 		if (gatt == null) {
@@ -470,6 +483,9 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public void read(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 
+        if (!isConnected()) {
+            callback.invoke("Device is not connected", null);
+        }
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null", null);
 			return;
@@ -490,6 +506,9 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public void readRSSI(Callback callback) {
+        if (!isConnected()) {
+            callback.invoke("Device is not connected", null);
+        }
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null", null);
 			return;
@@ -504,6 +523,9 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public void retrieveServices(Callback callback) {
+        if (!isConnected()) {
+            callback.invoke("Device is not connected", null);
+        }
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null", null);
 			return;
@@ -550,6 +572,9 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public void write(UUID serviceUUID, UUID characteristicUUID, byte[] data, Integer maxByteSize, Integer queueSleepTime, Callback callback, int writeType) {
+        if (!isConnected()) {
+            callback.invoke("Device is not connected", null);
+        }
 		if (gatt == null) {
 			callback.invoke("BluetoothGatt is null");
 		} else {
