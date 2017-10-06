@@ -689,7 +689,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [readCallbacks objectForKey:key];
             callback(@[errorStr]);
-            [readCallbacks removeObjectForKey:peripheralUUIDString];
+            [readCallbacks removeObjectForKey:key];
         }
     }
 
@@ -697,7 +697,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [writeCallbacks objectForKey:key];
             callback(@[errorStr]);
-            [writeCallbacks removeObjectForKey:peripheralUUIDString];
+            [writeCallbacks removeObjectForKey:key];
         }
     }
 
@@ -705,7 +705,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [notificationCallbacks objectForKey:key];
             callback(@[errorStr]);
-            [notificationCallbacks removeObjectForKey:peripheralUUIDString];
+            [notificationCallbacks removeObjectForKey:key];
         }
     }
 
@@ -713,7 +713,7 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [stopNotificationCallbacks objectForKey:key];
             callback(@[errorStr]);
-            [stopNotificationCallbacks removeObjectForKey:peripheralUUIDString];
+            [stopNotificationCallbacks removeObjectForKey:key];
         }
     }
 
