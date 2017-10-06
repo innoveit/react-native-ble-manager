@@ -220,11 +220,11 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
         CBUUID *serviceUUID =[CBUUID UUIDWithString:uuidString];
         [serviceUUIDs addObject:serviceUUID];
     }
-    
+
     NSMutableArray *foundedPeripherals = [NSMutableArray array];
     if ([serviceUUIDs count] == 0){
         for(CBPeripheral *peripheral in peripherals){
-            if([peripheral state] == CBPeripheralStateConnected || [peripheral state] == CBPeripheralStateConnecting){
+            if([peripheral state] == CBPeripheralStateConnected){
                 NSDictionary * obj = [peripheral asDictionary];
                 [foundedPeripherals addObject:obj];
             }
