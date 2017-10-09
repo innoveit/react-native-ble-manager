@@ -220,11 +220,11 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
         CBUUID *serviceUUID =[CBUUID UUIDWithString:uuidString];
         [serviceUUIDs addObject:serviceUUID];
     }
-    
+
     NSMutableArray *foundedPeripherals = [NSMutableArray array];
     if ([serviceUUIDs count] == 0){
         for(CBPeripheral *peripheral in peripherals){
-            if([peripheral state] == CBPeripheralStateConnected || [peripheral state] == CBPeripheralStateConnecting){
+            if([peripheral state] == CBPeripheralStateConnected){
                 NSDictionary * obj = [peripheral asDictionary];
                 [foundedPeripherals addObject:obj];
             }
@@ -643,17 +643,24 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 {
     NSLog(@"Peripheral Connected: %@", [peripheral uuidAsString]);
     peripheral.delegate = self;
-    
-    RCTResponseSenderBlock connectCallback = [connectCallbacks valueForKey:[peripheral uuidAsString]];
-    
-    if (connectCallback) {
-        connectCallback(@[[NSNull null], [peripheral asDictionary]]);
-        [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
-    }
-    if (hasListeners) {
-        [self sendEventWithName:@"BleManagerConnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
-    }
 
+    // The state of the peripheral isn't necessarily updated until a small delay after didConnectPeripheral is called
+    // and in the meantime didFailToConnectPeripheral may be called
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.002 * NSEC_PER_SEC),
+                   dispatch_get_main_queue(), ^(void){
+        // didFailToConnectPeripheral should have been called already if not connected by now
+
+        RCTResponseSenderBlock connectCallback = [connectCallbacks valueForKey:[peripheral uuidAsString]];
+
+        if (connectCallback) {
+            connectCallback(@[[NSNull null], [peripheral asDictionary]]);
+            [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
+        }
+
+        if (hasListeners) {
+            [self sendEventWithName:@"BleManagerConnectPeripheral" body:@{@"peripheral": [peripheral uuidAsString]}];
+        }
+    });
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
