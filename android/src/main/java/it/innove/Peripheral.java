@@ -547,19 +547,21 @@ public class Peripheral extends BluetoothGattCallback {
 	private BluetoothGattCharacteristic findReadableCharacteristic(BluetoothGattService service, UUID characteristicUUID) {
 		BluetoothGattCharacteristic characteristic = null;
 
-		int read = BluetoothGattCharacteristic.PROPERTY_READ;
+		if (service != null) {
+			int read = BluetoothGattCharacteristic.PROPERTY_READ;
 
-		List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
-		for (BluetoothGattCharacteristic c : characteristics) {
-			if ((c.getProperties() & read) != 0 && characteristicUUID.equals(c.getUuid())) {
-				characteristic = c;
-				break;
+			List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+			for (BluetoothGattCharacteristic c : characteristics) {
+				if ((c.getProperties() & read) != 0 && characteristicUUID.equals(c.getUuid())) {
+					characteristic = c;
+					break;
+				}
 			}
-		}
 
-		// As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
-		if (characteristic == null) {
-			characteristic = service.getCharacteristic(characteristicUUID);
+			// As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
+			if (characteristic == null) {
+				characteristic = service.getCharacteristic(characteristicUUID);
+			}
 		}
 
 		return characteristic;
