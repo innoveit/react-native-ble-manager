@@ -563,7 +563,7 @@ A characteristic notify a new value.
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
 - `characteristic` - `String` - the UUID of the characteristic
-- `value` - `String` - the read value in Hex format
+- `value` - `Array` - the read value
 
 ###  BleManagerConnectPeripheral
 A peripheral was connected.
