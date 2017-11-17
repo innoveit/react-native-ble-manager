@@ -300,6 +300,9 @@ BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX
   .then((readData) => {
     // Success code
     console.log('Read: ' + readData);
+    
+    const buffer = Buffer.Buffer.from(readData);    //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
+    const sensorData = buffer.readUInt8(1, true);
   })
   .catch((error) => {
     // Failure code
