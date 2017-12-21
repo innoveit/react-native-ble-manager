@@ -14,7 +14,7 @@ android {
 	buildToolsVersion "24.0.2"
 
 	defaultConfig {
-		minSdkVersion 18
+		minSdkVersion 21
 	}
 	lintOptions {
 		abortOnError false

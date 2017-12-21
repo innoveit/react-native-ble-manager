@@ -42,7 +42,7 @@ android {
 
     defaultConfig {
         ...
-        minSdkVersion 18 // <--- make sure this is 18 or greater
+        minSdkVersion 21 // <--- make sure this is 21 or greater
         ...
     }
     ...
@@ -76,7 +76,7 @@ android {
 
     defaultConfig {
         ...
-        minSdkVersion 18 // <--- make sure this is 18 or greater
+        minSdkVersion 21 // <--- make sure this is 21 or greater
         ...
     }
     ...
@@ -300,7 +300,7 @@ BleManager.read('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'XXXXXXXX-XXXX-XXXX-XXXX
   .then((readData) => {
     // Success code
     console.log('Read: ' + readData);
-    
+
     const buffer = Buffer.Buffer.from(readData);    //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
     const sensorData = buffer.readUInt8(1, true);
   })
@@ -399,6 +399,28 @@ BleManager.readRSSI('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   });
 ```
 
+### requestMTU(peripheralId, mtu) [Android only]
+Request an MTU size used for a given connection.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `mtu` - `Integer` - the MTU size to be requested in bytes.
+
+__Examples__
+```js
+BleManager.requestMTU('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 512)
+.then(() => {
+  // Success code
+  console.log('MTU size changed');
+})
+.catch((error) => {
+  // Failure code
+  console.log(error);
+});
+```
+
+
 ### retrieveServices(peripheralId)
 Retrieve the peripheral's services and characteristics.
 Returns a `Promise` object.
@@ -476,7 +498,7 @@ BleManager.getDiscoveredPeripherals([])
 
 ```
 
-### removePeripheral(peripheralId) [Android only] 
+### removePeripheral(peripheralId) [Android only]
 Removes a disconnected peripheral from the cached list.
 It is useful if the device is turned off, because it will be re-discovered upon turning on again.
 Returns a `Promise` object.
