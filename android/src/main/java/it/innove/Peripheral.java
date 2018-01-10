@@ -223,7 +223,7 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
 
-		Log.d(LOG_TAG, "onConnectionStateChange from " + status + " to "+ newState + " on peripheral:" + device.getAddress());
+		Log.d(LOG_TAG, "onConnectionStateChange to "+ newState + " on peripheral: " + device.getAddress() + " with status" + status);
 
 		this.gatt = gatt;
 
