@@ -50,6 +50,11 @@ bool hasListeners;
     hasListeners = NO;
 }
 
++(BOOL)requiresMainQueueSetup
+{
+    return YES;
+}
+
 - (NSArray<NSString *> *)supportedEvents
 {
     return @[@"BleManagerDidUpdateValueForCharacteristic", @"BleManagerStopScan", @"BleManagerDiscoverPeripheral", @"BleManagerConnectPeripheral", @"BleManagerDisconnectPeripheral", @"BleManagerDidUpdateState"];
