@@ -15,6 +15,7 @@ import android.util.Log;
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static android.app.Activity.RESULT_OK;
@@ -45,6 +46,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	private Callback enableBluetoothCallback;
 	private ScanManager scanManager;
 	private BondRequest bondRequest;
+	private BondRequest removeBondRequest;
 
 	// key is the MAC Address
 	public Map<String, Peripheral> peripherals = new LinkedHashMap<>();
@@ -189,6 +191,36 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		}
 
 		callback.invoke("Create bond request fail");
+	}
+
+	@ReactMethod
+	private void removeBond(String peripheralUUID, Callback callback) {
+		Log.d(LOG_TAG, "Remove bond to: " + peripheralUUID);
+
+		Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
+		for (BluetoothDevice device : deviceSet) {
+			if (peripheralUUID.equalsIgnoreCase(device.getAddress())) {
+				callback.invoke();
+				return;
+			}
+		}
+
+		Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
+		if (peripheral == null) {
+			callback.invoke("Invalid peripheral uuid");
+			return;
+		} else {
+			try {
+				Method m = peripheral.getDevice().getClass().getMethod("removeBond", (Class[]) null);
+				m.invoke(peripheral.getDevice(), (Object[]) null);
+				removeBondRequest = new BondRequest(peripheralUUID, callback);
+				return;
+			} catch (Exception e) {
+				Log.d(LOG_TAG, "Error in remove bond: " + peripheralUUID, e);
+				callback.invoke("Remove bond request fail");
+			}
+		}
+
 	}
 
 	@ReactMethod
@@ -386,6 +418,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 			} else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
 				final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
+				final int prevState    = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
 				BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
 				String bondStateStr = "UNKNOWN";
@@ -411,7 +444,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 						bondRequest = null;
 					}
 				}
+				if (removeBondRequest != null && removeBondRequest.uuid.equals(device.getAddress()) && bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED){
+					removeBondRequest.callback.invoke();
+					removeBondRequest = null;
+				}
 			}
+
 		}
 	};
 

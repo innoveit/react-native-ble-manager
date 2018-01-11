@@ -622,6 +622,11 @@ RCT_EXPORT_METHOD(createBond:(NSString *)deviceUUID callback:(nonnull RCTRespons
     callback(@[@"Not supported"]);
 }
 
+RCT_EXPORT_METHOD(removeBond:(NSString *)deviceUUID callback:(nonnull RCTResponseSenderBlock)callback)
+{
+    callback(@[@"Not supported"]);
+}
+
 RCT_EXPORT_METHOD(removePeripheral:(NSString *)deviceUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
     callback(@[@"Not supported"]);

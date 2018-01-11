@@ -101,6 +101,18 @@ class BleManager  {
     });
   }
 
+  removeBond(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.removeBond(peripheralId, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
   disconnect(peripheralId) {
     return new Promise((fulfill, reject) => {
       bleManager.disconnect(peripheralId, (error) => {
