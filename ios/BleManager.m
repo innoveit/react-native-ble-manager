@@ -62,16 +62,20 @@ bool hasListeners;
 
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
+    NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
+    RCTResponseSenderBlock readCallback = [readCallbacks objectForKey:key];
+    
     if (error) {
         NSLog(@"Error %@ :%@", characteristic.UUID, error);
+        if (readCallback != NULL) {
+            readCallback(@[error, [NSNull null]]);
+            [readCallbacks removeObjectForKey:key];
+        }
         return;
     }
     NSLog(@"Read value [%@]: %@", characteristic.UUID, characteristic.value);
     
-    NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-    RCTResponseSenderBlock readCallback = [readCallbacks objectForKey:key];
-    
-    if (readCallback != NULL){
+    if (readCallback != NULL) {
         readCallback(@[[NSNull null], [characteristic.value toArray]]);
         [readCallbacks removeObjectForKey:key];
     } else {
