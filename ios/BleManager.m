@@ -593,14 +593,14 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
-        NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
-        [stopNotificationCallbacks setObject: callback forKey: key];
-        
         if ([characteristic isNotifying]){
+            NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
+            [stopNotificationCallbacks setObject: callback forKey: key];
             [peripheral setNotifyValue:NO forCharacteristic:characteristic];
             NSLog(@"Characteristic stopped notifying");
         } else {
             NSLog(@"Characteristic is not notifying");
+            callback(@[]);
         }
         
     }
