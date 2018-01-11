@@ -14,7 +14,7 @@ android {
 	buildToolsVersion "24.0.2"
 
 	defaultConfig {
-		minSdkVersion 18
+		minSdkVersion 19
 	}
 	lintOptions {
 		abortOnError false
@@ -27,6 +27,11 @@ repositories {
 		// All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
 		url "$rootDir/../node_modules/react-native/android"
 	}
+	/*
+	maven {
+		// All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+		url "$rootDir/../example/node_modules/react-native/android"
+	}*/
 }
 
 

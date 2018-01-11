@@ -10,17 +10,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Base64;
 import android.util.Log;
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
-import org.json.JSONException;
 
 import java.util.*;
 
 import static android.app.Activity.RESULT_OK;
+import static android.bluetooth.BluetoothProfile.GATT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
@@ -41,6 +39,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	private BluetoothAdapter bluetoothAdapter;
+	private BluetoothManager bluetoothManager;
 	private Context context;
 	private ReactApplicationContext reactContext;
 	private Callback enableBluetoothCallback;
@@ -71,6 +70,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			bluetoothAdapter = manager.getAdapter();
 		}
 		return bluetoothAdapter;
+	}
+
+	private BluetoothManager getBluetoothManager() {
+		if (bluetoothManager == null) {
+			bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+		}
+		return bluetoothManager;
 	}
 
 	public void sendEvent(String eventName,
@@ -426,23 +432,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
 		Log.d(LOG_TAG, "Get connected peripherals");
 		WritableArray map = Arguments.createArray();
-		Map<String, Peripheral> peripheralsCopy = new LinkedHashMap<>(peripherals);
-		for (Map.Entry<String, Peripheral> entry : peripheralsCopy.entrySet()) {
-			Peripheral peripheral = entry.getValue();
-			Boolean accept = false;
 
-			if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
-				for (int i = 0; i < serviceUUIDs.size(); i++) {
-					accept = peripheral.hasService(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
-				}
-			} else {
-				accept = true;
-			}
-
-			if (peripheral.isConnected() && accept) {
-				WritableMap jsonBundle = peripheral.asWritableMap();
-				map.pushMap(jsonBundle);
-			}
+		List<BluetoothDevice> periperals = getBluetoothManager().getConnectedDevices(GATT);
+		for (BluetoothDevice entry : periperals) {
+			Peripheral peripheral = new Peripheral(entry, reactContext);
+			WritableMap jsonBundle = peripheral.asWritableMap();
+			map.pushMap(jsonBundle);
 		}
 		callback.invoke(null, map);
 	}
