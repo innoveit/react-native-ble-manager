@@ -475,6 +475,16 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke("Peripheral not found");
 	}
 
+	@ReactMethod
+	public void requestMTU(String deviceUUID, int mtu, Callback callback) {
+		Log.d(LOG_TAG, "Request MTU of " + mtu + " bytes from: " + deviceUUID);
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null) {
+			peripheral.requestMTU(mtu, callback);
+		} else
+			callback.invoke("Peripheral not found", null);
+	}
+
 	private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
 	public static String bytesToHex(byte[] bytes) {

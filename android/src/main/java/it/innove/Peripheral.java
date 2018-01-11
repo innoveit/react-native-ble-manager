@@ -46,6 +46,7 @@ public class Peripheral extends BluetoothGattCallback {
 	private Callback readRSSICallback;
 	private Callback writeCallback;
 	private Callback registerNotifyCallback;
+	private Callback requestMTUCallback;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
 
@@ -238,8 +239,8 @@ public class Peripheral extends BluetoothGattCallback {
 				connectCallback.invoke();
 				connectCallback = null;
 			}
-			
-		} else if (newState == BluetoothGatt.STATE_DISCONNECTED){
+
+		} else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
 
 			if (connected) {
 				connected = false;
@@ -252,22 +253,22 @@ public class Peripheral extends BluetoothGattCallback {
 			}
 
 			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
-            List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback);
-            for (Callback currentCallback : callbacks) {
-                if (currentCallback != null) {
-                    currentCallback.invoke("Device disconnected");
-                }
-            }
+			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback, requestMTUCallback);
+			for (Callback currentCallback : callbacks) {
+				if (currentCallback != null) {
+					currentCallback.invoke("Device disconnected");
+				}
+			}
 			if (connectCallback != null) {
 				connectCallback.invoke("Connection error");
 				connectCallback = null;
 			}
-            writeCallback = null;
-            readCallback = null;
-            retrieveServicesCallback = null;
-            readRSSICallback = null;
-            registerNotifyCallback = null;
-
+			writeCallback = null;
+			readCallback = null;
+			retrieveServicesCallback = null;
+			readRSSICallback = null;
+			registerNotifyCallback = null;
+			requestMTUCallback = null;
 		}
 
 	}
@@ -373,6 +374,20 @@ public class Peripheral extends BluetoothGattCallback {
 			}
 
 			readRSSICallback = null;
+		}
+	}
+
+	@Override
+	public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+		super.onMtuChanged(gatt, mtu, status);
+		if (requestMTUCallback != null) {
+			if (status == BluetoothGatt.GATT_SUCCESS) {
+				requestMTUCallback.invoke(null, mtu);
+			} else {
+				requestMTUCallback.invoke("Error requesting MTU status=" + status, null);
+			}
+
+			requestMTUCallback = null;
 		}
 	}
 
@@ -525,6 +540,22 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
+	public void requestMTU(int mtu, Callback callback) {
+		if (!isConnected()) {
+			callback.invoke("Device is not connected", null);
+			return;
+		}
+
+		if (gatt == null) {
+			callback.invoke("BluetoothGatt is null", null);
+			return;
+		}
+
+		requestMTUCallback = callback;
+
+		gatt.requestMtu(mtu);
+	}
+
 	public void retrieveServices(Callback callback) {
         if (!isConnected()) {
             callback.invoke("Device is not connected", null);
@@ -538,9 +569,6 @@ public class Peripheral extends BluetoothGattCallback {
 
 		gatt.discoverServices();
 	}
-
-
-
 
 	// Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
 	// and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)
