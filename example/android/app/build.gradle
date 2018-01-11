@@ -88,7 +88,7 @@ android {
 
     defaultConfig {
         applicationId "com.exampleble"
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 22
         versionCode 1
         versionName "1.0"
