@@ -12,12 +12,10 @@ import {
   PermissionsAndroid,
   ListView,
   ScrollView,
-  AppState
+  AppState,
+  Dimensions,
 } from 'react-native';
-import Dimensions from 'Dimensions';
 import BleManager from 'react-native-ble-manager';
-import TimerMixin from 'react-timer-mixin';
-import reactMixin from 'react-mixin';
 
 const window = Dimensions.get('window');
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -157,7 +155,7 @@ export default class App extends Component {
           console.log('Connected to ' + peripheral.id);
 
 
-          this.setTimeout(() => {
+          setTimeout(() => {
 
             /* Test read current RSSI value
             BleManager.retrieveServices(peripheral.id).then((peripheralData) => {
@@ -176,10 +174,10 @@ export default class App extends Component {
               var bakeCharacteristic = '13333333-3333-3333-3333-333333330003';
               var crustCharacteristic = '13333333-3333-3333-3333-333333330001';
 
-              this.setTimeout(() => {
+              setTimeout(() => {
                 BleManager.startNotification(peripheral.id, service, bakeCharacteristic).then(() => {
                   console.log('Started notification on ' + peripheral.id);
-                  this.setTimeout(() => {
+                  setTimeout(() => {
                     BleManager.write(peripheral.id, service, crustCharacteristic, [0]).then(() => {
                       console.log('Writed NORMAL crust');
                       BleManager.write(peripheral.id, service, bakeCharacteristic, [1,95]).then(() => {
@@ -249,7 +247,6 @@ export default class App extends Component {
     );
   }
 }
-reactMixin(App.prototype, TimerMixin);
 
 const styles = StyleSheet.create({
   container: {

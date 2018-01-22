@@ -125,7 +125,19 @@ public class MainApplication extends Application implements ReactApplication {
 - Before write, read or start notification you need to call `retrieveServices` method
 
 ## Example
-Look in the [example](https://github.com/innoveit/react-native-ble-manager/tree/master/example) project.
+The easiest way to test is simple make your AppRegistry point to our example component, like this:
+```javascript
+// in your index.ios.js or index.android.js
+import React, { Component } from 'react';
+import {
+  AppRegistry,
+} from 'react-native';
+import App from 'react-native-ble-manager/example/App' //<-- simply point to the example js! 
+
+AppRegistry.registerComponent('MyAwesomeApp', () => App);
+```
+
+Or, you can still look into the whole [example](https://github.com/innoveit/react-native-ble-manager/tree/master/example) folder for a standalone project.
 
 ## Methods
 
