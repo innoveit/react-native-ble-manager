@@ -73,10 +73,10 @@ bool hasListeners;
         }
         return;
     }
-    NSLog(@"Read value [%@]: %@", characteristic.UUID, characteristic.value);
+    NSLog(@"Read value [%@]: (%lu) %@", characteristic.UUID, [characteristic.value length], characteristic.value);
     
     if (readCallback != NULL) {
-        readCallback(@[[NSNull null], [characteristic.value toArray]]);
+        readCallback(@[[NSNull null], ([characteristic.value length] > 0) ? [characteristic.value toArray] : [NSNull null]]);
         [readCallbacks removeObjectForKey:key];
     } else {
         if (hasListeners) {
