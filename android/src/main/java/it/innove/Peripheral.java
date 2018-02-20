@@ -35,7 +35,7 @@ public class Peripheral extends BluetoothGattCallback {
 	private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 	public static final String LOG_TAG = "logs";
 
-	private BluetoothDevice device;
+	private final BluetoothDevice device;
 	private byte[] advertisingData;
 	private int advertisingRSSI;
 	private boolean connected = false;
@@ -88,8 +88,9 @@ public class Peripheral extends BluetoothGattCallback {
 		} else {
 			if (gatt != null) {
 				callback.invoke();
-			} else
+			} else {
 				callback.invoke("BluetoothGatt is null");
+			}
 		}
 	}
 
@@ -160,10 +161,11 @@ public class Peripheral extends BluetoothGattCallback {
 					for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {
 						WritableMap descriptorMap = Arguments.createMap();
 						descriptorMap.putString("uuid", UUIDHelper.uuidToString(descriptor.getUuid()));
-						if (descriptor.getValue() != null)
+						if (descriptor.getValue() != null) {
 							descriptorMap.putString("value", Base64.encodeToString(descriptor.getValue(), Base64.NO_WRAP));
-						else
+						} else {
 							descriptorMap.putString("value", null);
+						}
 
 						if (descriptor.getPermissions() > 0) {
 							descriptorMap.putMap("permissions", Helper.decodePermissions(descriptor));
@@ -323,7 +325,6 @@ public class Peripheral extends BluetoothGattCallback {
 			readCallback = null;
 
 		}
-
 	}
 
 	@Override
@@ -347,8 +348,9 @@ public class Peripheral extends BluetoothGattCallback {
 
 				writeCallback = null;
 			}
-		} else
+		} else {
 			Log.e(LOG_TAG, "No callback on write");
+		}
 	}
 
 	@Override
@@ -452,34 +454,25 @@ public class Peripheral extends BluetoothGattCallback {
 	// instead check the UUID and properties for each characteristic in the service until we find the best match
 	// This function prefers Notify over Indicate
 	private BluetoothGattCharacteristic findNotifyCharacteristic(BluetoothGattService service, UUID characteristicUUID) {
-		BluetoothGattCharacteristic characteristic = null;
 
 		try {
 			// Check for Notify first
 			List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
-			for (BluetoothGattCharacteristic c : characteristics) {
-				if ((c.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0 && characteristicUUID.equals(c.getUuid())) {
-					characteristic = c;
-					break;
+			for (BluetoothGattCharacteristic characteristic : characteristics) {
+				if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0 && characteristicUUID.equals(characteristic.getUuid())) {
+					return characteristic;
 				}
 			}
 
-			if (characteristic != null) return characteristic;
-
 			// If there wasn't Notify Characteristic, check for Indicate
-			for (BluetoothGattCharacteristic c : characteristics) {
-				if ((c.getProperties() & BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0 && characteristicUUID.equals(c.getUuid())) {
-					characteristic = c;
-					break;
+			for (BluetoothGattCharacteristic characteristic : characteristics) {
+				if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_INDICATE) != 0 && characteristicUUID.equals(characteristic.getUuid())) {
+					return characteristic;
 				}
 			}
 
 			// As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
-			if (characteristic == null) {
-				characteristic = service.getCharacteristic(characteristicUUID);
-			}
-
-			return characteristic;
+			return service.getCharacteristic(characteristicUUID);
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "Errore su caratteristica " + characteristicUUID, e);
 			return null;
@@ -547,26 +540,22 @@ public class Peripheral extends BluetoothGattCallback {
 	// Some peripherals re-use UUIDs for multiple characteristics so we need to check the properties
 	// and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)
 	private BluetoothGattCharacteristic findReadableCharacteristic(BluetoothGattService service, UUID characteristicUUID) {
-		BluetoothGattCharacteristic characteristic = null;
 
 		if (service != null) {
 			int read = BluetoothGattCharacteristic.PROPERTY_READ;
 
 			List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
-			for (BluetoothGattCharacteristic c : characteristics) {
-				if ((c.getProperties() & read) != 0 && characteristicUUID.equals(c.getUuid())) {
-					characteristic = c;
-					break;
+			for (BluetoothGattCharacteristic characteristic : characteristics) {
+				if ((characteristic.getProperties() & read) != 0 && characteristicUUID.equals(characteristic.getUuid())) {
+					return characteristic;
 				}
 			}
 
 			// As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
-			if (characteristic == null) {
-				characteristic = service.getCharacteristic(characteristicUUID);
-			}
+			return service.getCharacteristic(characteristicUUID);
 		}
 
-		return characteristic;
+		return null;
 	}
 
 
@@ -655,28 +644,26 @@ public class Peripheral extends BluetoothGattCallback {
 										}
 										Thread.sleep(queueSleepTime);
 									}
-									if (!writeError)
+									if (!writeError) {
 										callback.invoke();
+									}
 								}
 							} catch (InterruptedException e) {
 								callback.invoke("Error during writing");
 							}
 						}
-					} else {
-						if (doWrite(characteristic, data)) {
-							Log.d(LOG_TAG, "Write completed");
-							if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
-								callback.invoke();
-							}
-						} else {
-							callback.invoke("Write failed");
-							writeCallback = null;
+					} else if (doWrite(characteristic, data)) {
+						Log.d(LOG_TAG, "Write completed");
+						if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
+							callback.invoke();
 						}
+					} else {
+						callback.invoke("Write failed");
+						writeCallback = null;
 					}
 				}
 			}
 		}
-
 	}
 
 	public void requestMTU(int mtu, Callback callback) {
@@ -695,9 +682,7 @@ public class Peripheral extends BluetoothGattCallback {
 			gatt.requestMtu(mtu);
 		} else {
 			callback.invoke("The requestMTU require at least 21 API level", null);
-			return;
 		}
-
 	}
 
 	@Override
@@ -718,8 +703,6 @@ public class Peripheral extends BluetoothGattCallback {
 	// and UUID of all characteristics instead of using service.getCharacteristic(characteristicUUID)
 	private BluetoothGattCharacteristic findWritableCharacteristic(BluetoothGattService service, UUID characteristicUUID, int writeType) {
 		try {
-			BluetoothGattCharacteristic characteristic = null;
-
 			// get write property
 			int writeProperty = BluetoothGattCharacteristic.PROPERTY_WRITE;
 			if (writeType == BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) {
@@ -727,19 +710,14 @@ public class Peripheral extends BluetoothGattCallback {
 			}
 
 			List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
-			for (BluetoothGattCharacteristic c : characteristics) {
-				if ((c.getProperties() & writeProperty) != 0 && characteristicUUID.equals(c.getUuid())) {
-					characteristic = c;
-					break;
+			for (BluetoothGattCharacteristic characteristic : characteristics) {
+				if ((characteristic.getProperties() & writeProperty) != 0 && characteristicUUID.equals(characteristic.getUuid())) {
+					return characteristic;
 				}
 			}
 
 			// As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
-			if (characteristic == null) {
-				characteristic = service.getCharacteristic(characteristicUUID);
-			}
-
-			return characteristic;
+			return service.getCharacteristic(characteristicUUID);
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "Error on findWritableCharacteristic", e);
 			return null;
