@@ -14,8 +14,6 @@ static BleManager * _instance = nil;
 
 RCT_EXPORT_MODULE();
 
-@synthesize bridge = _bridge;
-
 @synthesize manager;
 @synthesize peripherals;
 @synthesize scanTimer;
