@@ -215,7 +215,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
   }
   
   if ((p & CBCharacteristicPropertyAuthenticatedSignedWrites) != 0x0) {
-    [props addObject:@"AutheticateSignedWrites"];
+    [props addObject:@"AuthenticateSignedWrites"];
   }
   
   if ((p & CBCharacteristicPropertyExtendedProperties) != 0x0) {
