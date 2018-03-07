@@ -144,6 +144,7 @@ Or, you can still look into the whole [example](https://github.com/innoveit/reac
 ### start(options)
 Init the module.
 Returns a `Promise` object.
+Don't call this multiple times.
 
 __Arguments__
 - `options` - `JSON`
