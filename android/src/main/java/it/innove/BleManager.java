@@ -26,7 +26,7 @@ import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
 
-	public static final String LOG_TAG = "logs";
+	public static final String LOG_TAG = "ReactNativeBleManager";
 	private static final int ENABLE_REQUEST = 539;
 
 	private class BondRequest {
