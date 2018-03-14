@@ -207,6 +207,12 @@ bool hasListeners;
         return 0;
 }
 
+RCT_EXPORT_METHOD(clearPeripherals:(nonnull RCTResponseSenderBlock)callback)
+{
+    peripherals = @[];
+    callback(@[[NSNull null]]);
+}
+
 RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"Get discovered peripherals");
