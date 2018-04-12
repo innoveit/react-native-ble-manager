@@ -206,6 +206,8 @@ BleManager.stopScan()
 Attempts to connect to a peripheral. In many case if you can't connect you have to scan for the peripheral before.
 Returns a `Promise` object.
 
+> In iOS, attempts to connect to a peripheral do not time out (please see [Apple's doc](https://developer.apple.com/documentation/corebluetooth/cbcentralmanager/1518766-connect)), so you might need to set a timer explicitly if you don't want this behavior.
+
 __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral to connect.
 
