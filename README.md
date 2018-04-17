@@ -601,9 +601,38 @@ bleManagerEmitter.addListener(
 A characteristic notify a new value.
 
 __Arguments__
-- `peripheral` - `String` - the id of the peripheral
-- `characteristic` - `String` - the UUID of the characteristic
-- `value` - `Array` - the read value
+- `value` — `Array` — the read value
+- `peripheral` — `String` — the id of the peripheral
+- `characteristic` — `String` — the UUID of the characteristic
+- `service` — `String` — the UUID of the characteristic
+
+> Event will only be emitted after successful `startNotification`.
+
+__Example__
+```js
+import { bytesToString } from 'convert-string';
+
+async function connectAndPrepare(peripheral, service, characteristic) {
+  // Connect to device
+  await BleManager.connect(peripheral);
+  // Before startNotification you need to call retrieveServices
+  await BleManager.retrieveServices(peripheral);
+  // To enable BleManagerDidUpdateValueForCharacteristic listener
+  await BleManager.startNotification(peripheral, service, characteristic);
+  // Add event listener
+  bleManagerEmitter.addListener(
+    'BleManagerDidUpdateValueForCharacteristic',
+    ({ value, peripheral, characteristic, service }) => {
+        // Convert bytes array to string
+        const data = bytesToString(value);
+        console.log(`Recieved ${data} for characteristic ${characteristic}`);
+    }
+  );
+  // Actions triggereng BleManagerDidUpdateValueForCharacteristic event
+}
+
+```
+
 
 ###  BleManagerConnectPeripheral
 A peripheral was connected.
