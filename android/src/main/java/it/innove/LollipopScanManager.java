@@ -42,7 +42,7 @@ public class LollipopScanManager extends ScanManager {
         
         scanSettingsBuilder.setScanMode(options.getInt("scanMode"));
         
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
             scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
         }

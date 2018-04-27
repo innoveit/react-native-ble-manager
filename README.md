@@ -414,6 +414,29 @@ BleManager.readRSSI('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   });
 ```
 
+### requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
+Request a connection parameter update.
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `connectionPriority` - `Integer` - the connection priority to be requested, as follows:
+    - 0 - balanced priority connection
+    - 1 - high priority connection
+    - 2 - low power priority connection
+
+__Examples__
+```js
+BleManager.requestConnectionPriority('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 1)
+.then((status) => {
+  // Success code
+  console.log('Requested connection priority');
+})
+.catch((error) => {
+  // Failure code
+  console.log(error);
+});
+```
 
 ### requestMTU(peripheralId, mtu) [Android only API 21+]
 Request an MTU size used for a given connection.
@@ -426,9 +449,9 @@ __Arguments__
 __Examples__
 ```js
 BleManager.requestMTU('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 512)
-.then(() => {
+.then((mtu) => {
   // Success code
-  console.log('MTU size changed');
+  console.log('MTU size changed to ' + mtu + ' bytes');
 })
 .catch((error) => {
   // Failure code
@@ -630,9 +653,7 @@ async function connectAndPrepare(peripheral, service, characteristic) {
   );
   // Actions triggereng BleManagerDidUpdateValueForCharacteristic event
 }
-
 ```
-
 
 ###  BleManagerConnectPeripheral
 A peripheral was connected.

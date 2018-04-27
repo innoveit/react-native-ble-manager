@@ -665,6 +665,20 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
+	public void requestConnectionPriority(int connectionPriority, Callback callback) {
+		if (gatt == null) {
+			callback.invoke("BluetoothGatt is null", null);
+			return;
+		}
+
+		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
+			int status = gatt.requestConnectionPriority(connectionPriority);
+			callback.invoke(null, status);
+		} else {
+			callback.invoke("Requesting connection priority requires at least API level 21", null);
+		}
+	}
+
 	public void requestMTU(int mtu, Callback callback) {
 		if (!isConnected()) {
 			callback.invoke("Device is not connected", null);
@@ -680,7 +694,7 @@ public class Peripheral extends BluetoothGattCallback {
 			requestMTUCallback = callback;
 			gatt.requestMtu(mtu);
 		} else {
-			callback.invoke("The requestMTU require at least 21 API level", null);
+			callback.invoke("Requesting MTU requires at least API level 21", null);
 		}
 	}
 
@@ -691,7 +705,7 @@ public class Peripheral extends BluetoothGattCallback {
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				requestMTUCallback.invoke(null, mtu);
 			} else {
-				requestMTUCallback.invoke("Error requesting MTU status=" + status, null);
+				requestMTUCallback.invoke("Error requesting MTU status = " + status, null);
 			}
 
 			requestMTUCallback = null;
