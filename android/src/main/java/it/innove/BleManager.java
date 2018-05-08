@@ -198,14 +198,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	private void removeBond(String peripheralUUID, Callback callback) {
 		Log.d(LOG_TAG, "Remove bond to: " + peripheralUUID);
 
-		Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
-		for (BluetoothDevice device : deviceSet) {
-			if (peripheralUUID.equalsIgnoreCase(device.getAddress())) {
-				callback.invoke();
-				return;
-			}
-		}
-
 		Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
 		if (peripheral == null) {
 			callback.invoke("Invalid peripheral uuid");
