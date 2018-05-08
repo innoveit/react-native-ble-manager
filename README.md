@@ -253,7 +253,7 @@ __Examples__
 BleManager.enableBluetooth()
   .then(() => {
     // Success code
-    console.log('The bluetooh is already enabled or the user confirm');
+    console.log('The bluetooth is already enabled or the user confirm');
   })
   .catch((error) => {
     // Failure code
