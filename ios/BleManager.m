@@ -749,35 +749,47 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         [retrieveServicesCallbacks removeObjectForKey:peripheralUUIDString];
     }
 
-    for (id key in readCallbacks) {
+    NSArray* ourReadCallbacks = readCallbacks.allKeys;
+    for (id key in ourReadCallbacks) {
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [readCallbacks objectForKey:key];
-            callback(@[errorStr]);
-            [readCallbacks removeObjectForKey:key];
+            if (callback) {
+                callback(@[errorStr]);
+                [readCallbacks removeObjectForKey:key];
+            }
         }
     }
 
-    for (id key in writeCallbacks) {
+    NSArray* ourWriteCallbacks = writeCallbacks.allKeys;
+    for (id key in ourWriteCallbacks) {
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [writeCallbacks objectForKey:key];
-            callback(@[errorStr]);
-            [writeCallbacks removeObjectForKey:key];
+            if (callback) {
+                callback(@[errorStr]);
+                [writeCallbacks removeObjectForKey:key];
+            }
         }
     }
 
-    for (id key in notificationCallbacks) {
+    NSArray* ourNotificationCallbacks = notificationCallbacks.allKeys;
+    for (id key in ourNotificationCallbacks) {
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [notificationCallbacks objectForKey:key];
-            callback(@[errorStr]);
-            [notificationCallbacks removeObjectForKey:key];
+            if (callback) {
+                callback(@[errorStr]);
+                [notificationCallbacks removeObjectForKey:key];
+            }
         }
     }
 
-    for (id key in stopNotificationCallbacks) {
+    NSArray* ourStopNotificationsCallbacks = stopNotificationCallbacks.allKeys;
+    for (id key in ourStopNotificationsCallbacks) {
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [stopNotificationCallbacks objectForKey:key];
-            callback(@[errorStr]);
-            [stopNotificationCallbacks removeObjectForKey:key];
+            if (callback) {
+                callback(@[errorStr]);
+                [stopNotificationCallbacks removeObjectForKey:key];
+            }
         }
     }
 
