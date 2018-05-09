@@ -672,7 +672,7 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 
 		if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-			int status = gatt.requestConnectionPriority(connectionPriority);
+			boolean status = gatt.requestConnectionPriority(connectionPriority);
 			callback.invoke(null, status);
 		} else {
 			callback.invoke("Requesting connection priority requires at least API level 21", null);
