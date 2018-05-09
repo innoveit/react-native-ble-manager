@@ -260,7 +260,9 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
         for(CBPeripheral *peripheral in connectedPeripherals){
             NSDictionary * obj = [peripheral asDictionary];
             [foundedPeripherals addObject:obj];
-            [peripherals addObject:peripheral];
+            @synchronized(peripherals) {
+                [peripherals addObject:peripheral];
+            }
         }
     }
     
@@ -345,7 +347,9 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
      advertisementData:(NSDictionary *)advertisementData
                   RSSI:(NSNumber *)RSSI
 {
-    [peripherals addObject:peripheral];
+    @synchronized(peripherals) {
+        [peripherals addObject:peripheral];
+    }
     [peripheral setAdvertisementData:advertisementData RSSI:RSSI];
         
     NSLog(@"Discover peripheral: %@", [peripheral name]);
@@ -366,7 +370,9 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
             NSArray<CBPeripheral *> *peripheralArray = [manager retrievePeripheralsWithIdentifiers:@[uuid]];
             if([peripheralArray count] > 0){
                 peripheral = [peripheralArray objectAtIndex:0];
-                [peripherals addObject:peripheral];
+                @synchronized(peripherals) {
+                    [peripherals addObject:peripheral];
+                }
                 NSLog(@"Successfull retrieved peripheral with UUID : %@", peripheralUUID);
             }
         } else {
