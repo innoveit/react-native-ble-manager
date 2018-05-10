@@ -508,6 +508,23 @@ BleManager.createBond(peripheralId)
 
 ```
 
+### removeBond(peripheralId) [Android only]
+Remove a paired device.
+Returns a `Promise` object.
+
+__Examples__
+```js
+BleManager.removeBond(peripheralId)
+  .then(() => {
+    console.log('removeBond success');
+  })
+  .catch(() => {
+    console.log('fail to remove the bond');
+  })
+
+```
+
+
 ### getBondedPeripherals() [Android only]
 Return the bonded peripherals.
 Returns a `Promise` object.
