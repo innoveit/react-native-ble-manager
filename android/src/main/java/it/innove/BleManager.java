@@ -163,7 +163,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			return;
 		}
 		if (!getBluetoothAdapter().isEnabled()) {
-			callback.invoke("Bluetooth not enabled");
+			callback.invoke();
 			return;
 		}
 		scanManager.stopScan(callback);
