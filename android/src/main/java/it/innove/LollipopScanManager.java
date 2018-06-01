@@ -103,12 +103,12 @@ public class LollipopScanManager extends ScanManager {
                     Peripheral peripheral = null;
 
 					if (!bleManager.peripherals.containsKey(address)) {
-						peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
+						peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord(), reactContext);
 						bleManager.peripherals.put(address, peripheral);
 					} else {
 						peripheral = bleManager.peripherals.get(address);
 						peripheral.updateRssi(result.getRssi());
-						peripheral.updateData(result.getScanRecord().getBytes());
+						peripheral.updateData(result.getScanRecord());
 					}
 
 					WritableMap map = peripheral.asWritableMap();

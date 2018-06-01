@@ -82,7 +82,28 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
 - (NSDictionary *) serializableAdvertisementData: (NSDictionary *) advertisementData {
   
   NSMutableDictionary *dict = [advertisementData mutableCopy];
-  
+
+  // Rename 'local name' key
+  NSObject *localName = [dict objectForKey:CBAdvertisementDataLocalNameKey];
+  if (localName) {
+    [dict setObject:[dict objectForKey:CBAdvertisementDataLocalNameKey] forKey:@"localName"];
+    [dict removeObjectForKey:CBAdvertisementDataLocalNameKey];
+  }
+
+  // Rename 'isConnectable' key
+  NSObject *isConnectable = [dict objectForKey:CBAdvertisementDataIsConnectable];
+  if (isConnectable) {
+    [dict setObject:[dict objectForKey:CBAdvertisementDataIsConnectable] forKey:@"isConnectable"];
+    [dict removeObjectForKey:CBAdvertisementDataIsConnectable];
+  }
+
+  // Rename 'power level' key
+  NSObject *powerLevel = [dict objectForKey:CBAdvertisementDataTxPowerLevelKey];
+  if (powerLevel) {
+    [dict setObject:[dict objectForKey:CBAdvertisementDataTxPowerLevelKey] forKey:@"txPowerLevel"];
+    [dict removeObjectForKey:CBAdvertisementDataTxPowerLevelKey];
+  }
+
   // Service Data is a dictionary of CBUUID and NSData
   // Convert to String keys with Array Buffer values
   NSMutableDictionary *serviceData = [dict objectForKey:CBAdvertisementDataServiceDataKey];
@@ -93,10 +114,14 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
       [serviceData setObject:dataToArrayBuffer([serviceData objectForKey:key]) forKey:[key UUIDString]];
       [serviceData removeObjectForKey:key];
     }
+
+    // replace the Service Data object
+    [dict setObject:[dict objectForKey:CBAdvertisementDataServiceDataKey] forKey:@"serviceData"];
+    [dict removeObjectForKey:CBAdvertisementDataServiceDataKey];
   }
-  
+
   // Create a new list of Service UUIDs as Strings instead of CBUUIDs
-  NSMutableArray *serviceUUIDs = [dict objectForKey:CBAdvertisementDataServiceUUIDsKey];
+  NSMutableArray *serviceUUIDs = [dict objectForKey: CBAdvertisementDataServiceUUIDsKey];
   NSMutableArray *serviceUUIDStrings;
   if (serviceUUIDs) {
     serviceUUIDStrings = [[NSMutableArray alloc] initWithCapacity:serviceUUIDs.count];
@@ -107,8 +132,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     
     // replace the UUID list with list of strings
     [dict removeObjectForKey:CBAdvertisementDataServiceUUIDsKey];
-    [dict setObject:serviceUUIDStrings forKey:CBAdvertisementDataServiceUUIDsKey];
-    
+    [dict setObject:serviceUUIDStrings forKey:@"serviceUUIDs"];
   }
   
   // Solicited Services UUIDs is an array of CBUUIDs, convert into Strings
@@ -124,13 +148,30 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     
     // replace the UUID list with list of strings
     [dict removeObjectForKey:CBAdvertisementDataSolicitedServiceUUIDsKey];
-    [dict setObject:solicitiedServiceUUIDStrings forKey:CBAdvertisementDataSolicitedServiceUUIDsKey];
+    [dict setObject:solicitiedServiceUUIDStrings forKey:@"solicitedServiceUUIDs"];
+  }
+
+  // Overflow Services UUIDs is an array of CBUUIDs, convert into Strings
+  NSMutableArray *overflowServiceUUIDs = [dict objectForKey:CBAdvertisementDataOverflowServiceUUIDsKey];
+  NSMutableArray *overflowServiceUUIDStrings;
+  if (overflowServiceUUIDs) {
+    // NSLog(@"%@", overflowServiceUUIDs);
+    overflowServiceUUIDStrings = [[NSMutableArray alloc] initWithCapacity:overflowServiceUUIDs.count];
+
+    for (CBUUID *uuid in overflowServiceUUIDs) {
+      [overflowServiceUUIDStrings addObject:[uuid UUIDString]];
+    }
+
+    // replace the UUID list with list of strings
+    [dict removeObjectForKey:CBAdvertisementDataOverflowServiceUUIDsKey];
+    [dict setObject:overflowServiceUUIDStrings forKey:@"overflowServiceUUIDs"];
   }
   
   // Convert the manufacturer data
   NSData *mfgData = [dict objectForKey:CBAdvertisementDataManufacturerDataKey];
   if (mfgData) {
-    [dict setObject:dataToArrayBuffer([dict objectForKey:CBAdvertisementDataManufacturerDataKey]) forKey:CBAdvertisementDataManufacturerDataKey];
+    [dict setObject:dataToArrayBuffer([dict objectForKey:CBAdvertisementDataManufacturerDataKey]) forKey:@"manufacturerData"];
+    [dict removeObjectForKey:CBAdvertisementDataManufacturerDataKey];
   }
   
   return dict;
