@@ -32,6 +32,18 @@ class BleManager  {
     });
   }
 
+  refreshCache(peripheralId) {
+    return new Promise((fulfill, reject) => {
+      bleManager.refreshCache(peripheralId, (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(result);
+        }
+      });
+    });
+  }
+
   retrieveServices(peripheralId) {
     return new Promise((fulfill, reject) => {
       bleManager.retrieveServices(peripheralId, (error, peripheral) => {

@@ -475,6 +475,26 @@ BleManager.retrieveServices('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   });  
 ```
 
+### refreshCache(peripheralId)
+refreshes the peripheral's services and characteristics cache
+Returns a `Promise` object.
+
+__Arguments__
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+
+__Examples__
+```js
+BleManager.refreshCache('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
+  .then((peripheralInfo) => {
+    // Success code
+    console.log('cache refreshed!')
+  })
+  .cache((error) => {
+    console.error(error)
+  }); 
+```
+
+
 ### getConnectedPeripherals(serviceUUIDs)
 Return the connected peripherals.
 Returns a `Promise` object.
