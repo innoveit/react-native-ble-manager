@@ -564,7 +564,6 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 		this.retrieveServicesCallback = callback;
 		gatt.discoverServices();
-		callback.invoke();
 	}
 
 
