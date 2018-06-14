@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.os.Build;
@@ -102,13 +103,20 @@ public class LollipopScanManager extends ScanManager {
 					String address = result.getDevice().getAddress();
                     Peripheral peripheral = null;
 
+                    ScanRecord scanRecord = result.getScanRecord();
+
+                    if (scanRecord == null) {
+                        Log.i(bleManager.LOG_TAG, "Empty ScanRecord, skipping");
+                        return;
+                    }
+
 					if (!bleManager.peripherals.containsKey(address)) {
-						peripheral = new Peripheral(result.getDevice(), result.getRssi(), result.getScanRecord(), reactContext);
+						peripheral = new Peripheral(result.getDevice(), result.getRssi(), scanRecord.getBytes(), reactContext);
 						bleManager.peripherals.put(address, peripheral);
 					} else {
 						peripheral = bleManager.peripherals.get(address);
 						peripheral.updateRssi(result.getRssi());
-						peripheral.updateData(result.getScanRecord());
+						peripheral.updateData(scanRecord.getBytes());
 					}
 
 					WritableMap map = peripheral.asWritableMap();
