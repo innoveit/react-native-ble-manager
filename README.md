@@ -475,7 +475,7 @@ BleManager.retrieveServices('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   });  
 ```
 
-### refreshCache(peripheralId)
+### refreshCache(peripheralId) [Android only]
 refreshes the peripheral's services and characteristics cache
 Returns a `Promise` object.
 
