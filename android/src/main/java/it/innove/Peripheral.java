@@ -591,6 +591,23 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
+	public void refreshCache(Callback callback) {
+        try {
+            Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
+            if (localMethod != null) {
+                boolean res = ((Boolean) localMethod.invoke(gatt, new Object[0])).booleanValue();
+                callback.invoke(null, res);
+            } else {
+                callback.invoke("Could not refresh cache for device.");
+            }
+        }
+        catch (Exception localException) {
+            Log.e(TAG, "An exception occured while refreshing device");
+            callback.invoke(localException.getMessage());
+        }
+
+    }
+
 	public void retrieveServices(Callback callback) {
 		if (!isConnected()) {
 			callback.invoke("Device is not connected", null);
