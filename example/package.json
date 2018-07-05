@@ -7,19 +7,14 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"react": "^16.3.1",
+		"react": "^16.4.1",
 		"react-mixin": "^3.0.5",
-		"react-native": "^0.55.4",
+		"react-native": "^0.56.0",
 		"react-native-ble-manager": "file:../",
-		"react-timer-mixin": "^0.13.3"
+		"react-timer-mixin": "^0.13.3",
+		"babel-preset-react-native": "^5.0.1"
 	},
 	"devDependencies": {
-		"babel-jest": "20.0.3",
-		"babel-preset-react-native": "1.9.2",
-		"jest": "20.0.3",
 		"react-test-renderer": "16.0.0-alpha.12"
-	},
-	"jest": {
-		"preset": "react-native"
 	}
 }

@@ -119,6 +119,9 @@ export default class App extends Component {
 
   retrieveConnected(){
     BleManager.getConnectedPeripherals([]).then((results) => {
+      if (results.length == 0) {
+        console.log('No connected peripherals')
+      }
       console.log(results);
       var peripherals = this.state.peripherals;
       for (var i = 0; i < results.length; i++) {

@@ -10,8 +10,8 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
-	compileSdkVersion 24
-	buildToolsVersion "24.0.2"
+	compileSdkVersion 26
+	buildToolsVersion "26.0.1"
 
 	defaultConfig {
 		minSdkVersion 19
@@ -26,12 +26,8 @@ repositories {
 	maven {
 		// All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
 		url "$rootDir/../node_modules/react-native/android"
+		// To test url "$rootDir/../example/node_modules/react-native/android"
 	}
-	/*
-	maven {
-		// All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-		url "$rootDir/../example/node_modules/react-native/android"
-	}*/
 }
 
 
