@@ -553,7 +553,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@Override
-	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		Log.d(LOG_TAG, "onActivityResult");
 		if (requestCode == ENABLE_REQUEST && enableBluetoothCallback != null) {
 			if (resultCode == RESULT_OK) {
@@ -563,11 +563,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			}
 			enableBluetoothCallback = null;
 		}
-	}
-
-	@Override
-	public void onNewIntent(Intent intent) {
-
 	}
 
 	private Peripheral retrieveOrCreatePeripheral(String peripheralUUID) {
