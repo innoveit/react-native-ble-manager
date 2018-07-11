@@ -696,7 +696,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     RCTResponseSenderBlock readRSSICallback = [readRSSICallbacks objectForKey: key];
     if (readRSSICallback) {
         readRSSICallback(@[[NSNull null], [NSNumber numberWithInteger:[rssi integerValue]]]);
-        [readRSSICallbacks removeObjectForKey:readRSSICallback];
+        [readRSSICallbacks removeObjectForKey:key];
     }
 }
 
