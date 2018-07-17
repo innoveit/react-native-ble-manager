@@ -157,7 +157,7 @@ public class Peripheral extends BluetoothGattCallback {
 			map.putInt("rssi", advertisingRSSI);
 
 			if (advertisingData != null)
-				advertising.putString("localName", advertisingData.getDeviceName());
+				advertising.putString("localName", advertisingData.getDeviceName().replace("\0", ""));
 			else
 				advertising.putString("localName", device.getName());
 
