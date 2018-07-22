@@ -110,11 +110,11 @@ public class Peripheral extends BluetoothGattCallback {
 					Method m = device.getClass().getDeclaredMethod("connectGatt", Context.class, Boolean.class, BluetoothGattCallback.class, Integer.class);
 					m.setAccessible(true);
 					Integer transport = device.getClass().getDeclaredField("TRANSPORT_LE").getInt(null);
-					m.invoke(device, activity, false, this, transport);
+					gatt = (BluetoothGatt)m.invoke(device, activity, false, this, transport);
 				} catch (Exception e) {
 					e.printStackTrace();
 					Log.d(TAG, " Catch to call normal connection");
-					device.connectGatt(activity, false,
+					gatt = device.connectGatt(activity, false,
 							this);
 				}
 			}
