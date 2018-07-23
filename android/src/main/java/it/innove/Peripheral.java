@@ -73,6 +73,7 @@ public class Peripheral extends BluetoothGattCallback {
 	public Peripheral(BluetoothDevice device, int advertisingRSSI, ScanRecord scanRecord, ReactContext reactContext) {
 		this.device = device;
 		this.advertisingRSSI = advertisingRSSI;
+		this.advertisingData = scanRecord;
 		this.advertisingDataBytes = scanRecord.getBytes();;
 		this.reactContext = reactContext;
 	}
@@ -109,11 +110,11 @@ public class Peripheral extends BluetoothGattCallback {
 					Method m = device.getClass().getDeclaredMethod("connectGatt", Context.class, Boolean.class, BluetoothGattCallback.class, Integer.class);
 					m.setAccessible(true);
 					Integer transport = device.getClass().getDeclaredField("TRANSPORT_LE").getInt(null);
-					m.invoke(device, activity, false, this, transport);
+					gatt = (BluetoothGatt)m.invoke(device, activity, false, this, transport);
 				} catch (Exception e) {
 					e.printStackTrace();
 					Log.d(TAG, " Catch to call normal connection");
-					device.connectGatt(activity, false,
+					gatt = device.connectGatt(activity, false,
 							this);
 				}
 			}
@@ -155,9 +156,13 @@ public class Peripheral extends BluetoothGattCallback {
 			map.putString("id", device.getAddress()); // mac address
 			map.putInt("rssi", advertisingRSSI);
 
+			if (advertisingData != null)
+				advertising.putString("localName", advertisingData.getDeviceName().replace("\0", ""));
+			else
+				advertising.putString("localName", device.getName());
+
 			advertising.putMap("manufacturerData", byteArrayToWritableMap(advertisingDataBytes));
 			advertising.putBoolean("isConnectable", true);
-			advertising.putString("localName", device.getName());
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && advertisingData != null) {
 				WritableArray serviceUuids = Arguments.createArray();
