@@ -176,7 +176,9 @@ public class Peripheral extends BluetoothGattCallback {
 				WritableMap serviceData = Arguments.createMap();
 				if (advertisingData.getServiceData() != null) {
 					for (Map.Entry<ParcelUuid, byte[]> entry : advertisingData.getServiceData().entrySet()) {
-						serviceData.putMap(UUIDHelper.uuidToString(((ParcelUuid) entry.getKey()).getUuid()), byteArrayToWritableMap((byte[]) entry.getValue()));
+						if (entry.getValue() != null) {
+							serviceData.putMap(UUIDHelper.uuidToString((entry.getKey()).getUuid()), byteArrayToWritableMap(entry.getValue()));
+						}
 					}
 				}
 
