@@ -676,7 +676,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         if (error) {
             NSLog(@"%@", error);
             [writeCallbacks removeObjectForKey:key];
-            writeCallback(@[error.localizedDescription]);
+            writeCallback(@[[NSString stringWithFormat:@"%@ - status: %d", error.localizedDescription, error.code]);
         } else {
             if ([writeQueue count] == 0) {
                 [writeCallbacks removeObjectForKey:key];
