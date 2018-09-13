@@ -192,7 +192,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
       [characteristicDictionary setObject:[[service UUID] UUIDString] forKey:@"service"];
       [characteristicDictionary setObject:[[characteristic UUID] UUIDString] forKey:@"characteristic"];
       
-      if ([characteristic value]) {
+      if ([characteristic value] && [[characteristic value] length] > 0) {
         [characteristicDictionary setObject:dataToArrayBuffer([characteristic value]) forKey:@"value"];
       }
       if ([characteristic properties]) {
