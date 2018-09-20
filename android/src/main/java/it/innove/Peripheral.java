@@ -156,15 +156,18 @@ public class Peripheral extends BluetoothGattCallback {
 			map.putString("id", device.getAddress()); // mac address
 			map.putInt("rssi", advertisingRSSI);
 
-			if (advertisingData != null)
-				advertising.putString("localName", advertisingData.getDeviceName().replace("\0", ""));
-			else
-				advertising.putString("localName", device.getName());
+			String name = device.getName();
+			if (name != null)
+				advertising.putString("localName", name);
 
 			advertising.putMap("manufacturerData", byteArrayToWritableMap(advertisingDataBytes));
 			advertising.putBoolean("isConnectable", true);
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && advertisingData != null) {
+				String deviceName = advertisingData.getDeviceName();
+				if (deviceName != null)
+					advertising.putString("localName", deviceName.replace("\0", ""));
+
 				WritableArray serviceUuids = Arguments.createArray();
 				if (advertisingData.getServiceUuids() != null && advertisingData.getServiceUuids().size() != 0) {
 					for (ParcelUuid uuid : advertisingData.getServiceUuids()) {
