@@ -151,7 +151,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			}
 		}
 
-		scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
+		if(scanManager!=null) scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
 	}
 
 	@ReactMethod
@@ -166,7 +166,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke();
 			return;
 		}
-		scanManager.stopScan(callback);
+		if(scanManager!=null) scanManager.stopScan(callback);
 	}
 
 	@ReactMethod
