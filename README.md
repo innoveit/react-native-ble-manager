@@ -465,6 +465,7 @@ Returns a `Promise` object.
 
 __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUIDs` - `String[]` - [iOS only] only retrieve these services.
 
 __Examples__
 ```js
