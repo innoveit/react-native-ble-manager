@@ -44,9 +44,9 @@ class BleManager  {
     });
   }
 
-  retrieveServices(peripheralId) {
+  retrieveServices(peripheralId, services) {
     return new Promise((fulfill, reject) => {
-      bleManager.retrieveServices(peripheralId, (error, peripheral) => {
+      bleManager.retrieveServices(peripheralId, services, (error, peripheral) => {
         if (error) {
           reject(error);
         } else {
