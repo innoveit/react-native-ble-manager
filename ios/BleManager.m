@@ -191,14 +191,15 @@ bool hasListeners;
 - (CBPeripheral*)findPeripheralByUUID:(NSString*)uuid {
     
     CBPeripheral *peripheral = nil;
-    
-    for (CBPeripheral *p in peripherals) {
+    @synchronized(peripherals) {
+        for (CBPeripheral *p in peripherals) {
         
-        NSString* other = p.identifier.UUIDString;
+            NSString* other = p.identifier.UUIDString;
         
-        if ([uuid isEqualToString:other]) {
-            peripheral = p;
-            break;
+            if ([uuid isEqualToString:other]) {
+                peripheral = p;
+                break;
+            }
         }
     }
     return peripheral;
