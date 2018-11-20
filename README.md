@@ -459,7 +459,7 @@ BleManager.requestMTU('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 512)
 });
 ```
 
-### retrieveServices(peripheralId)
+### retrieveServices(peripheralId[, serviceUUIDs])
 Retrieve the peripheral's services and characteristics.
 Returns a `Promise` object.
 
@@ -473,7 +473,7 @@ BleManager.retrieveServices('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   .then((peripheralInfo) => {
     // Success code
     console.log('Peripheral info:', peripheralInfo);
-  });  
+  });
 ```
 
 ### refreshCache(peripheralId) [Android only]
@@ -492,7 +492,7 @@ BleManager.refreshCache('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   })
   .cache((error) => {
     console.error(error)
-  }); 
+  });
 ```
 
 
