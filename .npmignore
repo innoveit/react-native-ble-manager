@@ -1,2 +1,4 @@
 example
 android/build
+android/.gradle
+.idea
