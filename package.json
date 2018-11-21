@@ -1,6 +1,6 @@
 {
   "name": "react-native-ble-manager",
-  "version": "6.5.3",
+  "version": "6.5.4",
   "description": "A BLE module for react native.",
   "main": "BleManager",
   "repository": {
@@ -11,8 +11,8 @@
     "url": "https://github.com/innoveit/react-native-ble-manager/issues"
   },
   "keywords": [
-  	"react-native",
-  	"android",
+    "react-native",
+    "android",
     "ios",
     "ble",
     "bluetooth",
@@ -24,7 +24,7 @@
     "url": "https://github.com/innoveit"
   },
   "scripts": {
-    "version": "git add -A src",
+    "version": "git add -A",
     "postversion": "git push && git push --tags"
   }
 }
