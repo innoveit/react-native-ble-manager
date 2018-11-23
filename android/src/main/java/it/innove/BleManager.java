@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.ScanRecord;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,16 +13,29 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import com.facebook.react.bridge.*;
+
+import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static android.app.Activity.RESULT_OK;
 import static android.bluetooth.BluetoothProfile.GATT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 
 class BleManager extends ReactContextBaseJavaModule implements ActivityEventListener {
@@ -49,7 +63,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	private BondRequest removeBondRequest;
 
 	// key is the MAC Address
-	public Map<String, Peripheral> peripherals = new LinkedHashMap<>();
+	private final Map<String, Peripheral> peripherals = new LinkedHashMap<>();
 	// scan session id
 
 
@@ -144,14 +158,16 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			return;
 		}
 
-		for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
-			Map.Entry<String, Peripheral> entry = iterator.next();
-			if (!entry.getValue().isConnected()) {
-				iterator.remove();
+		synchronized (peripherals) {
+			for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator.hasNext(); ) {
+				Map.Entry<String, Peripheral> entry = iterator.next();
+				if (!entry.getValue().isConnected()) {
+					iterator.remove();
+				}
 			}
 		}
 
-		if(scanManager!=null) scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
+		if (scanManager != null) scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
 	}
 
 	@ReactMethod
@@ -166,7 +182,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke();
 			return;
 		}
-		if(scanManager!=null) scanManager.stopScan(callback);
+		if (scanManager != null) scanManager.stopScan(callback);
 	}
 
 	@ReactMethod
@@ -306,7 +322,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
-	public void retrieveServices(String deviceUUID, String[] services, Callback callback) {
+	public void retrieveServices(String deviceUUID, ReadableArray services, Callback callback) {
 		Log.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null) {
@@ -336,35 +352,47 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke("Peripheral not found", null);
 	}
 
-	private BluetoothAdapter.LeScanCallback mLeScanCallback =
-			new BluetoothAdapter.LeScanCallback() {
 
+	private Peripheral savePeripheral(BluetoothDevice device) {
+		String address = device.getAddress();
+		synchronized (peripherals) {
+			if (!peripherals.containsKey(address)) {
+				Peripheral peripheral = new Peripheral(device, reactContext);
+				peripherals.put(device.getAddress(), peripheral);
+			}
+		}
+		return peripherals.get(address);
+	}
 
-				@Override
-				public void onLeScan(final BluetoothDevice device, final int rssi,
-									 final byte[] scanRecord) {
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							Log.i(LOG_TAG, "DiscoverPeripheral: " + device.getName());
-							String address = device.getAddress();
+	Peripheral savePeripheral(BluetoothDevice device, int rssi, byte[] scanRecord) {
+		String address = device.getAddress();
+		synchronized (peripherals) {
+			if (!peripherals.containsKey(address)) {
+				Peripheral peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
+				peripherals.put(device.getAddress(), peripheral);
+			} else {
+				Peripheral peripheral = peripherals.get(address);
+				peripheral.updateRssi(rssi);
+				peripheral.updateData(scanRecord);
+			}
+		}
+		return peripherals.get(address);
+	}
 
-							if (!peripherals.containsKey(address)) {
-								Peripheral peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
-								peripherals.put(device.getAddress(), peripheral);
-								WritableMap map = peripheral.asWritableMap();
-								sendEvent("BleManagerDiscoverPeripheral", map);
-							} else {
-								// this isn't necessary
-								Peripheral peripheral = peripherals.get(address);
-								peripheral.updateRssi(rssi);
-							}
-						}
-					});
-				}
-
-
-			};
+	Peripheral savePeripheral(BluetoothDevice device, int rssi, ScanRecord scanRecord) {
+		String address = device.getAddress();
+		synchronized (peripherals) {
+			if (!peripherals.containsKey(address)) {
+				Peripheral peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
+				peripherals.put(device.getAddress(), peripheral);
+			} else {
+				Peripheral peripheral = peripherals.get(address);
+				peripheral.updateRssi(rssi);
+				peripheral.updateData(scanRecord);
+			}
+		}
+		return peripherals.get(address);
+	}
 
 	@ReactMethod
 	public void checkState() {
@@ -421,7 +449,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 			} else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
 				final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
-				final int prevState    = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
+				final int prevState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
 				BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
 				String bondStateStr = "UNKNOWN";
@@ -447,7 +475,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 						bondRequest = null;
 					}
 				}
-				if (removeBondRequest != null && removeBondRequest.uuid.equals(device.getAddress()) && bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED){
+				if (removeBondRequest != null && removeBondRequest.uuid.equals(device.getAddress()) && bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED) {
 					removeBondRequest.callback.invoke();
 					removeBondRequest = null;
 				}
@@ -476,7 +504,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 		List<BluetoothDevice> periperals = getBluetoothManager().getConnectedDevices(GATT);
 		for (BluetoothDevice entry : periperals) {
-			Peripheral peripheral = new Peripheral(entry, reactContext);
+			Peripheral peripheral = savePeripheral(entry);
 			WritableMap jsonBundle = peripheral.asWritableMap();
 			map.pushMap(jsonBundle);
 		}
@@ -501,11 +529,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Log.d(LOG_TAG, "Removing from list: " + deviceUUID);
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null) {
-			if (peripheral.isConnected()) {
-				callback.invoke("Peripheral can not be removed while connected");
-			} else {
-				peripherals.remove(deviceUUID);
-				callback.invoke();
+			synchronized (peripherals) {
+				if (peripheral.isConnected()) {
+					callback.invoke("Peripheral can not be removed while connected");
+				} else {
+					peripherals.remove(deviceUUID);
+					callback.invoke();
+				}
 			}
 		} else
 			callback.invoke("Peripheral not found");
@@ -573,13 +603,15 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	private Peripheral retrieveOrCreatePeripheral(String peripheralUUID) {
 		Peripheral peripheral = peripherals.get(peripheralUUID);
 		if (peripheral == null) {
-			if (peripheralUUID != null) {
-				peripheralUUID = peripheralUUID.toUpperCase();
-			}
-			if (BluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
-				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
-				peripheral = new Peripheral(device, reactContext);
-				peripherals.put(peripheralUUID, peripheral);
+			synchronized (peripherals) {
+				if (peripheralUUID != null) {
+					peripheralUUID = peripheralUUID.toUpperCase();
+				}
+				if (BluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
+					BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
+					peripheral = new Peripheral(device, reactContext);
+					peripherals.put(peripheralUUID, peripheral);
+				}
 			}
 		}
 		return peripheral;
