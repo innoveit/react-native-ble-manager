@@ -25,7 +25,6 @@ public class LegacyScanManager extends ScanManager {
 	private BluetoothAdapter.LeScanCallback mLeScanCallback =
 			new BluetoothAdapter.LeScanCallback() {
 
-
 				@Override
 				public void onLeScan(final BluetoothDevice device, final int rssi,
 									 final byte[] scanRecord) {
@@ -33,17 +32,8 @@ public class LegacyScanManager extends ScanManager {
 						@Override
 						public void run() {
 							Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + device.getName());
-							String address = device.getAddress();
-							Peripheral peripheral;
 
-							if (!bleManager.peripherals.containsKey(address)) {
-								peripheral = new Peripheral(device, rssi, scanRecord, reactContext);
-								bleManager.peripherals.put(device.getAddress(), peripheral);
-							} else {
-								peripheral = bleManager.peripherals.get(address);
-								peripheral.updateRssi(rssi);
-								peripheral.updateData(scanRecord);
-							}
+                            Peripheral peripheral = bleManager.savePeripheral(device, rssi, scanRecord);
 
 							WritableMap map = peripheral.asWritableMap();
 							bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
