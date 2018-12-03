@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanRecord;
 import android.content.Context;
 import android.os.Build;
@@ -121,7 +122,7 @@ public class Peripheral extends BluetoothGattCallback {
 							this);
 				}
 			}
-			onConnectionStateChange(gatt, 0, BluetoothGatt.STATE_CONNECTED);
+			onConnectionStateChange(gatt, 0, BluetoothProfile.STATE_CONNECTED);
 
 		} else {
 			if (gatt != null) {
@@ -304,7 +305,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 		this.gatt = gatta;
 
-		if (newState == BluetoothGatt.STATE_CONNECTED) {
+		if (newState == BluetoothProfile.STATE_CONNECTED) {
 
 			connected = true;
 
@@ -327,7 +328,7 @@ public class Peripheral extends BluetoothGattCallback {
 				connectCallback = null;
 			}
 
-		} else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+		} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
 			if (connected) {
 				connected = false;
