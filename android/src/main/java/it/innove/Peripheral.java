@@ -122,8 +122,6 @@ public class Peripheral extends BluetoothGattCallback {
 							this);
 				}
 			}
-			onConnectionStateChange(gatt, 0, BluetoothProfile.STATE_CONNECTED);
-
 		} else {
 			if (gatt != null) {
 				callback.invoke();
