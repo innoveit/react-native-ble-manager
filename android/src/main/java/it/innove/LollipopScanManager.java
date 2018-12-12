@@ -98,7 +98,7 @@ public class LollipopScanManager extends ScanManager {
 				public void run() {
 					Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
 
-                    Peripheral peripheral = bleManager.savePeripheral(result.getDevice(), result.getRssi(), result.getScanRecord());
+                    Peripheral peripheral = bleManager.savePeripheral(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes());
 
 					WritableMap map = peripheral.asWritableMap();
 					bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
