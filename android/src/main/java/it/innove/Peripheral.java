@@ -369,6 +369,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public void updateData(ScanRecord scanRecord) {
 		advertisingData = scanRecord;
+		advertisingDataBytes = scanRecord.getBytes();
 	}
 
 	public int unsignedToBytes(byte b) {
