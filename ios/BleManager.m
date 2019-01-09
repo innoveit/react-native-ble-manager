@@ -60,12 +60,13 @@ bool hasListeners;
         
         manager.delegate = nil;
     }
+    @synchronized(peripherals) {
+        for (CBPeripheral* p in peripherals) {
+            p.delegate = nil;
+        }
     
-    for (CBPeripheral* p in peripherals) {
-        p.delegate = nil;
+        peripherals = [NSMutableSet set];
     }
-    
-    peripherals = [NSMutableSet set];
 }
 
 +(BOOL)requiresMainQueueSetup
@@ -254,10 +255,12 @@ RCT_EXPORT_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings callback
 
     NSMutableArray *foundedPeripherals = [NSMutableArray array];
     if ([serviceUUIDs count] == 0){
-        for(CBPeripheral *peripheral in peripherals){
-            if([peripheral state] == CBPeripheralStateConnected){
-                NSDictionary * obj = [peripheral asDictionary];
-                [foundedPeripherals addObject:obj];
+        @synchronized(peripherals) {
+            for(CBPeripheral *peripheral in peripherals){
+                if([peripheral state] == CBPeripheralStateConnected){
+                    NSDictionary * obj = [peripheral asDictionary];
+                    [foundedPeripherals addObject:obj];
+                }
             }
         }
     } else {
