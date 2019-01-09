@@ -350,6 +350,7 @@ public class Peripheral extends BluetoothGattCallback {
 				connectCallback = null;
 			}
 			writeCallback = null;
+			writeQueue.clear();
 			readCallback = null;
 			retrieveServicesCallback = null;
 			readRSSICallback = null;
