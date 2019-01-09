@@ -64,8 +64,6 @@ bool hasListeners;
         for (CBPeripheral* p in peripherals) {
             p.delegate = nil;
         }
-    
-        peripherals = [NSMutableSet set];
     }
 }
 
