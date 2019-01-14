@@ -93,11 +93,18 @@ public class Peripheral extends BluetoothGattCallback {
 				.emit(eventName, params);
 	}
 
-	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
+	private void sendConnectionEvent(BluetoothDevice device, String eventName, int status) {
 		WritableMap map = Arguments.createMap();
 		map.putString("peripheral", device.getAddress());
+		if (status != -1) {
+			map.putInt("status", status);
+		}
 		sendEvent(eventName, map);
 		Log.d(BleManager.LOG_TAG, "Peripheral event (" + eventName + "):" + device.getAddress());
+	}
+
+	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
+		sendConnectionEvent(device, eventName, -1);
 	}
 
 	public void connect(Callback callback, Activity activity) {
@@ -338,7 +345,7 @@ public class Peripheral extends BluetoothGattCallback {
 				}
 			}
 
-			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+			sendConnectionEvent(device, "BleManagerDisconnectPeripheral", status);
 			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback, requestMTUCallback);
 			for (Callback currentCallback : callbacks) {
 				if (currentCallback != null) {
