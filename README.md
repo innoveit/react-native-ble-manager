@@ -698,9 +698,11 @@ A peripheral was connected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
+- `status` - `Number` -  [Android only] connect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
 
 ###  BleManagerDisconnectPeripheral
 A peripheral was disconnected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
+- `status` - `Number` -  [Android only] disconnect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
