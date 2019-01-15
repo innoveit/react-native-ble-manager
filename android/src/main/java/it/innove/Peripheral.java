@@ -103,10 +103,6 @@ public class Peripheral extends BluetoothGattCallback {
 		Log.d(BleManager.LOG_TAG, "Peripheral event (" + eventName + "):" + device.getAddress());
 	}
 
-	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
-		sendConnectionEvent(device, eventName, -1);
-	}
-
 	public void connect(Callback callback, Activity activity) {
 		if (!connected) {
 			BluetoothDevice device = getDevice();
@@ -147,9 +143,9 @@ public class Peripheral extends BluetoothGattCallback {
 				gatt.close();
 				gatt = null;
 				Log.d(BleManager.LOG_TAG, "Disconnect");
-				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_SUCCESS);
 			} catch (Exception e) {
-				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_FAILURE);
 				Log.d(BleManager.LOG_TAG, "Error on disconnect", e);
 			}
 		} else
@@ -325,7 +321,7 @@ public class Peripheral extends BluetoothGattCallback {
 				}
 			});
 
-			sendConnectionEvent(device, "BleManagerConnectPeripheral");
+			sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
 
 			if (connectCallback != null) {
 				Log.d(BleManager.LOG_TAG, "Connected to: " + device.getAddress());
