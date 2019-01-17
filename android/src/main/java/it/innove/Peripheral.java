@@ -139,7 +139,6 @@ public class Peripheral extends BluetoothGattCallback {
 		connected = false;
 		if (gatt != null) {
 			try {
-				gatt.disconnect();
 				gatt.close();
 				gatt = null;
 				Log.d(BleManager.LOG_TAG, "Disconnect");
@@ -335,7 +334,6 @@ public class Peripheral extends BluetoothGattCallback {
 				connected = false;
 
 				if (gatt != null) {
-					gatt.disconnect();
 					gatt.close();
 					this.gatt = null;
 				}
