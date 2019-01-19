@@ -7,6 +7,8 @@ gradle
 gradlew
 gradlew.bat
 
+.idea
+
 node_modules
 
 # OSX

@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanRecord;
 import android.content.Context;
 import android.os.Build;
@@ -27,11 +28,14 @@ import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONArray;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.common.ReactConstants.TAG;
@@ -74,7 +78,7 @@ public class Peripheral extends BluetoothGattCallback {
 		this.device = device;
 		this.advertisingRSSI = advertisingRSSI;
 		this.advertisingData = scanRecord;
-		this.advertisingDataBytes = scanRecord.getBytes();;
+		this.advertisingDataBytes = scanRecord.getBytes();
 		this.reactContext = reactContext;
 	}
 
@@ -89,9 +93,12 @@ public class Peripheral extends BluetoothGattCallback {
 				.emit(eventName, params);
 	}
 
-	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
+	private void sendConnectionEvent(BluetoothDevice device, String eventName, int status) {
 		WritableMap map = Arguments.createMap();
 		map.putString("peripheral", device.getAddress());
+		if (status != -1) {
+			map.putInt("status", status);
+		}
 		sendEvent(eventName, map);
 		Log.d(BleManager.LOG_TAG, "Peripheral event (" + eventName + "):" + device.getAddress());
 	}
@@ -110,7 +117,7 @@ public class Peripheral extends BluetoothGattCallback {
 					Method m = device.getClass().getDeclaredMethod("connectGatt", Context.class, Boolean.class, BluetoothGattCallback.class, Integer.class);
 					m.setAccessible(true);
 					Integer transport = device.getClass().getDeclaredField("TRANSPORT_LE").getInt(null);
-					gatt = (BluetoothGatt)m.invoke(device, activity, false, this, transport);
+					gatt = (BluetoothGatt) m.invoke(device, activity, false, this, transport);
 				} catch (Exception e) {
 					e.printStackTrace();
 					Log.d(TAG, " Catch to call normal connection");
@@ -118,9 +125,7 @@ public class Peripheral extends BluetoothGattCallback {
 							this);
 				}
 			}
-			onConnectionStateChange(gatt, 0,BluetoothGatt.STATE_CONNECTED);
-
-			} else {
+		} else {
 			if (gatt != null) {
 				callback.invoke();
 			} else {
@@ -138,9 +143,9 @@ public class Peripheral extends BluetoothGattCallback {
 				gatt.close();
 				gatt = null;
 				Log.d(BleManager.LOG_TAG, "Disconnect");
-				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_SUCCESS);
 			} catch (Exception e) {
-				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+				sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_FAILURE);
 				Log.d(BleManager.LOG_TAG, "Error on disconnect", e);
 			}
 		} else
@@ -264,8 +269,8 @@ public class Peripheral extends BluetoothGattCallback {
 	static WritableMap byteArrayToWritableMap(byte[] bytes) throws JSONException {
 		WritableMap object = Arguments.createMap();
 		object.putString("CDVType", "ArrayBuffer");
-		object.putString("data", Base64.encodeToString(bytes, Base64.NO_WRAP));
-		object.putArray("bytes", BleManager.bytesToWritableArray(bytes));
+		object.putString("data", bytes != null ? Base64.encodeToString(bytes, Base64.NO_WRAP) : null);
+		object.putArray("bytes", bytes != null ? BleManager.bytesToWritableArray(bytes) : null);
 		return object;
 	}
 
@@ -301,7 +306,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 		this.gatt = gatta;
 
-		if (newState == BluetoothGatt.STATE_CONNECTED) {
+		if (newState == BluetoothProfile.STATE_CONNECTED) {
 
 			connected = true;
 
@@ -310,14 +315,13 @@ public class Peripheral extends BluetoothGattCallback {
 				public void run() {
 					try {
 						gatt.discoverServices();
-					}
-					catch (NullPointerException e) {
+					} catch (NullPointerException e) {
 						Log.d(BleManager.LOG_TAG, "onConnectionStateChange connected but gatt of Run method was null");
 					}
 				}
 			});
 
-			sendConnectionEvent(device, "BleManagerConnectPeripheral");
+			sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
 
 			if (connectCallback != null) {
 				Log.d(BleManager.LOG_TAG, "Connected to: " + device.getAddress());
@@ -325,7 +329,7 @@ public class Peripheral extends BluetoothGattCallback {
 				connectCallback = null;
 			}
 
-		} else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
+		} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
 			if (connected) {
 				connected = false;
@@ -337,7 +341,7 @@ public class Peripheral extends BluetoothGattCallback {
 				}
 			}
 
-			sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
+			sendConnectionEvent(device, "BleManagerDisconnectPeripheral", status);
 			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback, requestMTUCallback);
 			for (Callback currentCallback : callbacks) {
 				if (currentCallback != null) {
@@ -349,6 +353,7 @@ public class Peripheral extends BluetoothGattCallback {
 				connectCallback = null;
 			}
 			writeCallback = null;
+			writeQueue.clear();
 			readCallback = null;
 			retrieveServicesCallback = null;
 			readRSSICallback = null;
@@ -368,6 +373,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public void updateData(ScanRecord scanRecord) {
 		advertisingData = scanRecord;
+		advertisingDataBytes = scanRecord.getBytes();
 	}
 
 	public int unsignedToBytes(byte b) {
@@ -607,21 +613,19 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	public void refreshCache(Callback callback) {
-        try {
-            Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
-            if (localMethod != null) {
-                boolean res = ((Boolean) localMethod.invoke(gatt, new Object[0])).booleanValue();
-                callback.invoke(null, res);
-            } else {
-                callback.invoke("Could not refresh cache for device.");
-            }
-        }
-        catch (Exception localException) {
-            Log.e(TAG, "An exception occured while refreshing device");
-            callback.invoke(localException.getMessage());
-        }
-
-    }
+		try {
+			Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
+			if (localMethod != null) {
+				boolean res = ((Boolean) localMethod.invoke(gatt, new Object[0])).booleanValue();
+				callback.invoke(null, res);
+			} else {
+				callback.invoke("Could not refresh cache for device.");
+			}
+		} catch (Exception localException) {
+			Log.e(TAG, "An exception occured while refreshing device");
+			callback.invoke(localException.getMessage());
+		}
+	}
 
 	public void retrieveServices(Callback callback) {
 		if (!isConnected()) {

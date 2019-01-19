@@ -459,12 +459,13 @@ BleManager.requestMTU('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 512)
 });
 ```
 
-### retrieveServices(peripheralId)
+### retrieveServices(peripheralId[, serviceUUIDs])
 Retrieve the peripheral's services and characteristics.
 Returns a `Promise` object.
 
 __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUIDs` - `String[]` - [iOS only] only retrieve these services.
 
 __Examples__
 ```js
@@ -472,7 +473,7 @@ BleManager.retrieveServices('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   .then((peripheralInfo) => {
     // Success code
     console.log('Peripheral info:', peripheralInfo);
-  });  
+  });
 ```
 
 ### refreshCache(peripheralId) [Android only]
@@ -491,7 +492,7 @@ BleManager.refreshCache('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   })
   .cache((error) => {
     console.error(error)
-  }); 
+  });
 ```
 
 
@@ -697,9 +698,11 @@ A peripheral was connected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
+- `status` - `Number` -  [Android only] connect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
 
 ###  BleManagerDisconnectPeripheral
 A peripheral was disconnected.
 
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
+- `status` - `Number` -  [Android only] disconnect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
