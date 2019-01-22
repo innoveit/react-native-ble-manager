@@ -224,12 +224,19 @@ BleManager.connect('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
   });
 ```
 
-### disconnect(peripheralId)
+### disconnect(peripheralId, force)
 Disconnect from a peripheral.
 Returns a `Promise` object.
 
 __Arguments__
 - `peripheralId` - `String` - the id/mac address of the peripheral to disconnect.
+- `force` - `boolean` - [Android only] defaults to true, if true force closes gatt
+                        connection and send the BleManagerDisconnectPeripheral
+                        event immediately to Javascript, else disconnects the
+                        connection and waits for [`disconnected state`](https://developer.android.com/reference/android/bluetooth/BluetoothProfile#STATE_DISCONNECTED) to
+                        [`close the gatt connection`](https://developer.android.com/reference/android/bluetooth/BluetoothGatt#close())
+                        and then sends the BleManagerDisconnectPeripheral to the
+                        Javascript
 
 __Examples__
 ```js

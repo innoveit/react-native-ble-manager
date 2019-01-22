@@ -125,9 +125,9 @@ class BleManager  {
     });
   }
 
-  disconnect(peripheralId) {
+  disconnect(peripheralId, force=true) {
     return new Promise((fulfill, reject) => {
-      bleManager.disconnect(peripheralId, (error) => {
+      bleManager.disconnect(peripheralId, force, (error) => {
         if (error) {
           reject(error);
         } else {
