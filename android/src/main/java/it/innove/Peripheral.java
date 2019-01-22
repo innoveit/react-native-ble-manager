@@ -134,15 +134,18 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
-	public void disconnect() {
+	public void disconnect(boolean force) {
 		connectCallback = null;
 		connected = false;
 		if (gatt != null) {
 			try {
-				gatt.close();
-				gatt = null;
+				gatt.disconnect();
+				if (force) {
+					gatt.close();
+					gatt = null;
+					sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_SUCCESS);
+				}
 				Log.d(BleManager.LOG_TAG, "Disconnect");
-				sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_SUCCESS);
 			} catch (Exception e) {
 				sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_FAILURE);
 				Log.d(BleManager.LOG_TAG, "Error on disconnect", e);
@@ -334,6 +337,7 @@ public class Peripheral extends BluetoothGattCallback {
 				connected = false;
 
 				if (gatt != null) {
+					gatt.disconnect();
 					gatt.close();
 					this.gatt = null;
 				}
