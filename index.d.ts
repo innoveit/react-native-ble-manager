@@ -27,15 +27,15 @@ declare module 'react-native-ble-manager' {
 		numberOfMatches?: number;
 		matchMode?: number;
 		scanMode?: number;
-    }
+    	}
     
 	export function scan(serviceUUIDs: string[], seconds: number, allowDuplicates?: boolean, options?: ScanOptions): Promise<void>;
 	export function stopScan(): Promise<void>;
 	export function connect(peripheralID: string): Promise<void>
-	export function disconnect(peripheralID: string): Promise<void>
+	export function disconnect(peripheralID: string, force?:boolean): Promise<void>
 	export function checkState(): void;
 	export function startNotification(peripheralID: string, serviceUUID: string, characteristicUUID: string): Promise<void>
-    export function stopNotification(peripheralID: string, serviceUUID: string, characteristicUUID: string): Promise<void>
+    	export function stopNotification(peripheralID: string, serviceUUID: string, characteristicUUID: string): Promise<void>
     
 	export function read(peripheralID: string, serviceUUID: string, characteristicUUID: string): Promise<any>
 	export function write(peripheralID: string, serviceUUID: string, characteristicUUID: string, data: any, maxByteSize?: number): Promise<void>
