@@ -7,14 +7,15 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"react": "^16.4.1",
+		"babel-preset-react-native": "^5.0.1",
+		"react": "^16.5.1",
 		"react-mixin": "^3.0.5",
-		"react-native": "^0.56.0",
-		"react-native-ble-manager": "file:../",
-		"react-timer-mixin": "^0.13.3",
-		"babel-preset-react-native": "^5.0.1"
+		"react-native": "^0.57.8",
+		"react-native-ble-manager": "^6.6.0",
+		"react-timer-mixin": "^0.13.3"
 	},
 	"devDependencies": {
-		"react-test-renderer": "16.0.0-alpha.12"
+		"react-test-renderer": "16.6.0-alpha.8af6728",
+		"schedule": "^0.4.0"
 	}
 }
