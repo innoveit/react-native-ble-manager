@@ -435,6 +435,9 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				switch (state) {
 					case BluetoothAdapter.STATE_OFF:
 						stringState = "off";
+						synchronized (peripherals){
+							peripherals.clear();
+						}
 						break;
 					case BluetoothAdapter.STATE_TURNING_OFF:
 						stringState = "turning_off";
