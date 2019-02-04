@@ -47,7 +47,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
 
-	private final BluetoothDevice device;
+	private BluetoothDevice device;
 	private ScanRecord advertisingData;
 	private byte[] advertisingDataBytes;
 	private int advertisingRSSI;
@@ -363,6 +363,12 @@ public class Peripheral extends BluetoothGattCallback {
 			requestMTUCallback = null;
 		}
 
+	}
+
+	public void updateDevice(BluetoothDevice bluetoothDevice) {
+		if (device != bluetoothDevice) {
+			device = bluetoothDevice;
+		}
 	}
 
 	public void updateRssi(int rssi) {

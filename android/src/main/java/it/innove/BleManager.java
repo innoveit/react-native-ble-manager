@@ -359,6 +359,9 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			if (!peripherals.containsKey(address)) {
 				Peripheral peripheral = new Peripheral(device, reactContext);
 				peripherals.put(device.getAddress(), peripheral);
+			} else {
+				Peripheral peripheral = peripherals.get(address);
+				peripheral.updateDevice(device);
 			}
 		}
 		return peripherals.get(address);
@@ -372,6 +375,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				peripherals.put(device.getAddress(), peripheral);
 			} else {
 				Peripheral peripheral = peripherals.get(address);
+				peripheral.updateDevice(device);
 				peripheral.updateRssi(rssi);
 				peripheral.updateData(scanRecord);
 			}
@@ -387,6 +391,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				peripherals.put(device.getAddress(), peripheral);
 			} else {
 				Peripheral peripheral = peripherals.get(address);
+				peripheral.updateDevice(device);
 				peripheral.updateRssi(rssi);
 				peripheral.updateData(scanRecord);
 			}
