@@ -430,9 +430,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				switch (state) {
 					case BluetoothAdapter.STATE_OFF:
 						stringState = "off";
+						clearPeripherals();
 						break;
 					case BluetoothAdapter.STATE_TURNING_OFF:
 						stringState = "turning_off";
+						disconnectPeripherals();
 						break;
 					case BluetoothAdapter.STATE_ON:
 						stringState = "on";
@@ -483,6 +485,26 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 		}
 	};
+
+	private void clearPeripherals() {
+		if (!peripherals.isEmpty()) {
+			synchronized (peripherals) {
+				peripherals.clear();
+			}
+		}
+	}
+
+	private void disconnectPeripherals() {
+		if (!peripherals.isEmpty()) {
+			synchronized (peripherals) {
+				for (Peripheral peripheral : peripherals.values()) {
+					if (peripheral.isConnected()) {
+						peripheral.disconnect(false);
+					}
+				}
+			}
+		}
+	}
 
 	@ReactMethod
 	public void getDiscoveredPeripherals(Callback callback) {
