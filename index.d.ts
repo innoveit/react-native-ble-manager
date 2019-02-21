@@ -43,7 +43,7 @@ declare module 'react-native-ble-manager' {
 
 	export function readRSSI(peripheralID: string): Promise<void>
 
-	export function getConnectedPeripherals(serviceUUIDs: string[]): Promise<void>
+	export function getConnectedPeripherals(serviceUUIDs: string[]): Promise<any[]>
 	export function getDiscoveredPeripherals(): Promise<any[]>
 	export function isPeripheralConnected(peripheralID: string, serviceUUIDs: string[]): Promise<boolean>
 
