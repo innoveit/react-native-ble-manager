@@ -497,7 +497,7 @@ BleManager.refreshCache('XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX')
     // Success code
     console.log('cache refreshed!')
   })
-  .cache((error) => {
+  .catch((error) => {
     console.error(error)
   });
 ```
