@@ -310,6 +310,12 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
 RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSNumber *)timeoutSeconds allowDuplicates:(BOOL)allowDuplicates options:(nonnull NSDictionary*)scanningOptions callback:(nonnull RCTResponseSenderBlock)callback)
 {
     NSLog(@"scan with timeout %@", timeoutSeconds);
+    
+    // Clear the peripherals before scanning again, otherwise cannot connect again after disconnection
+    @synchronized(peripherals) {
+        [peripherals removeAllObjects];
+    }
+    
     NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
     NSMutableArray *serviceUUIDs = [NSMutableArray new];
     NSDictionary *options = nil;
