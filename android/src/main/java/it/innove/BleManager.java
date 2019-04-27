@@ -480,7 +480,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 				}
 				
 				if (bondState == BluetoothDevice.BOND_BONDED) {
-					Log.d(LOG_TAG, "Got here");
 					Peripheral peripheral = new Peripheral(device, reactContext);
 					WritableMap map = peripheral.asWritableMap();
 					sendEvent("BleManagerPeripheralDidBond", map);
