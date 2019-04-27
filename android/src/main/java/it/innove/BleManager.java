@@ -203,6 +203,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		} else if (bondRequest != null) {
 			callback.invoke("Only allow one bond request at a time");
 		} else if (peripheral.getDevice().createBond()) {
+			Log.d(LOG_TAG, "Request bond successful for: " + peripheralUUID);
 			bondRequest = new BondRequest(peripheralUUID, callback); // request bond success, waiting for boradcast
 			return;
 		}
@@ -477,6 +478,13 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 						bondRequest = null;
 					}
 				}
+				
+				if (bondState == BluetoothDevice.BOND_BONDED) {
+					Peripheral peripheral = new Peripheral(device, reactContext);
+					WritableMap map = peripheral.asWritableMap();
+					sendEvent("BleManagerPeripheralDidBond", map);
+				}
+
 				if (removeBondRequest != null && removeBondRequest.uuid.equals(device.getAddress()) && bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED) {
 					removeBondRequest.callback.invoke();
 					removeBondRequest = null;
