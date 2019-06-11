@@ -342,6 +342,9 @@ RCT_EXPORT_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
         self.scanTimer = nil;
     }
     [manager stopScan];
+    if (hasListeners) {
+        [self sendEventWithName:@"BleManagerStopScan" body:@{}];
+    }
     callback(@[[NSNull null]]);
 }
 
