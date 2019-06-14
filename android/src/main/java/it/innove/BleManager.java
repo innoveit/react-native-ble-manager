@@ -182,7 +182,11 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			callback.invoke();
 			return;
 		}
-		if (scanManager != null) scanManager.stopScan(callback);
+		if (scanManager != null) {
+			scanManager.stopScan(callback);
+			WritableMap map = Arguments.createMap();
+			sendEvent("BleManagerStopScan", map);
+		}
 	}
 
 	@ReactMethod
