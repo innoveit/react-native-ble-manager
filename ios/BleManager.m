@@ -316,9 +316,9 @@ RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSN
     // onDisconnect* callback).
     @synchronized(peripherals) {
       NSMutableArray *connectedPeripherals = [NSMutableArray array];
-      for(CBPeripheral *peripheral in peripherals){
-          if(([peripheral state] != CBPeripheralStateConnected) &&
-            ([peripheral state] != CBPeripheralStateConnecting)){
+      for (CBPeripheral *peripheral in peripherals) {
+          if (([peripheral state] != CBPeripheralStateConnected) &&
+              ([peripheral state] != CBPeripheralStateConnecting)) {
               [connectedPeripherals addObject:peripheral];
           }
       }
