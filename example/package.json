@@ -16,6 +16,8 @@
 	},
 	"devDependencies": {
 		"react-test-renderer": "16.6.0-alpha.8af6728",
-		"schedule": "^0.4.0"
+		"schedule": "^0.4.0",
+		"ws": ">=3.3.1",
+		"braces": ">=2.3.1"
 	}
 }
