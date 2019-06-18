@@ -10,7 +10,7 @@
 		"babel-preset-react-native": "^5.0.1",
 		"react": "^16.5.1",
 		"react-mixin": "^3.0.5",
-		"react-native": "^0.57.8",
+		"react-native": "^0.59.9",
 		"react-native-ble-manager": "^6.6.0",
 		"react-timer-mixin": "^0.13.3"
 	},
