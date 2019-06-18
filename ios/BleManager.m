@@ -312,10 +312,21 @@ RCT_EXPORT_METHOD(scan:(NSArray *)serviceUUIDStrings timeoutSeconds:(nonnull NSN
     NSLog(@"scan with timeout %@", timeoutSeconds);
     
     // Clear the peripherals before scanning again, otherwise cannot connect again after disconnection
+    // Only clear peripherals that are not connected - otherwise connections fail silently (without any
+    // onDisconnect* callback).
     @synchronized(peripherals) {
-        [peripherals removeAllObjects];
+      NSMutableArray *connectedPeripherals = [NSMutableArray array];
+      for (CBPeripheral *peripheral in peripherals) {
+          if (([peripheral state] != CBPeripheralStateConnected) &&
+              ([peripheral state] != CBPeripheralStateConnecting)) {
+              [connectedPeripherals addObject:peripheral];
+          }
+      }
+      for (CBPeripheral *p in connectedPeripherals) {
+          [peripherals removeObject:p];
+      }
     }
-    
+
     NSArray * services = [RCTConvert NSArray:serviceUUIDStrings];
     NSMutableArray *serviceUUIDs = [NSMutableArray new];
     NSDictionary *options = nil;
