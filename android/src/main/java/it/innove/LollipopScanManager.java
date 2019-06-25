@@ -1,7 +1,6 @@
 package it.innove;
 
 
-import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
@@ -9,6 +8,7 @@ import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.os.Build;
 import android.os.ParcelUuid;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import com.facebook.react.bridge.*;
 
@@ -17,7 +17,7 @@ import java.util.List;
 
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class LollipopScanManager extends ScanManager {
 
 	public LollipopScanManager(ReactApplicationContext reactContext, BleManager bleManager) {
@@ -98,7 +98,14 @@ public class LollipopScanManager extends ScanManager {
 				public void run() {
 					Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + result.getDevice().getName());
 
-                    Peripheral peripheral = bleManager.savePeripheral(result.getDevice(), result.getRssi(), result.getScanRecord());
+                    LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
+                    if (peripheral == null) {
+                        peripheral = new LollipopPeripheral(result.getDevice(), result.getRssi(), result.getScanRecord(), bleManager.getReactContext());
+                    } else {
+                        peripheral.updateData(result.getScanRecord());
+                        peripheral.updateRssi(result.getRssi());
+                    }
+                    bleManager.savePeripheral(peripheral);
 
 					WritableMap map = peripheral.asWritableMap();
 					bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
