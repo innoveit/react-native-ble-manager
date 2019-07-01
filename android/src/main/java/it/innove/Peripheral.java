@@ -399,11 +399,15 @@ public class Peripheral extends BluetoothGattCallback {
 		if (registerNotifyCallback != null) {
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				registerNotifyCallback.invoke();
+				Log.d(BleManager.LOG_TAG, "onDescriptorWrite success");
 			} else {
 				registerNotifyCallback.invoke("Error writing descriptor stats=" + status, null);
+				Log.e(BleManager.LOG_TAG, "Error writing descriptor stats=" + status);
 			}
 
 			registerNotifyCallback = null;
+		} else {
+			Log.e(BleManager.LOG_TAG, "onDescriptorWrite with no callback");
 		}
 	}
 
@@ -455,10 +459,11 @@ public class Peripheral extends BluetoothGattCallback {
 					}
 
 					try {
+						registerNotifyCallback = callback;
 						if (gatt.writeDescriptor(descriptor)) {
 							Log.d(BleManager.LOG_TAG, "setNotify complete");
-							registerNotifyCallback = callback;
 						} else {
+							registerNotifyCallback = null;
 							callback.invoke("Failed to set client characteristic notification for " + characteristicUUID);
 						}
 					} catch (Exception e) {
