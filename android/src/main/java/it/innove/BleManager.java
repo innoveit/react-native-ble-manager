@@ -391,7 +391,9 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 		BluetoothAdapter adapter = getBluetoothAdapter();
 		String state = "off";
-		if (adapter != null) {
+		if(!context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOH_LE)){
+			state = "unsupported"; 
+		} else if (adapter != null) {
 			switch (adapter.getState()) {
 				case BluetoothAdapter.STATE_ON:
 					state = "on";
