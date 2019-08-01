@@ -257,7 +257,7 @@ public class Peripheral extends BluetoothGattCallback {
 	@Override
 	public void onConnectionStateChange(BluetoothGatt gatta, int status, int newState) {
 
-		Log.d(BleManager.LOG_TAG, "onConnectionStateChange to " + newState + " on peripheral: " + device.getAddress() + " with status" + status);
+		Log.d(BleManager.LOG_TAG, "onConnectionStateChange to " + newState + " on peripheral: " + device.getAddress() + " with status " + status);
 
 		this.gatt = gatta;
 
@@ -519,7 +519,7 @@ public class Peripheral extends BluetoothGattCallback {
 			// As a last resort, try and find ANY characteristic with this UUID, even if it doesn't have the correct properties
 			return service.getCharacteristic(characteristicUUID);
 		} catch (Exception e) {
-			Log.e(BleManager.LOG_TAG, "Errore su caratteristica " + characteristicUUID, e);
+			Log.e(BleManager.LOG_TAG, "Error retriving characteristic " + characteristicUUID, e);
 			return null;
 		}
 	}
