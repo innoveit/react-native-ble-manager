@@ -652,7 +652,7 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 		this.retrieveServicesCallback = callback;
 
-		if (clearServicesCache(gatta)) {
+		if (clearServicesCache(gatt)) {
 			runServicesDiscovery();
 		}
 	}
