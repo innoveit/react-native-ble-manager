@@ -281,6 +281,35 @@ public class Peripheral extends BluetoothGattCallback {
 		return gatt.getService(uuid) != null;
 	}
 
+	private boolean clearServicesCache(BluetoothGatt gatt) {
+		boolean result = false;
+
+		try {
+			Method refreshMethod = gatt.getClass().getMethod("refresh");
+			if(refreshMethod != null) {
+				result = (boolean) refreshMethod.invoke(gatt);
+			}
+		} catch (Exception e) {
+			Log.e(TAG, "ERROR: Could not invoke refresh method");
+		}
+
+		return result;
+	}
+
+	private void runServicesDiscovery() {
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					gatt.discoverServices();
+				}
+				catch (NullPointerException e) {
+					Log.d(BleManager.LOG_TAG, "runServicesDiscovery connected but gatt of Run method was null");
+				}
+			}
+		});
+	}
+
 	@Override
 	public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 		super.onServicesDiscovered(gatt, status);
@@ -302,17 +331,9 @@ public class Peripheral extends BluetoothGattCallback {
 
 			connected = true;
 
-			new Handler(Looper.getMainLooper()).post(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						gatt.discoverServices();
-					}
-					catch (NullPointerException e) {
-						Log.d(BleManager.LOG_TAG, "onConnectionStateChange connected but gatt of Run method was null");
-					}
-				}
-			});
+			if (clearServicesCache(gatta)) {
+				runServicesDiscovery();
+			}
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral");
 
@@ -338,7 +359,7 @@ public class Peripheral extends BluetoothGattCallback {
 			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback, readCallback, registerNotifyCallback, requestMTUCallback);
 			for (Callback currentCallback : callbacks) {
 				if (currentCallback != null) {
-					currentCallback.invoke("Device disconnected");
+					currentCallback.invoke("Device disconnected STATUS: " + status);
 				}
 			}
 			if (connectCallback != null) {
@@ -630,7 +651,10 @@ public class Peripheral extends BluetoothGattCallback {
 			return;
 		}
 		this.retrieveServicesCallback = callback;
-		gatt.discoverServices();
+
+		if (clearServicesCache(gatta)) {
+			runServicesDiscovery();
+		}
 	}
 
 
