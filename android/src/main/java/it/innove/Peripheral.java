@@ -331,9 +331,9 @@ public class Peripheral extends BluetoothGattCallback {
 
 			connected = true;
 
-			if (clearServicesCache(gatta)) {
+			// if (clearServicesCache(gatta)) {
 				runServicesDiscovery();
-			}
+			// }
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral");
 
@@ -652,9 +652,9 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 		this.retrieveServicesCallback = callback;
 
-		if (clearServicesCache(gatt)) {
+		// if (clearServicesCache(gatt)) {
 			runServicesDiscovery();
-		}
+		// }
 	}
 
 
