@@ -646,13 +646,12 @@ __Arguments__
 - `id` - `String` - the id of the peripheral
 - `name` - `String` - the name of the peripheral
 - `rssi` - ` Number` - the RSSI value
-- `advertising` - `JSON` - the advertising payload, according to platforms:
-    - [Android] contains the raw `bytes` and  `data` (Base64 encoded string)
-    - [iOS] contains a JSON object with different keys according to [Apple's doc](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/advertisement_data_retrieval_keys?language=objc), here are some examples:
-      - `kCBAdvDataChannel` - `Number`
-      - `kCBAdvDataIsConnectable` - `Number`
-      - `kCBAdvDataLocalName` - `String`
-      - `kCBAdvDataManufacturerData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
+- `advertising` - `JSON` - the advertising payload, here are some examples:
+    - `isConnetable` - `Boolean`
+    - `serviceUUIDs` - `Array of String`
+    - `manufacturerData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
+    - `serviceData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
+    - `txPowerLevel` - `Int`
 
 __Examples__
 ```js
