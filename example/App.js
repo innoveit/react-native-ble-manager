@@ -10,18 +10,18 @@ import {
   NativeModules,
   Platform,
   PermissionsAndroid,
-  ListView,
   ScrollView,
   AppState,
+  FlatList,
   Dimensions,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 
 const window = Dimensions.get('window');
-const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
 
 export default class App extends Component {
   constructor(){
@@ -109,7 +109,7 @@ export default class App extends Component {
 
   startScan() {
     if (!this.state.scanning) {
-      this.setState({peripherals: new Map()});
+      //this.setState({peripherals: new Map()});
       BleManager.scan([], 3, true).then((results) => {
         console.log('Scanning...');
         this.setState({scanning:true});
@@ -135,11 +135,12 @@ export default class App extends Component {
 
   handleDiscoverPeripheral(peripheral){
     var peripherals = this.state.peripherals;
-    if (!peripherals.has(peripheral.id)){
-      console.log('Got ble peripheral', peripheral);
-      peripherals.set(peripheral.id, peripheral);
-      this.setState({ peripherals })
+    console.log('Got ble peripheral', peripheral);
+    if (!peripheral.name) {
+      peripheral.name = 'NO NAME';
     }
+    peripherals.set(peripheral.id, peripheral);
+    this.setState({ peripherals });
   }
 
   test(peripheral) {
@@ -211,11 +212,23 @@ export default class App extends Component {
     }
   }
 
+  renderItem(item) {
+    const color = item.connected ? 'green' : '#fff';
+    return (
+      <TouchableHighlight onPress={() => this.test(item) }>
+        <View style={[styles.row, {backgroundColor: color}]}>
+          <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>{item.name}</Text>
+          <Text style={{fontSize: 10, textAlign: 'center', color: '#333333', padding: 2}}>RSSI: {item.rssi}</Text>
+          <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 2, paddingBottom: 20}}>{item.id}</Text>
+        </View>
+      </TouchableHighlight>
+    );
+  }
+
+
   render() {
     const list = Array.from(this.state.peripherals.values());
-    const dataSource = ds.cloneWithRows(list);
-
-
+    
     return (
       <View style={styles.container}>
         <TouchableHighlight style={{marginTop: 40,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.startScan() }>
@@ -230,21 +243,12 @@ export default class App extends Component {
               <Text style={{textAlign: 'center'}}>No peripherals</Text>
             </View>
           }
-          <ListView
-            enableEmptySections={true}
-            dataSource={dataSource}
-            renderRow={(item) => {
-              const color = item.connected ? 'green' : '#fff';
-              return (
-                <TouchableHighlight onPress={() => this.test(item) }>
-                  <View style={[styles.row, {backgroundColor: color}]}>
-                    <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>{item.name}</Text>
-                    <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>{item.id}</Text>
-                  </View>
-                </TouchableHighlight>
-              );
-            }}
+          <FlatList
+            data={list}
+            renderItem={({ item }) => this.renderItem(item) }
+            keyExtractor={item => item.id}
           />
+
         </ScrollView>
       </View>
     );
