@@ -59,6 +59,7 @@ public class LollipopPeripheral extends Peripheral {
 					}
 				}
 
+                advertising.putMap("serviceData", serviceData);
 				advertising.putInt("txPowerLevel", advertisingData.getTxPowerLevel());
 			}
 
