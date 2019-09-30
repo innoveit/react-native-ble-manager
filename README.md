@@ -678,7 +678,7 @@ __Arguments__
 __Example__
 ```js
 import { bytesToString } from 'convert-string';
-import { NativeModules } from 'react-native';
+import { NativeModules, NativeEventEmitter } from 'react-native';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
