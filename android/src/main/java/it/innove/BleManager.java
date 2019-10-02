@@ -209,8 +209,10 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
 		if (peripheral == null) {
 			callback.invoke("Invalid peripheral uuid");
+			return;
 		} else if (bondRequest != null) {
 			callback.invoke("Only allow one bond request at a time");
+			return;
 		} else if (peripheral.getDevice().createBond()) {
 			Log.d(LOG_TAG, "Request bond successful for: " + peripheralUUID);
 			bondRequest = new BondRequest(peripheralUUID, callback); // request bond success, waiting for boradcast
