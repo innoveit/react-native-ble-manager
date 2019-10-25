@@ -152,6 +152,7 @@ __Arguments__
 The parameter is optional the configuration keys are:
 - `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
 - `restoreIdentifierKey` - `String` - [iOS only] Unique key to use for CoreBluetooth state restoration
+- `queueIdentifierKey` - `String` - [iOS only] Unique key to use for a queue identifier on which CoreBluetooth events will be dispatched
 - `forceLegacy` - `Boolean` - [Android only] Force to use the LegacyScanManager
 
 __Examples__

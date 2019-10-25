@@ -287,6 +287,13 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
                         forKey:CBCentralManagerOptionShowPowerAlertKey];
     }
     
+    dispatch_queue_t queue;
+    if ([[options allKeys] containsObject:@"queueIdentifierKey"]) {
+        queue = dispatch_queue_create([[options valueForKey:@"queueIdentifierKey"] UTF8String], DISPATCH_QUEUE_SERIAL);
+    } else {
+        queue = dispatch_get_main_queue();
+    }
+    
     if ([[options allKeys] containsObject:@"restoreIdentifierKey"]) {
         
         [initOptions setObject:[options valueForKey:@"restoreIdentifierKey"]
@@ -296,11 +303,11 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
             manager = _sharedManager;
             manager.delegate = self;
         } else {
-            manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue() options:initOptions];
+            manager = [[CBCentralManager alloc] initWithDelegate:self queue:queue options:initOptions];
             _sharedManager = manager;
         }
     } else {
-        manager = [[CBCentralManager alloc] initWithDelegate:self queue:dispatch_get_main_queue() options:initOptions];
+        manager = [[CBCentralManager alloc] initWithDelegate:self queue:queue options:initOptions];
         _sharedManager = manager;
     }
     
