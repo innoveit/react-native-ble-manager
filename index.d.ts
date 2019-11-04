@@ -18,6 +18,7 @@ declare module 'react-native-ble-manager' {
 	export interface StartOptions {
 		showAlert?: boolean
 		restoreIdentifierKey?: string
+		queueIdentifierKey?: string
 		forceLegacy?: boolean
 	}
 
