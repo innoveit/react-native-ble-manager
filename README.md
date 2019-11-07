@@ -123,6 +123,7 @@ public class MainApplication extends Application implements ReactApplication {
 - If you have problem with old devices try avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 - Before write, read or start notification you need to call `retrieveServices` method
+- iOS >= 13 need `NSBluetoothAlwaysUsageDescription` key in `Info.plist` file
 
 ## Example
 The easiest way to test is simple make your AppRegistry point to our example component, like this:
