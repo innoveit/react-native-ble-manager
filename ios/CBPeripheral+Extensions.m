@@ -111,7 +111,6 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     NSLog(@"%@", serviceData);
     
     for (CBUUID *key in [serviceData allKeys]) {
-        [serviceData setObject:dataToArrayBuffer([serviceData objectForKey:key]) forKey:[key UUIDString]];
         if ([serviceData objectForKey:key]) {
             [serviceData setObject:dataToArrayBuffer([serviceData objectForKey:key]) forKey:[key UUIDString]];
             [serviceData removeObjectForKey:key];
