@@ -1,11 +1,9 @@
 import React, { Component } from 'react';
 import {
-  AppRegistry,
   StyleSheet,
   Text,
   View,
   TouchableHighlight,
-  NativeAppEventEmitter,
   NativeEventEmitter,
   NativeModules,
   Platform,
@@ -14,6 +12,8 @@ import {
   AppState,
   FlatList,
   Dimensions,
+  Button,
+  SafeAreaView
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
 
@@ -228,29 +228,34 @@ export default class App extends Component {
 
   render() {
     const list = Array.from(this.state.peripherals.values());
+    const btnScanTitle = 'Scan Bluetooth (' + (this.state.scanning ? 'on' : 'off') + ')';
     
     return (
-      <View style={styles.container}>
-        <TouchableHighlight style={{marginTop: 40,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.startScan() }>
-          <Text>Scan Bluetooth ({this.state.scanning ? 'on' : 'off'})</Text>
-        </TouchableHighlight>
-        <TouchableHighlight style={{marginTop: 0,margin: 20, padding:20, backgroundColor:'#ccc'}} onPress={() => this.retrieveConnected() }>
-          <Text>Retrieve connected peripherals</Text>
-        </TouchableHighlight>
-        <ScrollView style={styles.scroll}>
-          {(list.length == 0) &&
-            <View style={{flex:1, margin: 20}}>
-              <Text style={{textAlign: 'center'}}>No peripherals</Text>
-            </View>
-          }
-          <FlatList
-            data={list}
-            renderItem={({ item }) => this.renderItem(item) }
-            keyExtractor={item => item.id}
-          />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
+          <View style={{margin: 10}}>
+            <Button title={btnScanTitle} onPress={() => this.startScan() } />        
+          </View>
 
-        </ScrollView>
-      </View>
+          <View style={{margin: 10}}>
+            <Button title="Retrieve connected peripherals" onPress={() => this.retrieveConnected() } />        
+          </View>          
+                    
+          <ScrollView style={styles.scroll}>
+            {(list.length == 0) &&
+              <View style={{flex:1, margin: 20}}>
+                <Text style={{textAlign: 'center'}}>No peripherals</Text>
+              </View>
+            }
+            <FlatList
+              data={list}
+              renderItem={({ item }) => this.renderItem(item) }
+              keyExtractor={item => item.id}
+            />
+
+          </ScrollView>
+        </View>
+      </SafeAreaView>
     );
   }
 }
