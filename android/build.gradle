@@ -5,7 +5,7 @@ buildscript {
 	}
 
 	dependencies {
-		classpath 'com.android.tools.build:gradle:3.4.0'
+		classpath 'com.android.tools.build:gradle:3.5.2'
 	}
 }
 apply plugin: 'com.android.library'
@@ -15,7 +15,7 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-	compileSdkVersion safeExtGet("compileSdkVersion", 26)
+	compileSdkVersion safeExtGet("compileSdkVersion", 29)
 	buildToolsVersion safeExtGet("buildToolsVersion", "28.0.3")
 
 	defaultConfig {

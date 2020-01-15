@@ -1,6 +1,6 @@
 rootProject.name = 'ExampleBle'
-
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
 include ':app'
 
-include ':react-native-ble-manager'
+// To test the current version uncomment the row
 project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../../android')
