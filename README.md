@@ -6,8 +6,9 @@
 This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
 
 ## Requirements
-RN 0.40+
+RN 0.60+
 
+RN 0.40-0.59 supported until 6.7.X
 RN 0.30-0.39 supported until 2.4.3
 
 ## Supported Platforms
@@ -18,76 +19,10 @@ RN 0.30-0.39 supported until 2.4.3
 ```shell
 npm i --save react-native-ble-manager
 ```
-After installing, you need to link the native library. You can either:
-* Link native library with `react-native link`, or
-* Link native library manually
+The library support the autolink feature.
 
-Both approaches are described below.
 
-### Link Native Library with `react-native link`
-
-```shell
-react-native link react-native-ble-manager
-```
-
-After this step:
- * iOS should be linked properly.
- * Android will need one more step, you need to edit `android/app/build.gradle`:
-```gradle
-// file: android/app/build.gradle
-...
-
-android {
-    ...
-
-    defaultConfig {
-        ...
-        minSdkVersion 19 // <--- make sure this is 19 or greater
-        ...
-    }
-    ...
-}
-```
-
-### Link Native Library Manually
-
-#### iOS
-- Open the node_modules/react-native-ble-manager/ios folder and drag BleManager.xcodeproj into your Libraries group.
-- Check the "Build Phases"of your project and add "libBleManager.a" in the "Link Binary With Libraries" section.
-
-#### Android
-##### Update Gradle Settings
-
-```gradle
-// file: android/settings.gradle
-...
-
-include ':react-native-ble-manager'
-project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-ble-manager/android')
-```
-##### Update Gradle Build
-
-```gradle
-// file: android/app/build.gradle
-...
-
-android {
-    ...
-
-    defaultConfig {
-        ...
-        minSdkVersion 19 // <--- make sure this is 19 or greater
-        ...
-    }
-    ...
-}
-
-dependencies {
-    ...
-    compile project(':react-native-ble-manager')
-}
-```
-##### Update Android Manifest
+##### Android - Update Manifest
 
 ```xml
 // file: android/app/src/main/AndroidManifest.xml
@@ -98,32 +33,14 @@ dependencies {
 ...
 ```
 
-##### Register React Package
-```java
-...
-import it.innove.BleManagerPackage; // <--- import
+##### iOS - Update Info.plist
+In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 
-public class MainApplication extends Application implements ReactApplication {
-
-    ...
-
-    @Override
-    protected List<ReactPackage> getPackages() {
-        return Arrays.<ReactPackage>asList(
-            new MainReactPackage(),
-            new BleManagerPackage() // <------ add the package
-        );
-    }
-
-    ...
-}
-```
 ## Note
 - Remember to use the `start` method before anything.
 - If you have problem with old devices try avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 - Before write, read or start notification you need to call `retrieveServices` method
-- iOS >= 13 need `NSBluetoothAlwaysUsageDescription` key in `Info.plist` file
 
 ## Example
 The easiest way to test is simple make your AppRegistry point to our example component, like this:
