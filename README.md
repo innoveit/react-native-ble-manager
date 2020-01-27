@@ -95,6 +95,7 @@ __Arguments__
   - `numberOfMatches` - `Number` - corresponding to [`setNumOfMatches`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int))
   - `matchMode` - `Number` - corresponding to [`setMatchMode`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int))
   - `scanMode` - `Number` - corresponding to [`setScanMode`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int))
+  - `reportDelay` - `Number` - corresponding to [`setReportDelay`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long))
 
 
 __Examples__

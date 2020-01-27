@@ -44,6 +44,10 @@ public class LollipopScanManager extends ScanManager {
             scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
             scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
         }
+
+        if (!options.isNull("reportDelay")) {
+            scanSettingsBuilder.setReportDelay(options.getInt("reportDelay"));
+        }
         
         if (serviceUUIDs.size() > 0) {
             for(int i = 0; i < serviceUUIDs.size(); i++){
