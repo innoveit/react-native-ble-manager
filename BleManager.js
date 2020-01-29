@@ -202,6 +202,10 @@ class BleManager  {
         scanningOptions.scanMode = 0;
       }
 
+      if (scanningOptions.reportDelay == null) {
+        scanningOptions.reportDelay = 0;
+      }
+
       bleManager.scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions, (error) => {
         if (error) {
           reject(error);
