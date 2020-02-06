@@ -180,6 +180,18 @@ class BleManager  {
     });
   }
 
+  setServiceRecoveryData(data) {
+    return new Promise((fulfill, reject) => {
+      bleManager.setServiceRecoveryData(data, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
   scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions={}) {
     return new Promise((fulfill, reject) => {
       if (allowDuplicates == null) {

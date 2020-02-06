@@ -2,6 +2,8 @@ package it.innove;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -10,11 +12,15 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.ScanRecord;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelUuid;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
+
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -24,6 +30,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
+import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,6 +46,8 @@ import static com.facebook.react.common.ReactConstants.TAG;
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
  */
+
+
 public class Peripheral extends BluetoothGattCallback {
 
 	private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
@@ -59,8 +68,18 @@ public class Peripheral extends BluetoothGattCallback {
 	private Callback writeCallback;
 	private Callback registerNotifyCallback;
 	private Callback requestMTUCallback;
+	private PeripheralService peripheralService;
+	private Context serviceContext;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
+
+	public Peripheral(BluetoothDevice device, PeripheralService peripheralService, Context serviceContext) {
+		this.device = device;
+		this.peripheralService = peripheralService;
+		this.serviceContext = serviceContext;
+	}
+
+
 
 	public Peripheral(BluetoothDevice device, int advertisingRSSI, byte[] scanRecord, ReactContext reactContext) {
 		this.device = device;
@@ -84,19 +103,39 @@ public class Peripheral extends BluetoothGattCallback {
 	}
 
 	private void sendEvent(String eventName, @Nullable WritableMap params) {
-		reactContext
-				.getJSModule(RCTNativeAppEventEmitter.class)
-				.emit(eventName, params);
+		Log.d(BleManager.LOG_TAG, eventName + " <Event");
+//		if(reactContext != null) {
+//			reactContext
+//					.getJSModule(RCTNativeAppEventEmitter.class)
+//					.emit(eventName, params);
+//		}
+		JSONObject jsonParams = new JSONObject(params.toHashMap());
+		if(peripheralService != null)
+		{
+			Bundle bundle = new Bundle();
+			bundle.putString("EVENTNAME", eventName);
+			bundle.putString("PARAMS", jsonParams.toString());
+			if(PreferenceManager.getDefaultSharedPreferences(serviceContext).getBoolean("CFisActive", false)) {
+				peripheralService.broadcastReciever.send(0, bundle);
+			} else {
+				peripheralService.backupEventHandler(eventName, jsonParams);
+			}
+
+		}
+
 	}
 
 	private void sendConnectionEvent(BluetoothDevice device, String eventName) {
 		WritableMap map = Arguments.createMap();
 		map.putString("peripheral", device.getAddress());
 		sendEvent(eventName, map);
+		if(eventName.equals("BleManagerDisconnectPeripheral") && peripheralService != null) {
+			peripheralService.stopService();
+		}
 		Log.d(BleManager.LOG_TAG, "Peripheral event (" + eventName + "):" + device.getAddress());
 	}
 
-	public void connect(Callback callback, Activity activity) {
+	public void connect(Callback callback, Context activity) {
 		if (!connected) {
 			BluetoothDevice device = getDevice();
 			this.connectCallback = callback;
@@ -122,6 +161,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 			} else {
 			if (gatt != null) {
+				Log.d(BleManager.LOG_TAG, "invoking callback");
 				callback.invoke();
 			} else {
 				callback.invoke("BluetoothGatt is null");
@@ -143,8 +183,13 @@ public class Peripheral extends BluetoothGattCallback {
 				sendConnectionEvent(device, "BleManagerDisconnectPeripheral");
 				Log.d(BleManager.LOG_TAG, "Error on disconnect", e);
 			}
-		} else
+		} else {
 			Log.d(BleManager.LOG_TAG, "GATT is null");
+			if(peripheralService != null) {
+				peripheralService.stopService();
+			}
+		}
+
 	}
 
 	public WritableMap asWritableMap() {
@@ -542,7 +587,8 @@ public class Peripheral extends BluetoothGattCallback {
 
 	}
 
-	public void registerNotify(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
+	public void
+	registerNotify(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 		Log.d(BleManager.LOG_TAG, "registerNotify");
 		this.setNotify(serviceUUID, characteristicUUID, true, callback);
 	}

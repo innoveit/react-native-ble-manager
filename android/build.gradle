@@ -1,10 +1,12 @@
 buildscript {
 	repositories {
 		jcenter()
+		google()
 	}
 
 	dependencies {
-		classpath 'com.android.tools.build:gradle:1.5.0'
+		classpath 'com.android.tools.build:gradle:3.5.0'
+
 	}
 }
 apply plugin: 'com.android.library'
@@ -33,4 +35,5 @@ repositories {
 
 dependencies {
 	compile 'com.facebook.react:react-native:[0.30.0,)'
+	implementation 'com.google.code.gson:gson:2.8.6'
 }
