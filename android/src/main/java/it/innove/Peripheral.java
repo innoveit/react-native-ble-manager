@@ -118,6 +118,7 @@ public class Peripheral extends BluetoothGattCallback {
 			if(PreferenceManager.getDefaultSharedPreferences(serviceContext).getBoolean("CFisActive", false)) {
 				peripheralService.broadcastReciever.send(0, bundle);
 			} else {
+				peripheralService.broadcastReciever.send(0, bundle);
 				peripheralService.backupEventHandler(eventName, jsonParams);
 			}
 
