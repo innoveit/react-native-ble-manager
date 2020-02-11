@@ -347,7 +347,7 @@ public class PeripheralService extends Service {
                         df.setTimeZone(tz);
                         String timestamp = df.format(new Date());
                         JSONObject requestBody = new JSONObject();
-                        requestBody.put("otpKey", lastWrittenMessage);
+                        requestBody.put("otpKey", lastWrittenMessage != null ? lastWrittenMessage : serviceRecoveryData.getString("returnFirstOtp"));
                         requestBody.put("stationId", serviceRecoveryData.getString("stationId"));
                         requestBody.put("sequence", getRandomHexString(10));
                         requestBody.put("timestamp", timestamp);
