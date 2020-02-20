@@ -146,6 +146,7 @@ public class PeripheralService extends Service {
         }
 
         if(action.equals("STARTNOTIFICATION")) {
+            Log.d("ReactNativeBleManager", "Service start notify");
             UUID serviceUUID = UUIDHelper.uuidFromString(intent.getStringExtra("SERVICEUUID"));
             UUID characteristicUUID = UUIDHelper.uuidFromString(intent.getStringExtra("CHARACTERISTICUUID"));
             peripheral.registerNotify(serviceUUID, characteristicUUID, new Callback() {
@@ -161,6 +162,7 @@ public class PeripheralService extends Service {
         }
 
         if(action.equals("STOPNOTIFICATION")) {
+            Log.d("ReactNativeBleManager", "Service stop notify");
             UUID serviceUUID = UUIDHelper.uuidFromString(intent.getStringExtra("SERVICEUUID"));
             UUID characteristicUUID = UUIDHelper.uuidFromString(intent.getStringExtra("CHARACTERISTICUUID"));
             peripheral.removeNotify(serviceUUID, characteristicUUID, new Callback() {
@@ -176,6 +178,7 @@ public class PeripheralService extends Service {
         }
 
         if(action.equals("WRITE")) {
+            Log.d("ReactNativeBleManager", "Service start write");
             UUID serviceUUID = UUIDHelper.uuidFromString(intent.getStringExtra("SERVICEUUID"));
             UUID characteristicUUID = UUIDHelper.uuidFromString(intent.getStringExtra("CHARACTERISTICUUID"));
             final String strMessage = intent.getStringExtra("MESSAGE");
@@ -208,6 +211,7 @@ public class PeripheralService extends Service {
         }
 
         if(action.equals("READ")) {
+            Log.d("ReactNativeBleManager", "Service read");
             UUID serviceUUID = UUIDHelper.uuidFromString(intent.getStringExtra("SERVICEUUID"));
             UUID characteristicUUID = UUIDHelper.uuidFromString(intent.getStringExtra("CHARACTERISTICUUID"));
             peripheral.read(serviceUUID, characteristicUUID, new Callback() {
@@ -232,6 +236,7 @@ public class PeripheralService extends Service {
         }
 
         if(action.equals("RETRIEVESERVICES")) {
+            Log.d("ReactNativeBleManager", "Service retrieve");
             peripheral.retrieveServices(new Callback() {
                 @Override
                 public void invoke(Object... args) {
@@ -254,6 +259,7 @@ public class PeripheralService extends Service {
         }
 
         if(action.equals("REFRESHCACHE")) {
+            Log.d("ReactNativeBleManager", "Service refresh cache");
             peripheral.refreshCache(new Callback() {
                 @Override
                 public void invoke(Object... args) {
@@ -321,21 +327,26 @@ public class PeripheralService extends Service {
     }
 
     public void backupEventHandler(String eventName, JSONObject params) {
-        if(eventName != "BleManagerDidUpdateValueForCharacteristic") {
+        if(!eventName.equals("BleManagerDidUpdateValueForCharacteristic")) {
             retrieveOrCreatePeripheral(lastUUID).disconnect();
             return;
         }
         try {
-            Log.d(BleManager.LOG_TAG, eventName + " " + params.toString() );
             JSONObject serviceRecoveryData = new JSONObject(PreferenceManager.getDefaultSharedPreferences(this).getString("serviceRecoveryData", ""));
             String lastSmartlockUsage = serviceRecoveryData.getString("lastSmartlockUsage");
             String lockuid = serviceRecoveryData.getString("lockuid");
             Boolean lastUsageIsLocking = lastSmartlockUsage.equals("TEMPORARY_LOCK")  || lastSmartlockUsage.equals("RETURN");
             JSONArray value = params.getJSONArray("value");
-            Boolean notificationIsForLocked =  value != null && value.length() > 0 && ((value.getInt(0) & 0x01) == 0x01);
+
+            Boolean valueExists = value != null && value.length() > 0;
+            Boolean lockStatusIsLocked = valueExists  && ((value.getInt(0) & 0x01) == 0x01);
+            Boolean lockStatusIsFreedToLock = valueExists && ((value.getInt(0) & 0x08) == 0x08);
+            Boolean chainIsNotDisconnected = valueExists && ((value.getInt(0) & 0x80) == 0x80);
+            Boolean midLockingIgnoreEvent = lastUsageIsLocking && params.getString("characteristic").equals(LOCK_STATUS_CHARACTERISTIC)  && lockStatusIsFreedToLock;
+            Boolean midUnlockingIgnoreEvent = !lastUsageIsLocking && params.getString("characteristic").equals(LOCK_STATUS_CHARACTERISTIC)  && (chainIsNotDisconnected && !lockStatusIsLocked && !lockStatusIsFreedToLock);
             OkHttpClient client = new OkHttpClient();
 
-            if(lastUsageIsLocking && params.getString("characteristic").equals(LOCK_STATUS_CHARACTERISTIC)  && notificationIsForLocked) {
+            if(lastUsageIsLocking && params.getString("characteristic").equals(LOCK_STATUS_CHARACTERISTIC)  && lockStatusIsLocked) {
                     if(lastSmartlockUsage.equals("TEMPORARY_LOCK") ) {
                         JSONObject requestBody = new JSONObject();
                         requestBody.put("otpKey", lastWrittenMessage);
@@ -356,6 +367,9 @@ public class PeripheralService extends Service {
                     }
                     retrieveOrCreatePeripheral(lastUUID).disconnect();
             } else {
+                if(midLockingIgnoreEvent || midUnlockingIgnoreEvent) {
+                    return;
+                }
                 retrieveOrCreatePeripheral(lastUUID).disconnect();
             }
         } catch (JSONException | IOException e) {
