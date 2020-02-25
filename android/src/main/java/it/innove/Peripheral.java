@@ -153,6 +153,8 @@ public class Peripheral extends BluetoothGattCallback {
 				advertising.putString("localName", name);
 
 			advertising.putMap("manufacturerData", byteArrayToWritableMap(advertisingDataBytes));
+
+			// No scanResult to access so we can't check if peripheral is connectable
 			advertising.putBoolean("isConnectable", true);
 
 			map.putMap("advertising", advertising);

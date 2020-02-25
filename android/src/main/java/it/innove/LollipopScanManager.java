@@ -104,7 +104,7 @@ public class LollipopScanManager extends ScanManager {
 
                     LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
                     if (peripheral == null) {
-                        peripheral = new LollipopPeripheral(result.getDevice(), result.getRssi(), result.getScanRecord(), bleManager.getReactContext());
+                        peripheral = new LollipopPeripheral(bleManager.getReactContext(), result);
                     } else {
                         peripheral.updateData(result.getScanRecord());
                         peripheral.updateRssi(result.getRssi());
