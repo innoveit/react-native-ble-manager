@@ -2,6 +2,7 @@ package it.innove;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.ParcelUuid;
 import androidx.annotation.RequiresApi;
@@ -18,10 +19,12 @@ import java.util.Map;
 public class LollipopPeripheral extends Peripheral {
 
 	private ScanRecord advertisingData;
+	private ScanResult scanResult;
 
-	public LollipopPeripheral(BluetoothDevice device, int advertisingRSSI, ScanRecord scanRecord, ReactContext reactContext) {
-		super(device, advertisingRSSI, scanRecord.getBytes(), reactContext);
-		this.advertisingData = scanRecord;
+	public LollipopPeripheral(ReactContext reactContext, ScanResult result) {
+		super(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
+		this.advertisingData = result.getScanRecord();
+		this.scanResult = result;
 	}
 
 	public LollipopPeripheral(BluetoothDevice device, ReactApplicationContext reactContext) {
@@ -35,7 +38,15 @@ public class LollipopPeripheral extends Peripheral {
 
 		try {
 			advertising.putMap("manufacturerData", byteArrayToWritableMap(advertisingDataBytes));
-			advertising.putBoolean("isConnectable", true);
+
+			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+				// We can check if peripheral is connectable using the scanresult
+				advertising.putBoolean("isConnectable", scanResult.isConnectable());
+			} else{
+				// We can't check if peripheral is connectable
+				advertising.putBoolean("isConnectable", true);
+			}
+
 
 			if (advertisingData != null) {
 				String deviceName = advertisingData.getDeviceName();
