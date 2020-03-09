@@ -76,7 +76,7 @@ bool hasListeners;
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[@"BleManagerDidUpdateValueForCharacteristic", @"BleManagerStopScan", @"BleManagerDiscoverPeripheral", @"BleManagerConnectPeripheral", @"BleManagerDisconnectPeripheral", @"BleManagerDidUpdateState"];
+    return @[@"BleManagerDidUpdateValueForCharacteristic", @"BleManagerStopScan", @"BleManagerDiscoverPeripheral", @"BleManagerConnectPeripheral", @"BleManagerDisconnectPeripheral", @"BleManagerDidUpdateState", @"BleManagerCentralManagerWillRestoreState"];
 }
 
 
@@ -1005,7 +1005,20 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
 
 -(void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary<NSString *,id> *)dict
 {
-    NSLog(@"centralManager willRestoreState");
+    NSArray<CBPeripheral *> *restoredPeripherals = dict[CBCentralManagerRestoredStatePeripheralsKey];
+
+    if (restoredPeripherals.count > 0) {
+        @synchronized(peripherals) {
+            peripherals = [restoredPeripherals mutableCopy];
+
+            NSMutableArray *data = [NSMutableArray new];
+            for (CBPeripheral *peripheral in peripherals) {
+                [data addObject:[peripheral asDictionary]];
+            }
+
+            [self sendEventWithName:@"BleManagerCentralManagerWillRestoreState" body:@{@"peripherals": data}];
+        }
+    }
 }
 
 +(CBCentralManager *)getCentralManager
