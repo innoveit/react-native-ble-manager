@@ -269,12 +269,22 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
+	public void startNotificationUseBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,Integer buffer, Callback callback) {
+		Log.d(LOG_TAG, "startNotification");
+
+		Peripheral peripheral = peripherals.get(deviceUUID);
+		if (peripheral != null) {
+			peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),buffer, callback);
+		} else
+			callback.invoke("Peripheral not found");
+	}
+	@ReactMethod
 	public void startNotification(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
 		Log.d(LOG_TAG, "startNotification");
 
 		Peripheral peripheral = peripherals.get(deviceUUID);
 		if (peripheral != null) {
-			peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), callback);
+			peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),1, callback);
 		} else
 			callback.invoke("Peripheral not found");
 	}
@@ -629,8 +639,9 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		return value;
 	}
 
+
 	@Override
-	public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+	public void onActivityResult(Activity activity,  int requestCode, int resultCode, Intent data) {
 		Log.d(LOG_TAG, "onActivityResult");
 		if (requestCode == ENABLE_REQUEST && enableBluetoothCallback != null) {
 			if (resultCode == RESULT_OK) {
@@ -641,7 +652,6 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			enableBluetoothCallback = null;
 		}
 	}
-
 	@Override
 	public void onNewIntent(Intent intent) {
 
