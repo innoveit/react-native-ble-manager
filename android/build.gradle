@@ -33,6 +33,7 @@ android {
 repositories {
 	mavenCentral()
 	google()
+	jcenter()
 	maven {
 		// All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
 		url "$rootDir/../node_modules/react-native/android"
@@ -43,4 +44,5 @@ repositories {
 
 dependencies {
 	implementation "com.facebook.react:react-native:+"
+//	implementation "org.jetbrains.trove4j: trove4j: 20160824"
 }
