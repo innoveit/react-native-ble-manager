@@ -268,20 +268,22 @@ public class Peripheral extends BluetoothGattCallback {
 		Log.d(BleManager.LOG_TAG, "onConnectionStateChange to " + newState + " on peripheral: " + device.getAddress()
 				+ " with status " + status);
 
+		gatt = gatta;
+
 		if (newState == BluetoothProfile.STATE_CONNECTED) {
 			connected = true;
 
-			// new Handler(Looper.getMainLooper()).post(new Runnable() {
-			// @Override
-			// public void run() {
-			// try {
-			// this.gatt.discoverServices();
-			// } catch (NullPointerException e) {
-			// Log.d(BleManager.LOG_TAG, "onConnectionStateChange connected but gatt of Run
-			// method was null");
-			// }
-			// }
-			// });
+			new Handler(Looper.getMainLooper()).post(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						this.gatt.discoverServices();
+					} catch (NullPointerException e) {
+					Log.d(BleManager.LOG_TAG, "onConnectionStateChange connected but gatt of Run
+					method was null");
+					}
+				}
+			});
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
 
@@ -479,7 +481,7 @@ public class Peripheral extends BluetoothGattCallback {
 			if (gatt.setCharacteristicNotification(characteristic, notify)) {
 
 				if (buffer > 1) {
-					Log.d(BleManager.LOG_TAG, "Characteristic Buffering" + characteristicUUID + " count:" + buffer);
+					Log.d(BleManager.LOG_TAG, "Characteristic buffering " + characteristicUUID + " count:" + buffer);
 					String key = this.bufferedCharacteristicsKey(serviceUUID.toString(), characteristicUUID.toString());
 					this.bufferedCharacteristics.put(key, new NotifyBufferContainer(key, buffer));
 				}
