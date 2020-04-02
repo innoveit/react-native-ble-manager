@@ -567,7 +567,7 @@ __Arguments__
 - `name` - `String` - the name of the peripheral
 - `rssi` - ` Number` - the RSSI value
 - `advertising` - `JSON` - the advertising payload, here are some examples:
-    - `isConnetable` - `Boolean`
+    - `isConnectable` - `Boolean`
     - `serviceUUIDs` - `Array of String`
     - `manufacturerData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
     - `serviceData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
