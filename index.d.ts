@@ -45,8 +45,8 @@ declare module 'react-native-ble-manager' {
 
 	export function readRSSI(peripheralID: string): Promise<void>
 
-	export function getConnectedPeripherals(serviceUUIDs: string[]): Promise<any[]>
-	export function getDiscoveredPeripherals(): Promise<any[]>
+	export function getConnectedPeripherals(serviceUUIDs: string[]): Promise<Peripheral[]>
+	export function getDiscoveredPeripherals(): Promise<Peripheral[]>
 	export function isPeripheralConnected(peripheralID: string, serviceUUIDs: string[]): Promise<boolean>
 
 	// [Android only API 21+]
@@ -65,7 +65,7 @@ declare module 'react-native-ble-manager' {
 
 	export function createBond(peripheralID: string): Promise<void>
 	export function removeBond(peripheralID: string): Promise<void>
-	export function getBondedPeripherals(): Promise<void>
+	export function getBondedPeripherals(): Promise<Peripheral[]>
 	export function removePeripheral(peripheralID: string): Promise<void>
 
 	export interface PeripheralInfo {

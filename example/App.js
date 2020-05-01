@@ -57,7 +57,7 @@ export default class App extends Component {
             if (result) {
               console.log("Permission is OK");
             } else {
-              PermissionsAndroid.requestPermission(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
+              PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION).then((result) => {
                 if (result) {
                   console.log("User accept");
                 } else {
@@ -229,18 +229,18 @@ export default class App extends Component {
   render() {
     const list = Array.from(this.state.peripherals.values());
     const btnScanTitle = 'Scan Bluetooth (' + (this.state.scanning ? 'on' : 'off') + ')';
-    
+
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.container}>
           <View style={{margin: 10}}>
-            <Button title={btnScanTitle} onPress={() => this.startScan() } />        
+            <Button title={btnScanTitle} onPress={() => this.startScan() } />
           </View>
 
           <View style={{margin: 10}}>
-            <Button title="Retrieve connected peripherals" onPress={() => this.retrieveConnected() } />        
-          </View>          
-                    
+            <Button title="Retrieve connected peripherals" onPress={() => this.retrieveConnected() } />
+          </View>
+
           <ScrollView style={styles.scroll}>
             {(list.length == 0) &&
               <View style={{flex:1, margin: 20}}>

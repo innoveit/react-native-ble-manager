@@ -567,7 +567,7 @@ __Arguments__
 - `name` - `String` - the name of the peripheral
 - `rssi` - ` Number` - the RSSI value
 - `advertising` - `JSON` - the advertising payload, here are some examples:
-    - `isConnetable` - `Boolean`
+    - `isConnectable` - `Boolean`
     - `serviceUUIDs` - `Array of String`
     - `manufacturerData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
     - `serviceData` - `JSON` - contains the raw `bytes` and  `data` (Base64 encoded string)
@@ -636,3 +636,15 @@ A peripheral was disconnected.
 __Arguments__
 - `peripheral` - `String` - the id of the peripheral
 - `status` - `Number` -  [Android only] disconnect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
+
+### BleManagerCentralManagerWillRestoreState [iOS only]
+This is fired when [`centralManager:WillRestoreState:`](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518819-centralmanager) is called (app relaunched in the background to handle a bluetooth event).
+
+__Arguments__
+- `peripherals` - `Array` - an array of previously connected peripherals.
+
+*For more on performing long-term bluetooth actions in the background:*
+
+[iOS Bluetooth State Preservation and Restoration](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html#//apple_ref/doc/uid/TP40013257-CH7-SW10)
+
+[iOS Relaunch Conditions](https://developer.apple.com/library/archive/qa/qa1962/_index.html)
