@@ -270,7 +270,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void startNotificationUseBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
 			Integer buffer, Callback callback) {
 		Log.d(LOG_TAG, "startNotification");
-		if (serviceUUID != null && characteristicUUID != null) {
+		if (serviceUUID == null || characteristicUUID == null) {
 			callback.invoke("ServiceUUID and characteristicUUID required.");
 			return;
 		}
@@ -285,7 +285,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	@ReactMethod
 	public void startNotification(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
 		Log.d(LOG_TAG, "startNotification");
-		if (serviceUUID != null && characteristicUUID != null) {
+		if (serviceUUID == null || characteristicUUID == null) {
 			callback.invoke("ServiceUUID and characteristicUUID required.");
 			return;
 		}
@@ -300,7 +300,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	@ReactMethod
 	public void stopNotification(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
 		Log.d(LOG_TAG, "stopNotification");
-		if (serviceUUID != null && characteristicUUID != null) {
+		if (serviceUUID == null || characteristicUUID == null) {
 			callback.invoke("ServiceUUID and characteristicUUID required.");
 			return;
 		}
@@ -316,7 +316,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void write(String deviceUUID, String serviceUUID, String characteristicUUID, ReadableArray message,
 			Integer maxByteSize, Callback callback) {
 		Log.d(LOG_TAG, "Write to: " + deviceUUID);
-		if (serviceUUID != null && characteristicUUID != null) {
+		if (serviceUUID == null || characteristicUUID == null) {
 			callback.invoke("ServiceUUID and characteristicUUID required.");
 			return;
 		}
@@ -337,7 +337,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID,
 			ReadableArray message, Integer maxByteSize, Integer queueSleepTime, Callback callback) {
 		Log.d(LOG_TAG, "Write without response to: " + deviceUUID);
-		if (serviceUUID != null && characteristicUUID != null) {
+		if (serviceUUID == null || characteristicUUID == null) {
 			callback.invoke("ServiceUUID and characteristicUUID required.");
 			return;
 		}
@@ -357,7 +357,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	@ReactMethod
 	public void read(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
 		Log.d(LOG_TAG, "Read from: " + deviceUUID);
-		if (serviceUUID != null && characteristicUUID != null) {
+		if (serviceUUID == null || characteristicUUID == null) {
 			callback.invoke("ServiceUUID and characteristicUUID required.");
 			return;
 		}
