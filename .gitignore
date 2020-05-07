@@ -6,6 +6,7 @@ android/.settings
 android/.classpath
 gen/
 
+
 .gradle
 gradle
 gradlew
