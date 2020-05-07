@@ -1,13 +1,15 @@
 .idea
+
 android/local.properties
+android/.project
+android/.settings
+android/.classpath
 gen/
 
 .gradle
 gradle
 gradlew
 gradlew.bat
-
-.idea
 
 node_modules
 
