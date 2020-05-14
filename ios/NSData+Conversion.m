@@ -27,7 +27,7 @@
     const unsigned char *dataBuffer = (const unsigned char *)[self bytes];
     
     if (!dataBuffer)
-        return NULL;
+        return [NSMutableArray new];
     
     NSUInteger          dataLength  = [self length];
     NSMutableArray     *array  = [NSMutableArray arrayWithCapacity:dataLength];
