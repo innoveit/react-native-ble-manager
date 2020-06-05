@@ -489,14 +489,14 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
     NSData *dataMessage = [NSData dataWithBytesNoCopy:bytes length:c freeWhenDone:YES];
     
     if (context) {
-        // RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[message count], message);
+        RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[message count], message);
         CBPeripheral *peripheral = [context peripheral];
         CBCharacteristic *characteristic = [context characteristic];
         
         NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
         [writeCallbacks setObject:callback forKey:key];
         
-        // RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
+        RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
         if ([dataMessage length] > maxByteSize){
             int dataLength = (int)dataMessage.length;
             int count = 0;
