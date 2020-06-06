@@ -38,14 +38,20 @@ public class LollipopScanManager extends ScanManager {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
         
-        scanSettingsBuilder.setScanMode(options.getInt("scanMode"));
+        if (options.hasKey("scanMode")) {
+            scanSettingsBuilder.setScanMode(options.getInt("scanMode"));
+        }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
-            scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
+            if (options.hasKey("numberOfMatches")) {
+                scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
+            }
+            if (options.hasKey("matchMode")) {
+                scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
+            }
         }
 
-        if (!options.isNull("reportDelay")) {
+        if (options.hasKey("reportDelay")) {
             scanSettingsBuilder.setReportDelay(options.getInt("reportDelay"));
         }
         
