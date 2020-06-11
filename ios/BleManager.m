@@ -299,7 +299,8 @@ RCT_EXPORT_METHOD(start:(NSDictionary *)options callback:(nonnull RCTResponseSen
     
     dispatch_queue_t queue;
     if ([[options allKeys] containsObject:@"queueIdentifierKey"]) {
-        queue = dispatch_queue_create([[options valueForKey:@"queueIdentifierKey"] UTF8String], DISPATCH_QUEUE_SERIAL);
+	dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_BACKGROUND, 0);
+        queue = dispatch_queue_create([[options valueForKey:@"queueIdentifierKey"] UTF8String], queueAttributes);
     } else {
         queue = dispatch_get_main_queue();
     }
