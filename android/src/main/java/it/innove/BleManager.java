@@ -547,7 +547,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			synchronized (peripherals) {
 				for (Peripheral peripheral : peripherals.values()) {
 					if (peripheral.isConnected()) {
-						peripheral.disconnect(false);
+						peripheral.disconnect(true);
 					}
 				}
 			}
