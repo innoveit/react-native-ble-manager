@@ -271,10 +271,8 @@ public class Peripheral extends BluetoothGattCallback {
 		gatt = gatta;
 
 		if (status != BluetoothGatt.GATT_SUCCESS) {
-		    // TODO: cancel the service discovery runnable
 		    gatt.close();
-
-		} else // if ...
+		}
 
 		if (newState == BluetoothProfile.STATE_CONNECTED) {
 			connected = true;
