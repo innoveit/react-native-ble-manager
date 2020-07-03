@@ -65,6 +65,7 @@ public class Peripheral extends BluetoothGattCallback {
 
         private final Queue<Runnable> commandQueue = new ConcurrentLinkedQueue<>();
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
+	private Runnable discoverServicesRunnable;
         private boolean commandQueueBusy = false;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
@@ -283,13 +284,12 @@ public class Peripheral extends BluetoothGattCallback {
 		    gatt.close();
 		    // change the state to ensure the connection is teared down properly in the code below
 		    newState = BluetoothProfile.STATE_DISCONNECTED;
-		    // TODO: stop a potential service discovery process
 		}
 
 		if (newState == BluetoothProfile.STATE_CONNECTED) {
 			connected = true;
 
-			new Handler(Looper.getMainLooper()).post(new Runnable() {
+			discoverServicesRunnable = new Runnable() {
 				@Override
 				public void run() {
 					try {
@@ -297,8 +297,11 @@ public class Peripheral extends BluetoothGattCallback {
 					} catch (NullPointerException e) {
 						Log.d(BleManager.LOG_TAG, "onConnectionStateChange connected but gatt of Run method was null");
 					}
+					discoverServicesRunnable = null;
 				}
-			});
+			};
+
+			mainHandler.post(discoverServicesRunnable);
 
 			sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
 
@@ -311,6 +314,11 @@ public class Peripheral extends BluetoothGattCallback {
 		} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
 			this.disconnect(true);
+
+			if (discoverServicesRunnable != null) {
+				mainHandler.removeCallbacks(discoverServicesRunnable);
+				discoverServicesRunnable = null;
+			}
 
 			sendConnectionEvent(device, "BleManagerDisconnectPeripheral", status);
 			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback,
