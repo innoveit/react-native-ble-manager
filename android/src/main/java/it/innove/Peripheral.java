@@ -33,6 +33,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.common.ReactConstants.TAG;
@@ -60,6 +62,10 @@ public class Peripheral extends BluetoothGattCallback {
 	private Callback writeCallback;
 	private Callback registerNotifyCallback;
 	private Callback requestMTUCallback;
+
+        private final Queue<Runnable> commandQueue = new ConcurrentLinkedQueue<>();
+	private final Handler mainHandler = new Handler(Looper.getMainLooper());
+        private boolean commandQueueBusy = false;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
 
@@ -127,6 +133,9 @@ public class Peripheral extends BluetoothGattCallback {
 		connectCallback = null;
 		connected = false;
 		clearBuffers();
+		commandQueue.clear();
+		commandQueueBusy = false;
+
 		if (gatt != null) {
 			try {
 				gatt.disconnect();
@@ -272,6 +281,9 @@ public class Peripheral extends BluetoothGattCallback {
 
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 		    gatt.close();
+		    // change the state to ensure the connection is teared down properly in the code below
+		    newState = BluetoothProfile.STATE_DISCONNECTED;
+		    // TODO: stop a potential service discovery process
 		}
 
 		if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -319,6 +331,8 @@ public class Peripheral extends BluetoothGattCallback {
 			readRSSICallback = null;
 			registerNotifyCallback = null;
 			requestMTUCallback = null;
+			commandQueue.clear();
+			commandQueueBusy = false;
 		}
 
 	}
@@ -377,24 +391,27 @@ public class Peripheral extends BluetoothGattCallback {
 
 	@Override
 	public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-		super.onCharacteristicRead(gatt, characteristic, status);
+		if (status != BluetoothGatt.GATT_SUCCESS) {
+			sendBackrError(readCallback, "Error reading " + characteristic.getUuid() + " status=" + status);
+			completedCommand();
+			return;
+		}
+
+		// super.onCharacteristicRead(gatt, characteristic, status);
 		Log.d(BleManager.LOG_TAG, "onCharacteristicRead " + characteristic);
 
-		if (readCallback != null) {
+		if (readCallback == null)
+			return;
 
-			if (status == BluetoothGatt.GATT_SUCCESS) {
-				byte[] dataValue = characteristic.getValue();
-
-				if (readCallback != null) {
-					readCallback.invoke(null, BleManager.bytesToWritableArray(dataValue));
+		final byte[] dataValue = copyOf(characteristic.getValue());
+		final Callback callback = readCallback;
+		readCallback = null;
+		mainHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					callback.invoke(null, BleManager.bytesToWritableArray(dataValue));
 				}
-			} else {
-				readCallback.invoke("Error reading " + characteristic.getUuid() + " status=" + status, null);
-			}
-
-			readCallback = null;
-
-		}
+			});
 	}
 
 	@Override
@@ -593,16 +610,82 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 
 		BluetoothGattService service = gatt.getService(serviceUUID);
-		BluetoothGattCharacteristic characteristic = findReadableCharacteristic(service, characteristicUUID);
+		final BluetoothGattCharacteristic characteristic = findReadableCharacteristic(service, characteristicUUID);
 
 		if (characteristic == null) {
 			callback.invoke("Characteristic " + characteristicUUID + " not found.", null);
 		} else {
-			readCallback = callback;
-			if (!gatt.readCharacteristic(characteristic)) {
-				readCallback = null;
-				callback.invoke("Read failed", null);
+			final Callback reactcb = callback;
+			boolean result = commandQueue.add(new Runnable() {
+					@Override
+					public void run() {
+						readCallback = reactcb;
+						if (! gatt.readCharacteristic(characteristic)) {
+							readCallback = null;
+							sendBackrError(reactcb, "Read failed");
+							completedCommand();
+						}
+					}
+				});
+			if (result) {
+				nextCommand();
+			} else {
+				Log.d(BleManager.LOG_TAG, "could not queue read characteristic command");
 			}
+		}
+	}
+
+	private void sendBackrError(final Callback callback, final String message) {
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+				@Override
+				public void run() {
+					callback.invoke(message, null);
+				}
+			});
+	}
+
+	private byte[] copyOf(byte[] source) {
+		if (source == null) return new byte[0];
+		final int sourceLength = source.length;
+		final byte[] copy = new byte[sourceLength];
+		System.arraycopy(source, 0, copy, 0, sourceLength);
+		return copy;
+	}
+
+	private void completedCommand() {
+		commandQueue.poll();
+		commandQueueBusy = false;
+		nextCommand();
+	}
+
+	private void nextCommand() {
+		synchronized (this) {
+			if (commandQueueBusy) return;
+
+			final Runnable nextCommand = commandQueue.peek();
+			if (nextCommand == null) return;
+
+			// Check if we still have a valid gatt object
+			if (gatt == null) {
+				Log.d("gatt is 'null' for peripheral '%s', clearing command queue", device.getAddress());
+				commandQueue.clear();
+				commandQueueBusy = false;
+				return;
+			}
+
+			// Execute the next command in the queue
+			commandQueueBusy = true;
+			mainHandler.post(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							nextCommand.run();
+						} catch (Exception ex) {
+							Log.d("command exception for device '%s'", device.getName());
+							completedCommand();
+						}
+					}
+				});
 		}
 	}
 
