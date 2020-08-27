@@ -571,12 +571,12 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public void registerNotify(UUID serviceUUID, UUID characteristicUUID, Integer buffer, Callback callback) {
 		Log.d(BleManager.LOG_TAG, "registerNotify");
-		this.setNotify(serviceUUID, characteristicUUID, true, buffer, callback);
+		this.setNotify(serviceUUID, characteristicUUID, true, callback);
 	}
 
 	public void removeNotify(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 		Log.d(BleManager.LOG_TAG, "removeNotify");
-		this.setNotify(serviceUUID, characteristicUUID, false, 1, callback);
+		this.setNotify(serviceUUID, characteristicUUID, false, callback);
 	}
 
 	// Some devices reuse UUIDs across characteristics, so we can't use
