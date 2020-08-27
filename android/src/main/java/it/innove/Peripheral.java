@@ -399,14 +399,17 @@ public class Peripheral extends BluetoothGattCallback {
 
 	@Override
 	public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+		// super method calls not required, see stackoverflow
+		// super.onCharacteristicRead(gatt, characteristic, status);
+
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			sendBackrError(readCallback, "Error reading " + characteristic.getUuid() + " status=" + status);
 			completedCommand();
 			return;
 		}
 
-		// super.onCharacteristicRead(gatt, characteristic, status);
-		Log.d(BleManager.LOG_TAG, "onCharacteristicRead " + characteristic);
+		// Log.d(BleManager.LOG_TAG, "onCharacteristicRead " + characteristic);
+		completedCommand();
 
 		if (readCallback == null)
 			return;
@@ -675,7 +678,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 			// Check if we still have a valid gatt object
 			if (gatt == null) {
-				Log.d("gatt is 'null' for peripheral '%s', clearing command queue", device.getAddress());
+				Log.d(BleManager.LOG_TAG, "Error, gatt is null");
 				commandQueue.clear();
 				commandQueueBusy = false;
 				return;
@@ -689,7 +692,7 @@ public class Peripheral extends BluetoothGattCallback {
 						try {
 							nextCommand.run();
 						} catch (Exception ex) {
-							Log.d("command exception for device '%s'", device.getName());
+							Log.d(BleManager.LOG_TAG, "Error, command exception");
 							completedCommand();
 						}
 					}
