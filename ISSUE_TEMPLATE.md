@@ -1,3 +1,8 @@
+### Before open an issue
+- Check the closed issues, your question maybe is not new.
+- We can't debug your physical devices.
+- If the library is not working 99% you did something wrong, in the code or in the phone permissions.
+
 ### Version
 
 Tell us which versions you are using:
