@@ -277,17 +277,6 @@ public class Peripheral extends BluetoothGattCallback {
 		if (newState == BluetoothProfile.STATE_CONNECTED) {
 			connected = true;
 
-			new Handler(Looper.getMainLooper()).post(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						gatt.discoverServices();
-					} catch (NullPointerException e) {
-						Log.d(BleManager.LOG_TAG, "onConnectionStateChange connected but gatt of Run method was null");
-					}
-				}
-			});
-
 			sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
 
 			if (connectCallback != null) {
