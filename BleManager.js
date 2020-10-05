@@ -131,9 +131,9 @@ class BleManager {
     });
   }
 
-  createBond(peripheralId) {
+  createBond(peripheralId,peripheralPin=null) {
     return new Promise((fulfill, reject) => {
-      bleManager.createBond(peripheralId, error => {
+      bleManager.createBond(peripheralId,peripheralPin, error => {
         if (error) {
           reject(error);
         } else {

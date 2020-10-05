@@ -44,10 +44,17 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 
 	private class BondRequest {
 		private String uuid;
+		private String pin;
 		private Callback callback;
 
 		BondRequest(String _uuid, Callback _callback) {
 			uuid = _uuid;
+			callback = _callback;
+		}
+
+		BondRequest(String _uuid, String _pin, Callback _callback) {
+			uuid = _uuid;
+			pin = _pin;
 			callback = _callback;
 		}
 	}
@@ -124,6 +131,9 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 		filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
 		context.registerReceiver(mReceiver, filter);
+		IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
+        context.registerReceiver(mReceiver, intentFilter);
 		callback.invoke();
 		Log.d(LOG_TAG, "BleManager initialized");
 	}
@@ -193,7 +203,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 	}
 
 	@ReactMethod
-	public void createBond(String peripheralUUID, Callback callback) {
+	public void createBond(String peripheralUUID, String peripheralPin, Callback callback) {
 		Log.d(LOG_TAG, "Request bond to: " + peripheralUUID);
 
 		Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
@@ -213,7 +223,7 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 			return;
 		} else if (peripheral.getDevice().createBond()) {
 			Log.d(LOG_TAG, "Request bond successful for: " + peripheralUUID);
-			bondRequest = new BondRequest(peripheralUUID, callback); // request bond success, waiting for boradcast
+			bondRequest = new BondRequest(peripheralUUID, peripheralPin, callback); // request bond success, waiting for boradcast
 			return;
 		}
 
@@ -528,6 +538,12 @@ class BleManager extends ReactContextBaseJavaModule implements ActivityEventList
 						&& bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED) {
 					removeBondRequest.callback.invoke();
 					removeBondRequest = null;
+				}
+			} else if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)){
+				BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+				if (bondRequest != null && bondRequest.uuid.equals(bluetoothDevice.getAddress()) && bondRequest.pin != null) {
+					bluetoothDevice.setPin(bondRequest.pin.getBytes());
+					bluetoothDevice.createBond();
 				}
 			}
 
