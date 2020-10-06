@@ -112,7 +112,10 @@ declare module "react-native-ble-manager" {
   // [Android only API 21+]
   export function requestMTU(peripheralID: string, mtu: number): Promise<void>;
 
-  export function createBond(peripheralID: string): Promise<void>;
+  export function createBond(
+    peripheralID: string,
+    peripheralPin: string
+  ): Promise<void>;
   export function removeBond(peripheralID: string): Promise<void>;
   export function getBondedPeripherals(): Promise<Peripheral[]>;
   export function removePeripheral(peripheralID: string): Promise<void>;
