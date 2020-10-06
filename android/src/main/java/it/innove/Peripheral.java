@@ -638,7 +638,18 @@ public class Peripheral extends BluetoothGattCallback {
 			return;
 		}
 		this.retrieveServicesCallback = callback;
-		gatt.discoverServices();
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			@Override
+			public void run() {
+				if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+					// It seems delays when bonded are only needed in versions below Nougat
+					SystemClock.sleep(600);
+				}
+				boolean ans = gatt.discoverServices();
+
+				Log.d(TAG, "Discover Services started: " + ans);
+			}
+		});
 	}
 
 	// Some peripherals re-use UUIDs for multiple characteristics so we need to
