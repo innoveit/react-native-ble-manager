@@ -541,9 +541,9 @@ BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
 });
 ```
 
-### createBond(peripheralId) [Android only]
+### createBond(peripheralId,peripheralPin) [Android only]
 
-Start the bonding (pairing) process with the remote device.
+Start the bonding (pairing) process with the remote device. If you pass peripheralPin(optional), bonding will be auto(without manual entering pin)
 Returns a `Promise` object. The promise is resolved when either `new bond successfully created` or `bond already existed`, otherwise it will be rejected.
 
 **Examples**
