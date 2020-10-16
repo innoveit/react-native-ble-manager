@@ -114,7 +114,7 @@ declare module "react-native-ble-manager" {
 
   export function createBond(
     peripheralID: string,
-    peripheralPin: string
+    peripheralPin?: string
   ): Promise<void>;
   export function removeBond(peripheralID: string): Promise<void>;
   export function getBondedPeripherals(): Promise<Peripheral[]>;
