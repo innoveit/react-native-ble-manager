@@ -37,6 +37,10 @@ The library support the autolink feature.
 ...
 ```
 
+In Android API 29 >= you need to use "ACCESS_FINE_LOCATION" instead of "ACCESS_COARSE_LOCATION".
+
+If you need communication while the app is not in the foreground you need the "ACCESS_BACKGROUND_LOCATION" permission.
+
 ##### iOS - Update Info.plist
 
 In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
@@ -46,6 +50,8 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 - Remember to use the `start` method before anything.
 - If you have problem with old devices try avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
+- Android API >= 29 require the ACCESS_FINE_LOCATION permission to scan for peripherals.
+   React-Native 0.63.X started targeting Android API 29.
 - Before write, read or start notification you need to call `retrieveServices` method
 
 ## Example
