@@ -570,7 +570,8 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
                 
                 offset += thisChunkSize;
                 [peripheral writeValue:chunk forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
-                [NSThread sleepForTimeInterval:(queueSleepTime / 1000)];
+		NSTimeInterval sleepTimeSeconds = (NSTimeInterval) queueSleepTime / 1000;
+                [NSThread sleepForTimeInterval: sleepTimeSeconds];
             } while (offset < length);
             
             NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
