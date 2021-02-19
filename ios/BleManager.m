@@ -216,29 +216,27 @@ bool hasListeners;
     return peripheral;
 }
 
+-(CBUUID *)toUUID128:(CBUUID *)UUID
+{
+    static char uuidBytes[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
+    if (UUID.data.length < 16) {
+        NSMutableData *uuidData = [NSMutableData dataWithBytes:uuidBytes length:16];
+        memcpy(&uuidData.mutableBytes[UUID.data.length == 2 ? 2 : 0], UUID.data.bytes, UUID.data.length);
+        return [CBUUID UUIDWithData:uuidData];
+    }
+
+    return UUID;
+}
+
 -(CBService *) findServiceFromUUID:(CBUUID *)UUID p:(CBPeripheral *)p
 {
-    for(int i = 0; i < p.services.count; i++)
-    {
+    for(int i = 0; i < p.services.count; i++) {
         CBService *s = [p.services objectAtIndex:i];
-        if ([self compareCBUUID:s.UUID UUID2:UUID])
+        if ([[self toUUID128:s.UUID].UUIDString isEqualToString:[self toUUID128:UUID].UUIDString])
             return s;
     }
     
     return nil; //Service not found on this peripheral
-}
-
--(int) compareCBUUID:(CBUUID *) UUID1 UUID2:(CBUUID *)UUID2
-{
-    char b1[16];
-    char b2[16];
-    [UUID1.data getBytes:b1 length:16];
-    [UUID2.data getBytes:b2 length:16];
-    
-    if (memcmp(b1, b2, UUID1.data.length) == 0)
-        return 1;
-    else
-        return 0;
 }
 
 RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callback)
@@ -570,8 +568,7 @@ RCT_EXPORT_METHOD(writeWithoutResponse:(NSString *)deviceUUID serviceUUID:(NSStr
                 
                 offset += thisChunkSize;
                 [peripheral writeValue:chunk forCharacteristic:characteristic type:CBCharacteristicWriteWithoutResponse];
-		NSTimeInterval sleepTimeSeconds = (NSTimeInterval) queueSleepTime / 1000;
-                [NSThread sleepForTimeInterval: sleepTimeSeconds];
+                [NSThread sleepForTimeInterval:(queueSleepTime / 1000)];
             } while (offset < length);
             
             NSLog(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
@@ -909,7 +906,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     for(int i=0; i < service.characteristics.count; i++)
     {
         CBCharacteristic *c = [service.characteristics objectAtIndex:i];
-        if ((c.properties & prop) != 0x0 && [c.UUID.UUIDString isEqualToString: UUID.UUIDString]) {
+        if ((c.properties & prop) != 0x0 && [[self toUUID128:c.UUID].UUIDString isEqualToString:[self toUUID128:UUID].UUIDString]) {
             NSLog(@"Found %@", UUID);
             return c;
         }
@@ -924,7 +921,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     for(int i=0; i < service.characteristics.count; i++)
     {
         CBCharacteristic *c = [service.characteristics objectAtIndex:i];
-        if ([c.UUID.UUIDString isEqualToString: UUID.UUIDString]) {
+        if ([[self toUUID128:c.UUID].UUIDString isEqualToString:[self toUUID128:UUID].UUIDString]) {
             NSLog(@"Found %@", UUID);
             return c;
         }
