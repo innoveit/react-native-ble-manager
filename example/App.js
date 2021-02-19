@@ -197,10 +197,10 @@ const App = () => {
     
     return (() => {
       console.log('unmount');
-      bleManagerEmitter.removeEventListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral);
-      bleManagerEmitter.removeEventListener('BleManagerStopScan', handleStopScan );
-      bleManagerEmitter.removeEventListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
-      bleManagerEmitter.removeEventListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
+      bleManagerEmitter.removeListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral);
+      bleManagerEmitter.removeListener('BleManagerStopScan', handleStopScan );
+      bleManagerEmitter.removeListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
+      bleManagerEmitter.removeListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
     })
   }, []);
 
