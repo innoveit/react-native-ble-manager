@@ -13,5 +13,5 @@ Pod::Spec.new do |s|
   s.source      	= { :git => "https://github.com/innoveit/react-native-ble-manager.git" }
   s.source_files	= "ios/**/*.{h,m}"
 
-  s.dependency 'React'
+  s.dependency 'React-Core'
 end
