@@ -22,9 +22,9 @@ RN 0.30-0.39 supported until 2.4.3
 
 ```shell
 npm i --save react-native-ble-manager
+npx react-native link
 ```
 
-The library support the autolink feature.
 
 ##### Android - Update Manifest
 
