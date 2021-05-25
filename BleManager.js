@@ -1,7 +1,7 @@
 "use strict";
 var React = require("react-native");
 var bleManager = React.NativeModules.BleManager;
-var PQueue = require("p-queue");
+var { default: PQueue } = require("p-queue");
 
 var queue = new PQueue({concurrency: 1});
 
