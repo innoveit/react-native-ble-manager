@@ -1,6 +1,9 @@
 "use strict";
 var React = require("react-native");
 var bleManager = React.NativeModules.BleManager;
+var PQueue = require("p-queue");
+
+var queue = new PQueue({concurrency: 1});
 
 class BleManager {
   constructor() {
@@ -8,7 +11,7 @@ class BleManager {
   }
 
   read(peripheralId, serviceUUID, characteristicUUID) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.read(
         peripheralId,
         serviceUUID,
@@ -21,11 +24,11 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   readRSSI(peripheralId) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.readRSSI(peripheralId, (error, rssi) => {
         if (error) {
           reject(error);
@@ -33,11 +36,11 @@ class BleManager {
           fulfill(rssi);
         }
       });
-    });
+    }));
   }
 
   refreshCache(peripheralId) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.refreshCache(peripheralId, (error, result) => {
         if (error) {
           reject(error);
@@ -45,11 +48,11 @@ class BleManager {
           fulfill(result);
         }
       });
-    });
+    }));
   }
 
   retrieveServices(peripheralId, services) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.retrieveServices(
         peripheralId,
         services,
@@ -61,14 +64,14 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
     if (maxByteSize == null) {
       maxByteSize = 20;
     }
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.write(
         peripheralId,
         serviceUUID,
@@ -83,7 +86,7 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   writeWithoutResponse(
@@ -100,7 +103,7 @@ class BleManager {
     if (queueSleepTime == null) {
       queueSleepTime = 10;
     }
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.writeWithoutResponse(
         peripheralId,
         serviceUUID,
@@ -116,11 +119,11 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   connect(peripheralId) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.connect(peripheralId, error => {
         if (error) {
           reject(error);
@@ -128,23 +131,23 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
-  createBond(peripheralId,peripheralPin=null) {
-    return new Promise((fulfill, reject) => {
-      bleManager.createBond(peripheralId,peripheralPin, error => {
+  createBond(peripheralId, peripheralPin=null) {
+    return queue.add(() => new Promise((fulfill, reject) => {
+      bleManager.createBond(peripheralId, peripheralPin, error => {
         if (error) {
           reject(error);
         } else {
           fulfill();
         }
       });
-    });
+    }));
   }
 
   removeBond(peripheralId) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.removeBond(peripheralId, error => {
         if (error) {
           reject(error);
@@ -152,11 +155,11 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
-  disconnect(peripheralId, force = true) {
-    return new Promise((fulfill, reject) => {
+  disconnect(peripheralId, force=true) {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.disconnect(peripheralId, force, error => {
         if (error) {
           reject(error);
@@ -164,11 +167,11 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
   startNotification(peripheralId, serviceUUID, characteristicUUID) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.startNotification(
         peripheralId,
         serviceUUID,
@@ -181,7 +184,7 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   startNotificationUseBuffer(
@@ -190,7 +193,7 @@ class BleManager {
     characteristicUUID,
     buffer
   ) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.startNotificationUseBuffer(
         peripheralId,
         serviceUUID,
@@ -204,11 +207,11 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   stopNotification(peripheralId, serviceUUID, characteristicUUID) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.stopNotification(
         peripheralId,
         serviceUUID,
@@ -221,7 +224,7 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   checkState() {
@@ -229,7 +232,7 @@ class BleManager {
   }
 
   start(options) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       if (options == null) {
         options = {};
       }
@@ -240,11 +243,11 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
-  scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
-    return new Promise((fulfill, reject) => {
+  scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions={}) {
+    return queue.add(() => new Promise((fulfill, reject) => {
       if (allowDuplicates == null) {
         allowDuplicates = false;
       }
@@ -282,11 +285,11 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   stopScan() {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.stopScan(error => {
         if (error != null) {
           reject(error);
@@ -294,11 +297,11 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
   enableBluetooth() {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.enableBluetooth(error => {
         if (error != null) {
           reject(error);
@@ -306,11 +309,11 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
   getConnectedPeripherals(serviceUUIDs) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.getConnectedPeripherals(serviceUUIDs, (error, result) => {
         if (error) {
           reject(error);
@@ -322,11 +325,11 @@ class BleManager {
           }
         }
       });
-    });
+    }));
   }
 
   getBondedPeripherals() {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.getBondedPeripherals((error, result) => {
         if (error) {
           reject(error);
@@ -338,11 +341,11 @@ class BleManager {
           }
         }
       });
-    });
+    }));
   }
 
   getDiscoveredPeripherals() {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.getDiscoveredPeripherals((error, result) => {
         if (error) {
           reject(error);
@@ -354,11 +357,11 @@ class BleManager {
           }
         }
       });
-    });
+    }));
   }
 
   removePeripheral(peripheralId) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.removePeripheral(peripheralId, error => {
         if (error) {
           reject(error);
@@ -366,7 +369,7 @@ class BleManager {
           fulfill();
         }
       });
-    });
+    }));
   }
 
   isPeripheralConnected(peripheralId, serviceUUIDs) {
@@ -384,7 +387,7 @@ class BleManager {
   }
 
   requestConnectionPriority(peripheralId, connectionPriority) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.requestConnectionPriority(
         peripheralId,
         connectionPriority,
@@ -396,11 +399,11 @@ class BleManager {
           }
         }
       );
-    });
+    }));
   }
 
   requestMTU(peripheralId, mtu) {
-    return new Promise((fulfill, reject) => {
+    return queue.add(() => new Promise((fulfill, reject) => {
       bleManager.requestMTU(peripheralId, mtu, (error, mtu) => {
         if (error) {
           reject(error);
@@ -408,7 +411,7 @@ class BleManager {
           fulfill(mtu);
         }
       });
-    });
+    }));
   }
 }
 
