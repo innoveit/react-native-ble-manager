@@ -27,5 +27,8 @@
   "scripts": {
     "version": "git add -A",
     "postversion": "git push && git push --tags"
+  },
+  "dependencies": {
+    "p-queue": "6.6.2"
   }
 }
