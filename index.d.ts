@@ -120,7 +120,9 @@ declare module "react-native-ble-manager" {
   export function getBondedPeripherals(): Promise<Peripheral[]>;
   export function removePeripheral(peripheralID: string): Promise<void>;
 
-  export interface PeripheralInfo {}
+  export interface PeripheralInfo {
+    serviceUUIDs?: string[];
+  }
   export function retrieveServices(
     peripheralID: string,
     serviceUUIDs?: string[]
