@@ -346,11 +346,13 @@ public class PeripheralService extends Service {
             Boolean midUnlockingIgnoreEvent = !lastUsageIsLocking && params.getString("characteristic").equals(LOCK_STATUS_CHARACTERISTIC)  && (chainIsNotDisconnected && !lockStatusIsLocked && !lockStatusIsFreedToLock);
             OkHttpClient client = new OkHttpClient();
 
+
             if(lastUsageIsLocking && params.getString("characteristic").equals(LOCK_STATUS_CHARACTERISTIC)  && lockStatusIsLocked) {
+                    boolean isInSSOMode = serviceRecoveryData.getString("ssoMode") != null ? serviceRecoveryData.getBoolean("ssoMode") : false;
                     if(lastSmartlockUsage.equals("TEMPORARY_LOCK") ) {
                         JSONObject requestBody = new JSONObject();
                         requestBody.put("otpKey", lastWrittenMessage);
-                        String res = post(getConfirmTemplockURL(serviceRecoveryData.getString("url"), lockuid), requestBody.toString(), client, serviceRecoveryData.getString("apiKey"), serviceRecoveryData.getString("token"));
+                        String res = post(getConfirmTemplockURL(serviceRecoveryData.getString("url"), lockuid), requestBody.toString(), client, serviceRecoveryData.getString("apiKey"), serviceRecoveryData.getString("token"), isInSSOMode);
                         Log.d(BleManager.LOG_TAG, "tempLockConfirmed " + res);
                     } else if(lastSmartlockUsage.equals("RETURN")){
                         TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -362,7 +364,7 @@ public class PeripheralService extends Service {
                         requestBody.put("stationId", serviceRecoveryData.getString("stationId"));
                         requestBody.put("sequence", getRandomHexString(10));
                         requestBody.put("timestamp", timestamp);
-                        String res = post(getLockReturnURL(serviceRecoveryData.getString("url"), lockuid), requestBody.toString(), client, serviceRecoveryData.getString("apiKey"), serviceRecoveryData.getString("token"));
+                        String res = post(getLockReturnURL(serviceRecoveryData.getString("url"), lockuid), requestBody.toString(), client, serviceRecoveryData.getString("apiKey"), serviceRecoveryData.getString("token"), isInSSOMode);
                         Log.d(BleManager.LOG_TAG, "returnDone " + res);
                     }
                     retrieveOrCreatePeripheral(lastUUID).disconnect();
@@ -378,12 +380,12 @@ public class PeripheralService extends Service {
         }
     }
 
-    private String post(String url, String json, OkHttpClient client, String apiKey, String token) throws IOException {
+    private String post(String url, String json, OkHttpClient client, String apiKey, String token, boolean isInSSOMode) throws IOException {
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("X-API-KEY", apiKey)
-                .addHeader("X-AUTH-TOKEN", token)
+                .addHeader(isInSSOMode ? "Authorization" : "X-AUTH-TOKEN", token)
                 .post(body)
                 .build();
         try (Response response = client.newCall(request).execute()) {
