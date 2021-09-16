@@ -515,28 +515,7 @@ RCT_EXPORT_METHOD(write:(NSString *)deviceUUID serviceUUID:(NSString*)serviceUUI
         [writeCallbacks setObject:callback forKey:key];
         
         RCTLogInfo(@"Message to write(%lu): %@ ", (unsigned long)[dataMessage length], [dataMessage hexadecimalString]);
-        if ([dataMessage length] > maxByteSize){
-            int dataLength = (int)dataMessage.length;
-            int count = 0;
-            NSData* firstMessage;
-            while(count < dataLength && (dataLength - count > maxByteSize)){
-                if (count == 0){
-                    firstMessage = [dataMessage subdataWithRange:NSMakeRange(count, maxByteSize)];
-                }else{
-                    NSData* splitMessage = [dataMessage subdataWithRange:NSMakeRange(count, maxByteSize)];
-                    [writeQueue addObject:splitMessage];
-                }
-                count += maxByteSize;
-            }
-            if (count < dataLength) {
-                NSData* splitMessage = [dataMessage subdataWithRange:NSMakeRange(count, dataLength - count)];
-                [writeQueue addObject:splitMessage];
-            }
-            NSLog(@"Queued splitted message: %lu", (unsigned long)[writeQueue count]);
-            [peripheral writeValue:firstMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
-        } else {
-            [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
-        }
+        [peripheral writeValue:dataMessage forCharacteristic:characteristic type:CBCharacteristicWriteWithResponse];
     }
 }
 
