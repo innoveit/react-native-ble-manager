@@ -84,11 +84,14 @@ public class PeripheralService extends Service {
     public void onCreate() {
         super.onCreate();
         String CHANNEL_ID = "my_channel_01";
-        NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-                "Channel human readable title",
-                NotificationManager.IMPORTANCE_DEFAULT);
 
-        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+
+            ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+        }
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Interacting with smartlock")
