@@ -10,8 +10,8 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "react": "17.0.1",
-    "react-native": "0.64.2",
+    "react": "17.0.2",
+    "react-native": "0.65.0",
     "react-native-ble-manager": "^7.4.1"
   },
   "devDependencies": {
