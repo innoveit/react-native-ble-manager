@@ -120,9 +120,42 @@ declare module "react-native-ble-manager" {
   export function getBondedPeripherals(): Promise<Peripheral[]>;
   export function removePeripheral(peripheralID: string): Promise<void>;
 
-  export interface PeripheralInfo {
-    serviceUUIDs?: string[];
+  
+  export interface Service {
+    uuid: string;
   }
+
+  export interface Descriptor {
+    value: string;
+    uuid: string;
+  }
+
+  export interface Characteristic {
+    // See https://developer.apple.com/documentation/corebluetooth/cbcharacteristicproperties
+    properties: {
+      Broadcast?: "Broadcast";
+      Read?: "Read";
+      WriteWithoutResponse?: "WriteWithoutResponse";
+      Write?: "Write";
+      Notify?: "Notify";
+      Indicate?: "Indicate";
+      AuthenticatedSignedWrites?: "AuthenticatedSignedWrites";
+      ExtendedProperties?: "ExtendedProperties";
+      NotifyEncryptionRequired?: "NotifyEncryptionRequired";
+      IndicateEncryptionRequired?: "IndicateEncryptionRequired";
+    }
+    characteristic: string;
+    service: string;
+    descriptors?: Descriptor[];
+    
+  }
+
+  export interface PeripheralInfo extends Peripheral {
+    serviceUUIDs?: string[];
+    characteristics?: Characteristic[];
+    services?: Service[];
+  }
+
   export function retrieveServices(
     peripheralID: string,
     serviceUUIDs?: string[]
