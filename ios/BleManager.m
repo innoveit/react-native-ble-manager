@@ -720,14 +720,6 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     callback(@[@"Not supported"]);
 }
 
-RCT_EXPORT_METHOD(addListener : (NSString *)eventName) {
-    // Keep: Required for RN built in Event Emitter Calls.
-}
-
-RCT_EXPORT_METHOD(removeListeners : (NSInteger)count) {
-    // Keep: Required for RN built in Event Emitter Calls.
-}
-
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
     NSLog(@"didWrite");
     
