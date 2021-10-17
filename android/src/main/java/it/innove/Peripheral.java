@@ -65,10 +65,10 @@ public class Peripheral extends BluetoothGattCallback {
 	private Callback registerNotifyCallback;
 	private Callback requestMTUCallback;
 
-        private final Queue<Runnable> commandQueue = new ConcurrentLinkedQueue<>();
+	private final Queue<Runnable> commandQueue = new ConcurrentLinkedQueue<>();
 	private final Handler mainHandler = new Handler(Looper.getMainLooper());
 	private Runnable discoverServicesRunnable;
-        private boolean commandQueueBusy = false;
+	private boolean commandQueueBusy = false;
 
 	private List<byte[]> writeQueue = new ArrayList<>();
 
@@ -401,6 +401,8 @@ public class Peripheral extends BluetoothGattCallback {
 
 	@Override
 	public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+		super.onCharacteristicRead(gatt, characteristic, status);
+
 		if (status != BluetoothGatt.GATT_SUCCESS) {
 			if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
 				Log.d(BleManager.LOG_TAG, "Read needs bonding");
@@ -425,6 +427,8 @@ public class Peripheral extends BluetoothGattCallback {
 
 	@Override
 	public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+		super.onCharacteristicWrite(gatt, characteristic, status);
+
 		if (writeQueue.size() > 0) {
 			byte[] data = writeQueue.get(0);
 			writeQueue.remove(0);
