@@ -52,7 +52,7 @@ public class LegacyScanManager extends ScanManager {
 			};
 
 	@Override
-	public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback) {
+	public void scan(ReadableArray serviceUUIDs, ReadableArray manufacturerInfos, final int scanSeconds, ReadableMap options, Callback callback) {
 		if (serviceUUIDs.size() > 0) {
 			Log.d(bleManager.LOG_TAG, "Filter is not working in pre-lollipop devices");
 		}

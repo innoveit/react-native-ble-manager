@@ -34,7 +34,7 @@ public class LollipopScanManager extends ScanManager {
 	}
 
     @Override
-    public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options,  Callback callback) {
+    public void scan(ReadableArray serviceUUIDs, ReadableArray manufacturerInfos, final int scanSeconds, ReadableMap options,  Callback callback) {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
         
@@ -61,6 +61,38 @@ public class LollipopScanManager extends ScanManager {
                 filters.add(filter);
                 Log.d(bleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
             }
+        }
+
+        if (manufacturerInfos.size() > 0) {
+
+          for(int i = 0; i < serviceUUIDs.size(); i++){
+            ReadableMap manufacturerInfo = manufacturerInfos.getMap(i);
+
+            int id = manufacturerInfo.getInt("id");
+            ArrayList<Object> data = manufacturerInfo.getArray("data").toArrayList();
+            ArrayList<Object> mask = manufacturerInfo.getArray("mask").toArrayList();
+            byte[] backgroundAdvertData = new byte[data.size()];
+            byte[] backgroundAdvertMask = new byte[mask.size()];
+            for (int j = 0; j < data.size(); j++){
+              backgroundAdvertData[j] = ((Double) data.get(j)).byteValue();
+              backgroundAdvertMask[j] = ((Double) mask.get(j)).byteValue();
+            }
+            // Log the manufacturer data value to filter
+            StringBuilder dataString = new StringBuilder();
+            StringBuilder maskString = new StringBuilder();
+              for (byte b : backgroundAdvertData) {
+                  dataString.append(String.format("%x", b));
+                  dataString.append(", ");
+              }
+              for (byte b : backgroundAdvertMask) {
+                  maskString.append(String.format("%x", b));
+                  maskString.append(", ");
+              }
+            Log.d(bleManager.LOG_TAG,"ManufacturerDataFilter: " + dataString);
+            Log.d(bleManager.LOG_TAG,"ManufacturerMaskFilter: " + maskString);
+
+            filters.add(new ScanFilter.Builder().setManufacturerData(id, backgroundAdvertData, backgroundAdvertMask).build());
+          }
         }
         
         getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, scanSettingsBuilder.build(), mScanCallback);

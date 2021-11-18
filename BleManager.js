@@ -243,7 +243,7 @@ class BleManager {
     });
   }
 
-  scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
+  scan(serviceUUIDs, manufacturerInfos, seconds, allowDuplicates, scanningOptions = {}) {
     return new Promise((fulfill, reject) => {
       if (allowDuplicates == null) {
         allowDuplicates = false;
@@ -271,6 +271,7 @@ class BleManager {
 
       bleManager.scan(
         serviceUUIDs,
+        manufacturerInfos,
         seconds,
         allowDuplicates,
         scanningOptions,

@@ -177,7 +177,7 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void scan(ReadableArray serviceUUIDs, final int scanSeconds, boolean allowDuplicates, ReadableMap options,
+    public void scan(ReadableArray serviceUUIDs, ReadableArray manufacturerInfos, final int scanSeconds, boolean allowDuplicates, ReadableMap options,
                      Callback callback) {
         Log.d(LOG_TAG, "scan");
         if (getBluetoothAdapter() == null) {
@@ -200,7 +200,8 @@ class BleManager extends ReactContextBaseJavaModule {
         }
 
         if (scanManager != null)
-            scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
+            Log.d(LOG_TAG, "Scanning, filtered by UUID & ManufacturerData");
+            scanManager.scan(serviceUUIDs, manufacturerInfos, scanSeconds, options, callback);
     }
 
     @ReactMethod
@@ -699,7 +700,6 @@ class BleManager extends ReactContextBaseJavaModule {
             value.pushInt((bytes[i] & 0xFF));
         return value;
     }
-
 
     private Peripheral retrieveOrCreatePeripheral(String peripheralUUID) {
         Peripheral peripheral = peripherals.get(peripheralUUID);
