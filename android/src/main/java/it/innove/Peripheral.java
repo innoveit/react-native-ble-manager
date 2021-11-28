@@ -322,7 +322,6 @@ public class Peripheral extends BluetoothGattCallback {
 				discoverServicesRunnable = null;
 			}
 
-			sendConnectionEvent(device, "BleManagerDisconnectPeripheral", status);
 			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback,
 					readCallback, registerNotifyCallback, requestMTUCallback);
 			for (Callback currentCallback : callbacks) {
