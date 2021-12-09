@@ -315,8 +315,6 @@ public class Peripheral extends BluetoothGattCallback {
 
 		} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
-			this.disconnect(true);
-
 			if (discoverServicesRunnable != null) {
 				mainHandler.removeCallbacks(discoverServicesRunnable);
 				discoverServicesRunnable = null;
@@ -342,6 +340,8 @@ public class Peripheral extends BluetoothGattCallback {
 			requestMTUCallback = null;
 			commandQueue.clear();
 			commandQueueBusy = false;
+
+			this.disconnect(true);
 		}
 
 	}
