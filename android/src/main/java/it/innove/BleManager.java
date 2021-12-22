@@ -193,7 +193,7 @@ class BleManager extends ReactContextBaseJavaModule {
             for (Iterator<Map.Entry<String, Peripheral>> iterator = peripherals.entrySet().iterator(); iterator
                     .hasNext(); ) {
                 Map.Entry<String, Peripheral> entry = iterator.next();
-                if (!entry.getValue().isConnected()) {
+                if (!(entry.getValue().isConnected() || entry.getValue().isConnecting())) {
                     iterator.remove();
                 }
             }
