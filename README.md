@@ -30,12 +30,16 @@ The library support the react native autolink feature.
 
 ```xml
 // file: android/app/src/main/AndroidManifest.xml
-...
+<!-- Add xmlns:tools -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="YOUR_PACKAGE_NAME">
+
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28"/>
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" tools:targetApi="Q"/>
 
     <!-- Only when targeting Android 12 or higher -->
     <!-- Please make sure you read the following documentation to have a
@@ -47,7 +51,8 @@ The library support the react native autolink feature.
          you can strongly assert that your app
          doesn't derive physical location. -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
-                        android:usesPermissionFlags="neverForLocation" />
+                     android:usesPermissionFlags="neverForLocation"
+                     tools:targetApi="s" />
 
     <!-- Needed only if your app looks for Bluetooth devices. -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
