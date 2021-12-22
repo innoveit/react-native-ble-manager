@@ -31,13 +31,19 @@ The library support the react native autolink feature.
 ```xml
 // file: android/app/src/main/AndroidManifest.xml
 ...
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28"/>
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Needed only if your app looks for Bluetooth devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <!-- Needed only if your app makes the device discoverable to Bluetooth devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
 ...
 ```
-
-In Android API 29 >= you need to use "ACCESS_FINE_LOCATION" instead of "ACCESS_COARSE_LOCATION".
 
 If you need communication while the app is not in the foreground you need the "ACCESS_BACKGROUND_LOCATION" permission.
 
@@ -53,6 +59,8 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 - Android API >= 29 require the ACCESS_FINE_LOCATION permission to scan for peripherals.
    React-Native 0.63.X started targeting Android API 29.
 - Before write, read or start notification you need to call `retrieveServices` method
+- Before you use the API make sure that you check/request the permissions that you have specified in the AndroidManifest, otherwise
+   the application will crash.
 
 ## Example
 
