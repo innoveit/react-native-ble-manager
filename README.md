@@ -37,7 +37,18 @@ The library support the react native autolink feature.
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28"/>
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Only when targeting Android 12 or higher -->
+    <!-- Please make sure you read the following documentation to have a
+         better understanging of the new permissions.
+         https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location
+         -->
+
+    <!-- If your app doesn't use Bluetooth scan results to derive physical location information,
+         you can strongly assert that your app
+         doesn't derive physical location. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
+                        android:usesPermissionFlags="neverForLocation" />
+
     <!-- Needed only if your app looks for Bluetooth devices. -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <!-- Needed only if your app makes the device discoverable to Bluetooth devices. -->
@@ -59,8 +70,7 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 - Android API >= 29 require the ACCESS_FINE_LOCATION permission to scan for peripherals.
    React-Native 0.63.X started targeting Android API 29.
 - Before write, read or start notification you need to call `retrieveServices` method
-- Before you use the API make sure that you check/request the permissions that you have specified in the AndroidManifest, otherwise
-   the application will crash.
+- Because location and bluetooth permissions are runtime permissions, you **must** request these permissions at runtime along with declaring them    in your manifest.
 
 ## Example
 
