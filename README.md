@@ -30,14 +30,36 @@ The library support the react native autolink feature.
 
 ```xml
 // file: android/app/src/main/AndroidManifest.xml
-...
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<!-- Add xmlns:tools -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="YOUR_PACKAGE_NAME">
+
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28"/>
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" tools:targetApi="Q"/>
+
+    <!-- Only when targeting Android 12 or higher -->
+    <!-- Please make sure you read the following documentation to have a
+         better understanging of the new permissions.
+         https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location
+         -->
+
+    <!-- If your app doesn't use Bluetooth scan results to derive physical location information,
+         you can strongly assert that your app
+         doesn't derive physical location. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
+                     android:usesPermissionFlags="neverForLocation"
+                     tools:targetApi="s" />
+
+    <!-- Needed only if your app looks for Bluetooth devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <!-- Needed only if your app makes the device discoverable to Bluetooth devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
 ...
 ```
-
-In Android API 29 >= you need to use "ACCESS_FINE_LOCATION" instead of "ACCESS_COARSE_LOCATION".
 
 If you need communication while the app is not in the foreground you need the "ACCESS_BACKGROUND_LOCATION" permission.
 
@@ -53,6 +75,7 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 - Android API >= 29 require the ACCESS_FINE_LOCATION permission to scan for peripherals.
    React-Native 0.63.X started targeting Android API 29.
 - Before write, read or start notification you need to call `retrieveServices` method
+- Because location and bluetooth permissions are runtime permissions, you **must** request these permissions at runtime along with declaring them    in your manifest.
 
 ## Example
 
