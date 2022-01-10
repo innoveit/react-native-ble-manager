@@ -781,6 +781,14 @@ A peripheral was disconnected.
 - `peripheral` - `String` - the id of the peripheral
 - `status` - `Number` - [Android only] disconnect [`reasons`](<https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int)>)
 
+### BleManagerPeripheralDidBond
+
+A bond with a peripheral was established
+
+**Arguments**
+
+Object with information about the device
+
 ### BleManagerCentralManagerWillRestoreState [iOS only]
 
 This is fired when [`centralManager:WillRestoreState:`](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518819-centralmanager) is called (app relaunched in the background to handle a bluetooth event).
