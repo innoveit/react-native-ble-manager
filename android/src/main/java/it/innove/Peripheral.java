@@ -853,6 +853,10 @@ public class Peripheral extends BluetoothGattCallback {
 			if (! doWrite(characteristic, data, callback)) {
 				callback.invoke("Write failed");
 				writeCallback = null;
+			} else {
+				if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
+					callback.invoke();
+				}
 			}
 		} else {
 			int dataLength = data.length;
