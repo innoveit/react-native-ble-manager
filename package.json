@@ -1,15 +1,14 @@
 {
-  "name": "react-native-ble-manager",
+  "name": "@pija-ab/react-native-ble-manager",
   "version": "8.0.2",
   "description": "A BLE module for react native.",
-  "main": "BleManager",
-  "types": "./index.d.ts",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/innoveit/react-native-ble-manager.git"
+    "url": "https://github.com/PiJaAB/react-native-ble-manager.git"
   },
   "bugs": {
-    "url": "https://github.com/innoveit/react-native-ble-manager/issues"
+    "url": "https://github.com/PiJaAB/react-native-ble-manager/issues"
   },
   "keywords": [
     "react-native",
@@ -21,11 +20,19 @@
   ],
   "license": "Apache-2.0",
   "author": {
-    "name": "Innove",
-    "url": "https://github.com/innoveit"
+    "name": "PiJaAB",
+    "url": "https://github.com/PiJaAB"
   },
   "scripts": {
     "version": "git add -A",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/react-native": ">=0.60",
+    "typescript": "^4.5.5"
+  },
+  "peerDependencies": {
+    "react-native": ">=0.60"
   }
 }
