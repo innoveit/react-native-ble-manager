@@ -87,7 +87,9 @@ bool hasListeners;
     if (error) {
         NSLog(@"Error %@ :%@", characteristic.UUID, error);
         if (readCallback != NULL) {
-            readCallback(@[error, [NSNull null]]);
+            NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral.identifier UUIDString], @"serviceUUID": [characteristic.service.UUID UUIDString], @"characteristicUUID": [characteristic.UUID UUIDString], @"peripheral": @{ @"identifier": [peripheral.identifier UUIDString], @"name": [peripheral name], @"state": [self periphalStateToString:peripheral.state] } };
+            NSDictionary *errorDict = [self iOSErrorAsDict:error dict:baseDict];
+            readCallback(@[errorDict, [NSNull null]]);
             [readCallbacks removeObjectForKey:key];
         }
         return;
@@ -118,7 +120,10 @@ bool hasListeners;
         RCTResponseSenderBlock notificationCallback = [notificationCallbacks objectForKey:key];
         if (notificationCallback != nil) {
             if (error) {
-                notificationCallback(@[error]);
+                NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral.identifier UUIDString], @"serviceUUID": [characteristic.service.UUID UUIDString], @"characteristicUUID": [characteristic.UUID UUIDString], @"peripheral": @{ @"identifier": [peripheral.identifier UUIDString], @"name": [peripheral name], @"state": [self periphalStateToString:peripheral.state] } };
+                NSDictionary *errorDict = [self iOSErrorAsDict:error dict:baseDict];
+                
+                notificationCallback(@[errorDict]);
             } else {
                 NSLog(@"Notification began on %@", characteristic.UUID);
                 notificationCallback(@[]);
@@ -130,7 +135,9 @@ bool hasListeners;
         RCTResponseSenderBlock stopNotificationCallback = [stopNotificationCallbacks objectForKey:key];
         if (stopNotificationCallback != nil) {
             if (error) {
-                stopNotificationCallback(@[error]);
+                NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral.identifier UUIDString], @"serviceUUID": [characteristic.service.UUID UUIDString], @"characteristicUUID": [characteristic.UUID UUIDString], @"peripheral": @{ @"identifier": [peripheral.identifier UUIDString], @"name": [peripheral name], @"state": [self periphalStateToString:peripheral.state] } };
+                NSDictionary *errorDict = [self iOSErrorAsDict:error dict:baseDict];
+                stopNotificationCallback(@[errorDict]);
             } else {
                 NSLog(@"Notification ended on %@", characteristic.UUID);
                 stopNotificationCallback(@[]);
@@ -143,20 +150,20 @@ bool hasListeners;
 
 
 
-- (NSString *) centralManagerStateToString: (int)state
+- (NSString *) managerStateToString: (CBManagerState)state
 {
     switch (state) {
-        case CBCentralManagerStateUnknown:
+        case CBManagerStateUnknown:
             return @"unknown";
-        case CBCentralManagerStateResetting:
+        case CBManagerStateResetting:
             return @"resetting";
-        case CBCentralManagerStateUnsupported:
+        case CBManagerStateUnsupported:
             return @"unsupported";
-        case CBCentralManagerStateUnauthorized:
+        case CBManagerStateUnauthorized:
             return @"unauthorized";
-        case CBCentralManagerStatePoweredOff:
+        case CBManagerStatePoweredOff:
             return @"off";
-        case CBCentralManagerStatePoweredOn:
+        case CBManagerStatePoweredOn:
             return @"on";
         default:
             return @"unknown";
@@ -165,7 +172,25 @@ bool hasListeners;
     return @"unknown";
 }
 
-- (NSString *) periphalStateToString: (int)state
+- (NSString *) periphalStateToString: (CBPeripheralState)state
+{
+    switch (state) {
+        case CBPeripheralStateDisconnected:
+            return @"disconnected";
+        case CBPeripheralStateDisconnecting:
+            return @"disconnecting";
+        case CBPeripheralStateConnected:
+            return @"connected";
+        case CBPeripheralStateConnecting:
+            return @"connecting";
+        default:
+            return @"unknown";
+    }
+    
+    return @"unknown";
+}
+
+- (NSString *) periphalStateToString2: (CBPeripheralState)state
 {
     switch (state) {
         case CBPeripheralStateDisconnected:
@@ -186,11 +211,11 @@ bool hasListeners;
 - (NSString *) periphalManagerStateToString: (int)state
 {
     switch (state) {
-        case CBPeripheralManagerStateUnknown:
+        case CBManagerStateUnknown:
             return @"Unknown";
-        case CBPeripheralManagerStatePoweredOn:
+        case CBManagerStatePoweredOn:
             return @"PoweredOn";
-        case CBPeripheralManagerStatePoweredOff:
+        case CBManagerStatePoweredOff:
             return @"PoweredOff";
         default:
             return @"unknown";
@@ -239,6 +264,79 @@ bool hasListeners;
         return 1;
     else
         return 0;
+}
+
+typedef NS_ENUM(NSInteger, BleErrorCode) {
+    BleErrorCodeNotSupported = 1,
+    BleErrorCodeNoBluetoothSupport = 2,
+    BleErrorCodeUserRefusedEnable = 4,
+    BleErrorCodeCurrentActivityUnavailable = 6,
+    BleErrorCodeInvalidPeripheralUuid = 8,
+    BleErrorCodeMaxBondRequestsReached = 10,
+    BleErrorCodeCreateBondFailed =12,
+    BleErrorCodeRemoveBondFailed = 14,
+    BleErrorCodePeripheralNotFound = 16,
+    BleErrorCodeServiceUuidOrCharacteristicUuidMissing = 18,
+    BleErrorCodeBondRequestDenied = 20,
+    BleErrorCodeIllegalRemoveWhileConnected = 22,
+    BleErrorCodeWriteDescriptorFailed = 24,
+    BleErrorCodeMissingNotifyOrIndicateFlag = 26,
+    BleErrorCodeSetNotificationFailed = 28,
+    BleErrorCodeCharacteristicNotFound = 30,
+    BleErrorCodePeripheralNotConnected = 32,
+    BleErrorCodeGattIsNull = 34,
+    BleErrorCodePeripheralDisconnected = 36,
+    BleErrorCodeConnectionError = 38,
+    BleErrorCodeInvalidAdkVersion = 40,
+    BleErrorCodeReadFailed = 42,
+    BleErrorCodeRssiReadFailed = 44,
+    BleErrorCodeCacheRefreshFailed = 46,
+    BleErrorCodeUnknownException = 48,
+    BleErrorCodeWriteFailed = 50,
+    BleErrorCodeWriteInterrupted = 52,
+    BleErrorCodeIosError = 53,
+    BleErrorCodeAndroidError = 54,
+    BleErrorCodeAttError = 55,
+};
+
+- (NSDictionary*)iOSErrorAsDict:(NSError *)error msg:(NSString * _Nullable) msg dict:(NSDictionary * _Nullable) dict {
+    NSMutableDictionary *mutableDict = dict == nil ? [NSMutableDictionary dictionary] : [dict mutableCopy];
+    NSString *errorStr = msg == nil ? [error localizedDescription] : msg;
+    NSLog(@"%@", errorStr);
+    if (error.domain != CBATTErrorDomain) {
+        mutableDict[@"code"] = [NSNumber numberWithInteger: BleErrorCodeIosError];
+        mutableDict[@"iosDomain"] = error.domain;
+        mutableDict[@"iosCode"] = [NSNumber numberWithInteger:error.code];
+    } else {
+        mutableDict[@"code"] = [NSNumber numberWithInteger: BleErrorCodeAttError];
+        mutableDict[@"attCode"] = [NSNumber numberWithInteger:error.code];
+    }
+    mutableDict[@"message"] = errorStr;
+    return mutableDict;
+}
+
+- (NSDictionary*)iOSErrorAsDict:(NSError *)error msg:(NSString * _Nullable) msg {
+    return [self iOSErrorAsDict:error msg:msg dict:nil];
+}
+
+- (NSDictionary*)iOSErrorAsDict:(NSError *)error dict:(NSDictionary * _Nullable) dict {
+    return [self iOSErrorAsDict:error msg:nil dict:dict];
+}
+
+- (NSDictionary*)iOSErrorAsDict:(NSError *)error {
+    return [self iOSErrorAsDict:error msg:nil dict:nil];
+}
+
+- (NSDictionary*)customError:(NSString *)msg code:( BleErrorCode) code dict:(NSDictionary * _Nullable) dict {
+    NSMutableDictionary *mutableDict = dict == nil ? [NSMutableDictionary dictionary] : [dict mutableCopy];
+    NSLog(@"%@", msg);
+    mutableDict[@"code"] = [NSNumber numberWithInteger:code];
+    mutableDict[@"message"] = msg;
+    return mutableDict;
+}
+
+- (NSDictionary*)customError:(NSString *)msg code:( BleErrorCode) code {
+    return [self customError:msg code:code dict:nil];
 }
 
 RCT_EXPORT_METHOD(getDiscoveredPeripherals:(nonnull RCTResponseSenderBlock)callback)
@@ -422,8 +520,8 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
                 NSLog(@"Successfull retrieved peripheral with UUID : %@", peripheralUUID);
             }
         } else {
-            NSString *error = [NSString stringWithFormat:@"Wrong UUID format %@", peripheralUUID];
-            callback(@[error, [NSNull null]]);
+            NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Wrong UUID format %@", peripheralUUID] code: BleErrorCodeInvalidPeripheralUuid];
+            callback(@[errorDict, [NSNull null]]);
             return;
         }
     }
@@ -434,9 +532,9 @@ RCT_EXPORT_METHOD(connect:(NSString *)peripheralUUID callback:(nonnull RCTRespon
         [manager connectPeripheral:peripheral options:nil];
         
     } else {
-        NSString *error = [NSString stringWithFormat:@"Could not find peripheral %@.", peripheralUUID];
-        NSLog(@"%@", error);
-        callback(@[error, [NSNull null]]);
+        NSDictionary *baseDict = @{ @"peripheralUUID": peripheralUUID };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Could not find peripheral %@.", peripheralUUID] code: BleErrorCodePeripheralNotFound dict:baseDict];
+        callback(@[errorDict, [NSNull null]]);
     }
 }
 
@@ -463,9 +561,9 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUUID force:(BOOL)force callba
         callback(@[]);
         
     } else {
-        NSString *error = [NSString stringWithFormat:@"Could not find peripheral %@.", peripheralUUID];
-        NSLog(@"%@", error);
-        callback(@[error]);
+        NSDictionary *baseDict = @{ @"peripheralUUID": peripheralUUID };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Could not find peripheral %@.", peripheralUUID] code: BleErrorCodePeripheralNotFound dict:baseDict];
+        callback(@[errorDict]);
     }
 }
 
@@ -478,12 +576,12 @@ RCT_EXPORT_METHOD(checkState)
 
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-    NSString *errorStr = [NSString stringWithFormat:@"Peripheral connection failure: %@. (%@)", peripheral, [error localizedDescription]];
-    NSLog(@"%@", errorStr);
     RCTResponseSenderBlock connectCallback = [connectCallbacks valueForKey:[peripheral uuidAsString]];
     
     if (connectCallback) {
-        connectCallback(@[errorStr]);
+        NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral uuidAsString] };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Peripheral connection failure: %@. (%@)", peripheral, [error localizedDescription]] code: BleErrorCodeConnectionError dict:baseDict];
+        connectCallback(@[errorDict, [NSNull null]]);
         [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
     }
 }
@@ -616,8 +714,13 @@ RCT_EXPORT_METHOD(readRSSI:(NSString *)deviceUUID callback:(nonnull RCTResponseS
     if (peripheral && peripheral.state == CBPeripheralStateConnected) {
         [readRSSICallbacks setObject:callback forKey:[peripheral uuidAsString]];
         [peripheral readRSSI];
+    } else if (peripheral) {
+        NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral uuidAsString] };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Peripheral not connected: %@", peripheral] code: BleErrorCodePeripheralNotConnected dict:baseDict];
+        callback(@[errorDict]);
     } else {
-        callback(@[@"Peripheral not found or not connected"]);
+        NSDictionary *errorDict = [self customError:@"Peripheral not found" code: BleErrorCodePeripheralNotFound];
+        callback(@[errorDict]);
     }
     
 }
@@ -643,8 +746,13 @@ RCT_EXPORT_METHOD(retrieveServices:(NSString *)deviceUUID services:(NSArray<NSSt
             [peripheral discoverServices:nil];
         }
         
+    } else if (peripheral) {
+        NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral uuidAsString] };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Peripheral not connected: %@", peripheral] code: BleErrorCodePeripheralNotConnected dict:baseDict];
+        callback(@[errorDict]);
     } else {
-        callback(@[@"Peripheral not found or not connected"]);
+        NSDictionary *errorDict = [self customError:@"Peripheral not found" code: BleErrorCodePeripheralNotFound];
+        callback(@[errorDict]);
     }
 }
 
@@ -692,32 +800,38 @@ RCT_EXPORT_METHOD(stopNotification:(NSString *)deviceUUID serviceUUID:(NSString*
 
 RCT_EXPORT_METHOD(enableBluetooth:(nonnull RCTResponseSenderBlock)callback)
 {
-    callback(@[@"Not supported"]);
+    NSDictionary *errorDict = [self customError:@"Not supported" code: BleErrorCodeNotSupported];
+    callback(@[errorDict]);
 }
 
 RCT_EXPORT_METHOD(getBondedPeripherals:(nonnull RCTResponseSenderBlock)callback)
 {
-    callback(@[@"Not supported"]);
+    NSDictionary *errorDict = [self customError:@"Not supported" code: BleErrorCodeNotSupported];
+    callback(@[errorDict]);
 }
 
 RCT_EXPORT_METHOD(createBond:(NSString *)deviceUUID devicePin:(NSString *)devicePin callback:(nonnull RCTResponseSenderBlock)callback)
 {
-    callback(@[@"Not supported"]);
+    NSDictionary *errorDict = [self customError:@"Not supported" code: BleErrorCodeNotSupported];
+    callback(@[errorDict]);
 }
 
 RCT_EXPORT_METHOD(removeBond:(NSString *)deviceUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
-    callback(@[@"Not supported"]);
+    NSDictionary *errorDict = [self customError:@"Not supported" code: BleErrorCodeNotSupported];
+    callback(@[errorDict]);
 }
 
 RCT_EXPORT_METHOD(removePeripheral:(NSString *)deviceUUID callback:(nonnull RCTResponseSenderBlock)callback)
 {
-    callback(@[@"Not supported"]);
+    NSDictionary *errorDict = [self customError:@"Not supported" code: BleErrorCodeNotSupported];
+    callback(@[errorDict]);
 }
 
 RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:(nonnull RCTResponseSenderBlock)callback)
 {
-    callback(@[@"Not supported"]);
+    NSDictionary *errorDict = [self customError:@"Not supported" code: BleErrorCodeNotSupported];
+    callback(@[errorDict]);
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
@@ -730,7 +844,9 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         if (error) {
             NSLog(@"%@", error);
             [writeCallbacks removeObjectForKey:key];
-            writeCallback(@[error.localizedDescription]);
+            NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral uuidAsString], @"serviceUUID": [characteristic.service UUID], @"characteristicUUID": [characteristic UUID] };
+            NSDictionary *errorDict = [self iOSErrorAsDict:error dict:baseDict];
+            writeCallback(@[errorDict]);
         } else {
             if ([writeQueue count] == 0) {
                 [writeCallbacks removeObjectForKey:key];
@@ -771,11 +887,11 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
                    dispatch_get_main_queue(), ^(void){
         // didFailToConnectPeripheral should have been called already if not connected by now
         
-        RCTResponseSenderBlock connectCallback = [connectCallbacks valueForKey:[peripheral uuidAsString]];
+        RCTResponseSenderBlock connectCallback = [self->connectCallbacks valueForKey:[peripheral uuidAsString]];
         
         if (connectCallback) {
             connectCallback(@[[NSNull null], [peripheral asDictionary]]);
-            [connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
+            [self->connectCallbacks removeObjectForKey:[peripheral uuidAsString]];
         }
         
         if (hasListeners) {
@@ -787,31 +903,32 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
 }
 
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
-    NSLog(@"Peripheral Disconnected: %@", [peripheral uuidAsString]);
+    NSString *peripheralUUIDString = [peripheral uuidAsString];
+    NSDictionary *errorDict;
     
     if (error) {
-        NSLog(@"Error: %@", error);
+        NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral uuidAsString], @"customCode": [NSNumber numberWithInteger: BleErrorCodePeripheralDisconnected] };
+        errorDict = [self iOSErrorAsDict:error msg:[NSString stringWithFormat:@"Peripheral did disconnect: %@ (%@)", peripheralUUIDString, [error localizedDescription]] dict:baseDict];
+    } else {
+        NSDictionary *baseDict = @{ @"peripheralUUID": [peripheral uuidAsString], @"customCode": [NSNumber numberWithInteger: BleErrorCodePeripheralDisconnected] };
+        errorDict = [self customError:[NSString stringWithFormat:@"Peripheral did disconnect: %@", peripheralUUIDString] code: BleErrorCodePeripheralDisconnected dict:baseDict];
     }
-    
-    NSString *peripheralUUIDString = [peripheral uuidAsString];
-    
-    NSString *errorStr = [NSString stringWithFormat:@"Peripheral did disconnect: %@", peripheralUUIDString];
     
     RCTResponseSenderBlock connectCallback = [connectCallbacks valueForKey:peripheralUUIDString];
     if (connectCallback) {
-        connectCallback(@[errorStr]);
+        connectCallback(@[errorDict]);
         [connectCallbacks removeObjectForKey:peripheralUUIDString];
     }
     
     RCTResponseSenderBlock readRSSICallback = [readRSSICallbacks valueForKey:peripheralUUIDString];
     if (readRSSICallback) {
-        readRSSICallback(@[errorStr]);
+        readRSSICallback(@[errorDict]);
         [readRSSICallbacks removeObjectForKey:peripheralUUIDString];
     }
     
     RCTResponseSenderBlock retrieveServicesCallback = [retrieveServicesCallbacks valueForKey:peripheralUUIDString];
     if (retrieveServicesCallback) {
-        retrieveServicesCallback(@[errorStr]);
+        retrieveServicesCallback(@[errorDict]);
         [retrieveServicesCallbacks removeObjectForKey:peripheralUUIDString];
     }
     
@@ -820,7 +937,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [readCallbacks objectForKey:key];
             if (callback) {
-                callback(@[errorStr]);
+                callback(@[errorDict]);
                 [readCallbacks removeObjectForKey:key];
             }
         }
@@ -831,7 +948,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [writeCallbacks objectForKey:key];
             if (callback) {
-                callback(@[errorStr]);
+                callback(@[errorDict]);
                 [writeCallbacks removeObjectForKey:key];
             }
         }
@@ -842,7 +959,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [notificationCallbacks objectForKey:key];
             if (callback) {
-                callback(@[errorStr]);
+                callback(@[errorDict]);
                 [notificationCallbacks removeObjectForKey:key];
             }
         }
@@ -853,7 +970,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
         if ([key hasPrefix:peripheralUUIDString]) {
             RCTResponseSenderBlock callback = [stopNotificationCallbacks objectForKey:key];
             if (callback) {
-                callback(@[errorStr]);
+                callback(@[errorDict]);
                 [stopNotificationCallbacks removeObjectForKey:key];
             }
         }
@@ -937,9 +1054,9 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     return nil; //Characteristic not found on this service
 }
 
-- (void)centralManagerDidUpdateState:(CBCentralManager *)central
+- (void)centralManagerDidUpdateState:(CBManager *)central
 {
-    NSString *stateName = [self centralManagerStateToString:central.state];
+    NSString *stateName = [self managerStateToString:central.state];
     if (hasListeners) {
         [self sendEventWithName:@"BleManagerDidUpdateState" body:@{@"state":stateName}];
     }
@@ -954,9 +1071,9 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     CBPeripheral *peripheral = [self findPeripheralByUUID:deviceUUIDString];
     
     if (!peripheral) {
-        NSString* err = [NSString stringWithFormat:@"Could not find peripherial with UUID %@", deviceUUIDString];
-        NSLog(@"Could not find peripherial with UUID %@", deviceUUIDString);
-        callback(@[err]);
+        NSDictionary *baseDict = @{ @"peripheralUUID": deviceUUIDString };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Could not find peripherial with UUID %@", deviceUUIDString] code: BleErrorCodePeripheralNotFound dict:baseDict];
+        callback(@[errorDict]);
         
         return nil;
     }
@@ -965,13 +1082,9 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     
     if (!service)
     {
-        NSString* err = [NSString stringWithFormat:@"Could not find service with UUID %@ on peripheral with UUID %@",
-                         serviceUUIDString,
-                         peripheral.identifier.UUIDString];
-        NSLog(@"Could not find service with UUID %@ on peripheral with UUID %@",
-              serviceUUIDString,
-              peripheral.identifier.UUIDString);
-        callback(@[err]);
+        NSDictionary *baseDict = @{ @"peripheralUUID": deviceUUIDString };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Could not find service with UUID %@ on peripheral with UUID %@", serviceUUIDString, peripheral.identifier.UUIDString] code: BleErrorCodeCharacteristicNotFound dict:baseDict];
+        callback(@[errorDict]);
         return nil;
     }
     
@@ -989,12 +1102,9 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     
     if (!characteristic)
     {
-        NSString* err = [NSString stringWithFormat:@"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@", characteristicUUIDString,serviceUUIDString, peripheral.identifier.UUIDString];
-        NSLog(@"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@",
-              characteristicUUIDString,
-              serviceUUIDString,
-              peripheral.identifier.UUIDString);
-        callback(@[err]);
+        NSDictionary *baseDict = @{ @"peripheralUUID": deviceUUIDString, @"serviceUUID": serviceUUIDString };
+        NSDictionary *errorDict = [self customError:[NSString stringWithFormat:@"Could not find service with UUID %@ on peripheral with UUID %@", serviceUUIDString, peripheral.identifier.UUIDString] code: BleErrorCodeCharacteristicNotFound dict:baseDict];
+        callback(@[errorDict]);
         return nil;
     }
     
@@ -1028,7 +1138,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     }
 }
 
-+(CBCentralManager *)getCentralManager
++(CBManager *)getCentralManager
 {
     return _sharedManager;
 }

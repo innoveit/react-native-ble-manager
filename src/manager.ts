@@ -1,4 +1,5 @@
 import { NativeModules } from 'react-native';
+import BleError from './BleError';
 import { ConnectionPriority, Peripheral, PeripheralInfo, ScanOptions, StartOptions } from './types';
 
 const bleManager = NativeModules.BleManager;
@@ -24,7 +25,7 @@ class BleManager {
         characteristicUUID,
         (error: Error | null, data: unknown) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill(data);
           }
@@ -43,7 +44,7 @@ class BleManager {
     return new Promise<any>((fulfill, reject) => {
       bleManager.readRSSI(peripheralId, (error: Error | null, rssi: any) => {
         if (error) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill(rssi);
         }
@@ -63,7 +64,7 @@ class BleManager {
         peripheralId,
         (error: Error | null, result: any) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill(result);
           }
@@ -85,7 +86,7 @@ class BleManager {
         services,
         (error: Error | null, peripheral: PeripheralInfo) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill(peripheral);
           }
@@ -123,7 +124,7 @@ class BleManager {
         maxByteSize,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -167,7 +168,7 @@ class BleManager {
         queueSleepTime,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -189,7 +190,7 @@ class BleManager {
       bleManager.connect(peripheralId, (error: Error | null) => {
         if (error) {
           console.log(typeof error);
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -213,7 +214,7 @@ class BleManager {
         peripheralPin,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -231,7 +232,7 @@ class BleManager {
     return new Promise<void>((fulfill, reject) => {
       bleManager.removeBond(peripheralId, (error: Error | null) => {
         if (error) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -250,7 +251,7 @@ class BleManager {
     return new Promise<void>((fulfill, reject) => {
       bleManager.disconnect(peripheralId, force, (error: Error | null) => {
         if (error) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -278,7 +279,7 @@ class BleManager {
         characteristicUUID,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -311,7 +312,7 @@ class BleManager {
         buffer,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -340,7 +341,7 @@ class BleManager {
         characteristicUUID,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -373,7 +374,7 @@ class BleManager {
       }
       bleManager.start(options, (error: Error | null) => {
         if (error) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -432,7 +433,7 @@ class BleManager {
         scanningOptions,
         (error: Error | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill();
           }
@@ -450,7 +451,7 @@ class BleManager {
     return new Promise<void>((fulfill, reject) => {
       bleManager.stopScan((error: Error | null) => {
         if (error != null) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -467,7 +468,7 @@ class BleManager {
     return new Promise<void>((fulfill, reject) => {
       bleManager.enableBluetooth((error: Error | null) => {
         if (error != null) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -487,7 +488,7 @@ class BleManager {
         serviceUUIDs == null ? [] : serviceUUIDs,
         (error: Error | null, result: Peripheral[] | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             if (result != null) {
               fulfill(result);
@@ -510,7 +511,7 @@ class BleManager {
       bleManager.getBondedPeripherals(
         (error: Error | null, result: Peripheral[] | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             if (result != null) {
               fulfill(result);
@@ -533,7 +534,7 @@ class BleManager {
       bleManager.getDiscoveredPeripherals(
         (error: Error | null, result: Peripheral[] | null) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             if (result != null) {
               fulfill(result);
@@ -556,7 +557,7 @@ class BleManager {
     return new Promise<void>((fulfill, reject) => {
       bleManager.removePeripheral(peripheralId, (error: Error | null) => {
         if (error) {
-          reject(error);
+          reject(new BleError(error));
         } else {
           fulfill();
         }
@@ -622,7 +623,7 @@ class BleManager {
         connectionPriority,
         (error: Error | null, status: any) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill(status);
           }
@@ -644,7 +645,7 @@ class BleManager {
         mtu,
         (error: Error | null, resMtu: any) => {
           if (error) {
-            reject(error);
+            reject(new BleError(error));
           } else {
             fulfill(resMtu);
           }

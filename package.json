@@ -1,6 +1,6 @@
 {
   "name": "@pija-ab/react-native-ble-manager",
-  "version": "8.0.2",
+  "version": "9.0.0",
   "description": "A BLE module for react native.",
   "main": "lib/index.js",
   "repository": {

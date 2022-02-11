@@ -1,4 +1,4 @@
-.idea
+/.idea
 
 android/local.properties
 android/.project
@@ -25,6 +25,8 @@ node_modules
 ## Build generated
 build/
 DerivedData
+/lib
+/lib/*
 
 *.tgz
 

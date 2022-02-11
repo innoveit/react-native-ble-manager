@@ -3,7 +3,50 @@ import {
   NativeEventEmitter,
   NativeModules,
 } from 'react-native';
-import { CentralManagerWillRestoreStateInfo, CharacteristicValueUpdate, ConnectPeripheralInfo, Peripheral, UpdateStateInfo } from './types';
+import { Peripheral } from './types';
+
+export interface UpdateStateInfo {
+  /**
+   * the new BLE state
+   */
+  state: 'on' | 'off';
+}
+export interface CharacteristicValueUpdate {
+  /**
+   * the read value
+   */
+  value: number[];
+  /**
+   * the id of the peripheral
+   */
+  peripheral: string;
+  /**
+   * the UUID of the characteristic
+   */
+  characteristic: string;
+  /**
+   *  the UUID of the characteristic
+   */
+  service: string;
+}
+
+export interface ConnectPeripheralInfo {
+  /**
+   * the id of the peripheral
+   */
+  peripheral: string;
+  /**
+   * [Android only] connect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
+   */
+  status?: number;
+}
+
+export interface CentralManagerWillRestoreStateInfo {
+  /**
+   * [iOS only] an array of previously connected peripherals.
+   */
+  peripherals: Peripheral[];
+}
 
 const bleManager = NativeModules.BleManager;
 

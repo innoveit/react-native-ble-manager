@@ -16,8 +16,6 @@ import {
   View,
   Text,
   StatusBar,
-  NativeModules,
-  NativeEventEmitter,
   Button,
   Platform,
   PermissionsAndroid,
@@ -29,9 +27,7 @@ import {
   Colors,
 } from 'react-native/Libraries/NewAppScreen';
 
-import BleManager from '../BleManager';
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+import BleManager, { bleEventEmitter } from '../lib';
 
 const App = () => {
   const [isScanning, setIsScanning] = useState(false);
@@ -174,10 +170,12 @@ const App = () => {
   useEffect(() => {
     BleManager.start({showAlert: false});
 
-    bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral);
-    bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan );
-    bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
-    bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
+    const subscribers = [];
+
+    subscribers.push(bleEventEmitter.addListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral));
+    subscribers.push(bleEventEmitter.addListener('BleManagerStopScan', handleStopScan ));
+    subscribers.push(bleEventEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral ));
+    subscribers.push(bleEventEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic ));
 
     if (Platform.OS === 'android' && Platform.Version >= 23) {
       PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
@@ -197,10 +195,7 @@ const App = () => {
     
     return (() => {
       console.log('unmount');
-      bleManagerEmitter.removeListener('BleManagerDiscoverPeripheral', handleDiscoverPeripheral);
-      bleManagerEmitter.removeListener('BleManagerStopScan', handleStopScan );
-      bleManagerEmitter.removeListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral );
-      bleManagerEmitter.removeListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic );
+      subscribers.forEach(subscriber => subscriber.remove());
     })
   }, []);
 

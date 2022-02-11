@@ -42,6 +42,76 @@ export interface ScanOptions {
   reportDelay?: number;
 }
 
+export enum BleErrorCode {
+  NotSupported = 1,
+  NoBluetoothSupport = 2,
+  UserRefusedEnable = 4,
+  CurrentActivityUnavailable = 6,
+  InvalidPeripheralUuid = 8,
+  MaxBondRequestsReached = 10,
+  CreateBondFailed = 12,
+  RemoveBondFailed = 14,
+  PeripheralNotFound = 16,
+  ServiceUuidOrCharacteristicUuidMissing = 18,
+  BondRequestDenied = 20,
+  IllegalRemoveWhileConnected = 22,
+  WriteDescriptorFailed = 24,
+  MissingNotifyOrIndicateFlag = 26,
+  SetNotificationFailed = 28,
+  CharacteristicNotFound = 30,
+  PeripheralNotConnected = 32,
+  GattIsNull = 34,
+  PeripheralDisconnected = 36,
+  ConnectionError = 38,
+  InvalidAdkVersion = 40,
+  ReadFailed = 42,
+  RssiReadFailed = 44,
+  CacheRefreshFailed = 46,
+  UnknownException = 48,
+  WriteFailed = 50,
+  WriteInterrupted = 52,
+}
+
+export enum IOSErrorCode {
+  Unknown = 0,
+  InvalidParameters = 1,
+  InvalidHandle = 2,
+  PeripheralNotConnected = 3,
+  OutOfSpace = 4,
+  OperationCancelled = 5,
+  ConnectionTimeout = 6,
+  PeripheralDisconnected = 7,
+  UuidNotAllowed = 8,
+  AlreadyAdvertising = 9,
+  ConnectionFailed = 10,
+  ConnectionLimitReached = 11,
+  UnknownDevice = 12,
+  OperationNotSupported = 13,
+}
+
+export enum AttCode {
+  Success = 0,
+  InvalidHandle = 1,
+  ReadNotPermitted = 2,
+  WriteNotPermitted = 3,
+  InvalidPdu = 4,
+  InsufficientAuthentication = 5,
+  RequestNotSupported = 6,
+  InvalidOffset = 7,
+  InsufficientAuthorization = 8,
+  PrepareQueueFull = 9,
+  AttributeNotFound = 10,
+  AttributeNotLong = 11,
+  InsufficientEncryptionKeySize = 12,
+  InvalidAttributeValueLength = 13,
+  UnlikelyError = 14,
+  InsufficientEncryption = 15,
+  UnsupportedGroupType = 16,
+  InsufficientResources = 17,
+  ConnectionCongested = 143,
+  Failure = 257,
+}
+
 /**
  * [Android only API 21+]
  */
@@ -86,47 +156,4 @@ export interface PeripheralInfo extends Peripheral {
   serviceUUIDs?: string[];
   characteristics?: Characteristic[];
   services?: Service[];
-}
-
-export interface UpdateStateInfo {
-  /**
-   * the new BLE state
-   */
-  state: 'on' | 'off';
-}
-export interface CharacteristicValueUpdate {
-  /**
-   * the read value
-   */
-  value: number[];
-  /**
-   * the id of the peripheral
-   */
-  peripheral: string;
-  /**
-   * the UUID of the characteristic
-   */
-  characteristic: string;
-  /**
-   *  the UUID of the characteristic
-   */
-  service: string;
-}
-
-export interface ConnectPeripheralInfo {
-  /**
-   * the id of the peripheral
-   */
-  peripheral: string;
-  /**
-   * [Android only] connect [`reasons`](https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int))
-   */
-  status?: number;
-}
-
-export interface CentralManagerWillRestoreStateInfo {
-  /**
-   * [iOS only] an array of previously connected peripherals.
-   */
-  peripherals: Peripheral[];
 }
