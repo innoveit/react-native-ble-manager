@@ -43,7 +43,7 @@ The library support the react native autolink feature.
 
     <!-- Only when targeting Android 12 or higher -->
     <!-- Please make sure you read the following documentation to have a
-         better understanging of the new permissions.
+         better understanding of the new permissions.
          https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location
          -->
 
