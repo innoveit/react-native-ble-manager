@@ -53,6 +53,7 @@ public class Peripheral extends BluetoothGattCallback {
 	protected byte[] advertisingDataBytes = new byte[0];
 	protected int advertisingRSSI;
 	private boolean connected = false;
+	private boolean connecting = false;
 	private ReactContext reactContext;
 
 	private BluetoothGatt gatt;
@@ -104,6 +105,7 @@ public class Peripheral extends BluetoothGattCallback {
 		if (!connected) {
 			BluetoothDevice device = getDevice();
 			this.connectCallback = callback;
+			this.connecting = true;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 				Log.d(BleManager.LOG_TAG, " Is Or Greater than M $mBluetoothDevice");
 				gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
@@ -252,6 +254,10 @@ public class Peripheral extends BluetoothGattCallback {
 		return connected;
 	}
 
+	public boolean isConnecting() {
+		return connecting;
+	}
+
 	public BluetoothDevice getDevice() {
 		return device;
 	}
@@ -288,6 +294,7 @@ public class Peripheral extends BluetoothGattCallback {
 		    newState = BluetoothProfile.STATE_DISCONNECTED;
 		}
 
+		connecting = false;
 		if (newState == BluetoothProfile.STATE_CONNECTED) {
 			connected = true;
 
@@ -315,14 +322,11 @@ public class Peripheral extends BluetoothGattCallback {
 
 		} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 
-			this.disconnect(true);
-
 			if (discoverServicesRunnable != null) {
 				mainHandler.removeCallbacks(discoverServicesRunnable);
 				discoverServicesRunnable = null;
 			}
 
-			sendConnectionEvent(device, "BleManagerDisconnectPeripheral", status);
 			List<Callback> callbacks = Arrays.asList(writeCallback, retrieveServicesCallback, readRSSICallback,
 					readCallback, registerNotifyCallback, requestMTUCallback);
 			for (Callback currentCallback : callbacks) {
@@ -343,6 +347,8 @@ public class Peripheral extends BluetoothGattCallback {
 			requestMTUCallback = null;
 			commandQueue.clear();
 			commandQueueBusy = false;
+
+			this.disconnect(true);
 		}
 
 	}
@@ -847,6 +853,10 @@ public class Peripheral extends BluetoothGattCallback {
 			if (! doWrite(characteristic, data, callback)) {
 				callback.invoke("Write failed");
 				writeCallback = null;
+			} else {
+				if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
+					callback.invoke();
+				}
 			}
 		} else {
 			int dataLength = data.length;
