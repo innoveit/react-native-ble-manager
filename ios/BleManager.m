@@ -111,7 +111,7 @@ bool hasListeners;
             return;
         }
         if (hasListeners) {
-            [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" @body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying": @(false), @"domain": [error domain], @"code": @(error.code)}];
+            [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying": @(false), @"domain": [error domain], @"code": @(error.code)}];
         }
     }
     
@@ -142,7 +142,7 @@ bool hasListeners;
         }
     }
     if (hasListeners) {
-        [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" @body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying": @(characteristic.isNotifying)}];
+        [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying": @(characteristic.isNotifying)}];
     }
 }
 
