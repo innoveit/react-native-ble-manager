@@ -76,7 +76,7 @@ bool hasListeners;
 
 - (NSArray<NSString *> *)supportedEvents
 {
-    return @[@"BleManagerDidUpdateValueForCharacteristic", @"BleManagerStopScan", @"BleManagerDiscoverPeripheral", @"BleManagerConnectPeripheral", @"BleManagerDisconnectPeripheral", @"BleManagerDidUpdateState", @"BleManagerCentralManagerWillRestoreState"];
+    return @[@"BleManagerDidUpdateValueForCharacteristic", @"BleManagerStopScan", @"BleManagerDiscoverPeripheral", @"BleManagerConnectPeripheral", @"BleManagerDisconnectPeripheral", @"BleManagerDidUpdateState", @"BleManagerCentralManagerWillRestoreState", @"BleManagerDidUpdateNotificationStateFor"];
 }
 
 
@@ -110,6 +110,11 @@ bool hasListeners;
         if (characteristic == nil){
             return;
         }
+				if (hasListeners) {
+						[self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" @body:@{@"peripheral":
+								peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying":
+								@(false), @"domain": [error domain], @"code": @(error.code)}];
+				}
     }
     
     NSString *key = [self keyForPeripheral: peripheral andCharacteristic:characteristic];
@@ -138,6 +143,11 @@ bool hasListeners;
             [stopNotificationCallbacks removeObjectForKey:key];
         }
     }
+		if (hasListeners) {
+				[self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" @body:@{@"peripheral":
+						peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying":
+						@(characteristic.isNotifying)}];
+		}
 }
 
 
