@@ -804,3 +804,15 @@ _For more on performing long-term bluetooth actions in the background:_
 [iOS Bluetooth State Preservation and Restoration](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html#//apple_ref/doc/uid/TP40013257-CH7-SW10)
 
 [iOS Relaunch Conditions](https://developer.apple.com/library/archive/qa/qa1962/_index.html)
+
+### BleManagerDidUpdateNotificationStateFor [iOS only]
+
+The peripheral received a request to start or stop providing notifications for a specified characteristic's value.
+
+**Arguments**
+
+- `peripheral` - `String` - the id of the peripheral
+- `characteristic` - `String` - the UUID of the characteristic
+- `isNotifying` - `Boolean` - Is the characteristic notifying or not
+- `domain` - `String` - [iOS only] error domain
+- `code` - `Number` - [iOS only] error code
