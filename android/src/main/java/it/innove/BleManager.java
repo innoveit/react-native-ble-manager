@@ -732,4 +732,19 @@ class BleManager extends ReactContextBaseJavaModule {
       // Keep: Required for RN built in Event Emitter Calls.
     }
 
+    @Override
+    public void onCatalystInstanceDestroy() {
+        try {
+            // Disconnect all known peripherals, otherwise android system will think we are still connected
+            // while we have lost the gatt instance
+            disconnectPeripherals();
+        }catch(Exception e) {
+            Log.d(LOG_TAG, "Could not disconnect peripherals", e);
+        }
+
+        if (scanManager != null) {
+            // Stop scan in case one was started to stop events from being emitted after destroy
+            scanManager.stopScan(args -> {});
+        }
+    }
 }
