@@ -131,10 +131,11 @@ Returns a `Promise` object.
 - `seconds` - `Integer` - the amount of seconds to scan.
 - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
 - `scanningOptions` - `JSON` - [Android only] after Android 5.0, user can control specific ble scan behaviors:
-  - `numberOfMatches` - `Number` - corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>)
-  - `matchMode` - `Number` - corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>)
-  - `scanMode` - `Number` - corresponding to [`setScanMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int)>)
-  - `reportDelay` - `Number` - corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>)
+  - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>)
+  - `matchMode` - `Number` - [Android only] corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>)
+  - `scanMode` - `Number` - [Android only] corresponding to [`setScanMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int)>)
+  - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>)
+  - `phy` - `Number` - [Android only] corresponding to [`setPhy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int))
 
 **Examples**
 

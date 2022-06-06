@@ -2,6 +2,7 @@ package it.innove;
 
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
@@ -53,6 +54,16 @@ public class LollipopScanManager extends ScanManager {
 
         if (options.hasKey("reportDelay")) {
             scanSettingsBuilder.setReportDelay(options.getInt("reportDelay"));
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && options.hasKey("phy")) {
+            int phy = options.getInt("phy");
+            if (phy == BluetoothDevice.PHY_LE_CODED && getBluetoothAdapter().isLeCodedPhySupported()) {
+                scanSettingsBuilder.setPhy(BluetoothDevice.PHY_LE_CODED);
+            }
+            if (phy == BluetoothDevice.PHY_LE_2M && getBluetoothAdapter().isLe2MPhySupported()) {
+                scanSettingsBuilder.setPhy(BluetoothDevice.PHY_LE_2M);
+            }
         }
         
         if (serviceUUIDs.size() > 0) {
