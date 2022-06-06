@@ -111,7 +111,7 @@ declare module "react-native-ble-manager" {
   // [Android only]
   export function refreshCache(peripheralID: string): Promise<void>;
   // [Android only API 21+]
-  export function requestMTU(peripheralID: string, mtu: number): Promise<void>;
+  export function requestMTU(peripheralID: string, mtu: number): Promise<number>;
 
   export function createBond(
     peripheralID: string,
