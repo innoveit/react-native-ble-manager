@@ -82,9 +82,9 @@ public class LollipopPeripheral extends Peripheral {
 		return map;
 	}
 
-	public void updateData(ScanRecord scanRecord) {
-		advertisingData = scanRecord;
-		advertisingDataBytes = scanRecord.getBytes();
+	public void updateData(ScanResult result) {
+		advertisingData = result.getScanRecord();
+		advertisingDataBytes = advertisingData.getBytes();
 	}
 
 
