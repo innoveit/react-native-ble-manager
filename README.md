@@ -663,6 +663,25 @@ BleManager.isPeripheralConnected(
 });
 ```
 
+### setName(name) [Android only]
+
+Create the request to set the name of the bluetooth adapter. (https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#setName(java.lang.String))
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.setName("INNOVEIT_CENTRAL")
+  .then(() => {
+    // Success code
+    console.log("Name set successfully");
+  })
+  .catch((error) => {
+    // Failure code
+    console.log("Name could not be set");
+  });
+```
+
 ## Events
 
 ### BleManagerStopScan
