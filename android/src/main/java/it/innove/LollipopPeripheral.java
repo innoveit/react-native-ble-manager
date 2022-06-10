@@ -41,7 +41,9 @@ public class LollipopPeripheral extends Peripheral {
 
 			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
 				// We can check if peripheral is connectable using the scanresult
-				advertising.putBoolean("isConnectable", scanResult.isConnectable());
+				if (this.scanResult != null) {
+					advertising.putBoolean("isConnectable", scanResult.isConnectable());
+				}
 			} else{
 				// We can't check if peripheral is connectable
 				advertising.putBoolean("isConnectable", true);

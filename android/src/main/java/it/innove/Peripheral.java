@@ -378,10 +378,10 @@ public class Peripheral extends BluetoothGattCallback {
 			byte[] dataValue = characteristic.getValue();
 			if (buffer != null) {
 				buffer.put(dataValue);
-				// Log.d(BleManager.LOG_TAG, "onCharacteristicChanged-buffering: " +
-				// buffer.size() + " from peripheral: " + device.getAddress());
+				Log.d(BleManager.LOG_TAG, "onCharacteristicChanged-buffering: " +
+				buffer.size() + " from peripheral: " + device.getAddress());
 
-				if (buffer.size().equals(buffer.maxCount)) {
+				if (buffer.isBufferFull()) {
 					Log.d(BleManager.LOG_TAG, "onCharacteristicChanged sending buffered data " + buffer.size());
 
 					// send'm and reset
@@ -581,11 +581,21 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public void registerNotify(UUID serviceUUID, UUID characteristicUUID, Integer buffer, Callback callback) {
 		Log.d(BleManager.LOG_TAG, "registerNotify");
+		if (buffer > 1) {
+			Log.d(BleManager.LOG_TAG, "registerNotify using buffer");
+			String bufferKey = this.bufferedCharacteristicsKey(serviceUUID.toString(), characteristicUUID.toString());
+			this.bufferedCharacteristics.put(bufferKey, new NotifyBufferContainer(buffer));
+		}
 		this.setNotify(serviceUUID, characteristicUUID, true, callback);
 	}
 
 	public void removeNotify(UUID serviceUUID, UUID characteristicUUID, Callback callback) {
 		Log.d(BleManager.LOG_TAG, "removeNotify");
+		String bufferKey = this.bufferedCharacteristicsKey(serviceUUID.toString(), characteristicUUID.toString());
+		if (this.bufferedCharacteristics.containsKey(bufferKey)) {
+			NotifyBufferContainer buffer = this.bufferedCharacteristics.get(bufferKey);	
+			this.bufferedCharacteristics.remove(bufferKey);
+		}
 		this.setNotify(serviceUUID, characteristicUUID, false, callback);
 	}
 
