@@ -29,7 +29,7 @@ declare module "react-native-ble-manager" {
     scanMode?: number;
     reportDelay?: number;
     phy?: number;
-    setLegacy?: boolean;
+    legacy?: boolean;
   }
 
   export function scan(
