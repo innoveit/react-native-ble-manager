@@ -38,6 +38,10 @@ public class LollipopScanManager extends ScanManager {
     public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options,  Callback callback) {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
+
+        if (options.hasKey("setLegacy")) {
+            scanSettingsBuilder.setScanMode(options.getBoolean("setLegacy"));
+        }
         
         if (options.hasKey("scanMode")) {
             scanSettingsBuilder.setScanMode(options.getInt("scanMode"));
