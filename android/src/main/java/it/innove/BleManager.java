@@ -481,6 +481,12 @@ class BleManager extends ReactContextBaseJavaModule {
         sendEvent("BleManagerDidUpdateState", map);
     }
 
+    @ReactMethod
+    public void setName(String name) {
+        BluetoothAdapter adapter = getBluetoothAdapter();
+        adapter.setName(name);
+    }
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
