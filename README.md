@@ -777,7 +777,7 @@ async function connectAndPrepare(peripheral, service, characteristic) {
     ({ value, peripheral, characteristic, service }) => {
       // Convert bytes array to string
       const data = bytesToString(value);
-      console.log(`Recieved ${data} for characteristic ${characteristic}`);
+      console.log(`Received ${data} for characteristic ${characteristic}`);
     }
   );
   // Actions triggereng BleManagerDidUpdateValueForCharacteristic event
