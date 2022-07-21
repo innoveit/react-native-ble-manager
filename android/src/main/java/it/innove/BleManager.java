@@ -750,7 +750,12 @@ class BleManager extends ReactContextBaseJavaModule {
 
         if (scanManager != null) {
             // Stop scan in case one was started to stop events from being emitted after destroy
-            scanManager.stopScan(args -> {});
+            scanManager.stopScan(new Callback() {
+                @Override
+                public void invoke(Object... args) {
+                    // do nothing
+                }
+            });
         }
     }
 }
