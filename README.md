@@ -359,7 +359,7 @@ Returns a `Promise` object.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
 - `data` - `Byte array` - the data to write.
-- `maxByteSize` - `Integer` - specify the max byte size before splitting message
+- `maxByteSize` - `Integer` - specify the max byte size before splitting message, defaults to 20 bytes if not specified
 
 **Data preparation**
 
