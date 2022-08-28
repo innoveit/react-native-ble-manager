@@ -4,6 +4,7 @@ declare module "react-native-ble-manager" {
     rssi: number;
     name?: string;
     advertising: AdvertisingData;
+    connected?: boolean;
   }
 
   export interface AdvertisingData {
