@@ -470,8 +470,8 @@ public class Peripheral extends BluetoothGattCallback {
 				registerNotifyCallback.invoke();
 				Log.d(BleManager.LOG_TAG, "onDescriptorWrite success");
 			} else {
-				registerNotifyCallback.invoke("Error writing descriptor stats=" + status, null);
-				Log.e(BleManager.LOG_TAG, "Error writing descriptor stats=" + status);
+				registerNotifyCallback.invoke("Error writing descriptor status=" + status, null);
+				Log.e(BleManager.LOG_TAG, "Error writing descriptor status=" + status);
 			}
 
 			registerNotifyCallback = null;
