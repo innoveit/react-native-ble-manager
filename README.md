@@ -691,12 +691,12 @@ The scanning for peripherals is ended.
 
 **Arguments**
 
-- `none`
+- `reason` - `Number` - [Android only] the reason for stopping the scan
 
 **Examples**
 
 ```js
-bleManagerEmitter.addListener("BleManagerStopScan", () => {
+bleManagerEmitter.addListener("BleManagerStopScan", (args) => {
   // Scanning is stopped
 });
 ```
