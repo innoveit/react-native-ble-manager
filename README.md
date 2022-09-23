@@ -692,6 +692,7 @@ The scanning for peripherals is ended.
 **Arguments**
 
 - `reason` - `Number` - [Android only] the reason for stopping the scan (<https://developer.android.com/reference/android/bluetooth/le/ScanCallback#constants_1>). Error code 10 is used for timeouts
+- `status` - `Number` - [iOS only] the reason for stopping the scan. Error code 10 is used for timeouts, 0 covers everything else.
 
 **Examples**
 
