@@ -832,7 +832,7 @@ public class Peripheral extends BluetoothGattCallback {
 					else
 						writeCallback = null;
 					if (!gatt.writeCharacteristic(characteristic)) {
-						sendBackrError(writeCallback, "Write failed");
+                        sendBackrError(callback, "Write failed");
 						writeCallback = null;
 						completedCommand();
 					}
