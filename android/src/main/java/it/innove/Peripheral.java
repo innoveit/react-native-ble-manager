@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
@@ -50,8 +51,8 @@ public class Peripheral extends BluetoothGattCallback {
 
 	private final BluetoothDevice device;
 	private final Map<String, NotifyBufferContainer> bufferedCharacteristics;
-	protected byte[] advertisingDataBytes = new byte[0];
-	protected int advertisingRSSI;
+	protected volatile byte[] advertisingDataBytes = new byte[0];
+	protected volatile int advertisingRSSI;
 	private boolean connected = false;
 	private boolean connecting = false;
 	private ReactContext reactContext;
@@ -75,7 +76,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public Peripheral(BluetoothDevice device, int advertisingRSSI, byte[] scanRecord, ReactContext reactContext) {
 		this.device = device;
-		this.bufferedCharacteristics = new HashMap<String, NotifyBufferContainer>();
+		this.bufferedCharacteristics = new ConcurrentHashMap<String, NotifyBufferContainer>();
 		this.advertisingRSSI = advertisingRSSI;
 		this.advertisingDataBytes = scanRecord;
 		this.reactContext = reactContext;
@@ -83,7 +84,7 @@ public class Peripheral extends BluetoothGattCallback {
 
 	public Peripheral(BluetoothDevice device, ReactContext reactContext) {
 		this.device = device;
-		this.bufferedCharacteristics = new HashMap<String, NotifyBufferContainer>();
+		this.bufferedCharacteristics = new ConcurrentHashMap<String, NotifyBufferContainer>();
 		this.reactContext = reactContext;
 	}
 
