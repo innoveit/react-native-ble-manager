@@ -419,6 +419,7 @@ public class Peripheral extends BluetoothGattCallback {
 				return;
 			}
 			sendBackrError(readCallback, "Error reading " + characteristic.getUuid() + " status=" + status);
+			readCallback = null;
 		} else if (readCallback != null) {
 			final byte[] dataValue = copyOf(characteristic.getValue());
 			final Callback callback = readCallback;
@@ -449,6 +450,7 @@ public class Peripheral extends BluetoothGattCallback {
 				return;
 			}
 			sendBackrError(writeCallback, "Error writing " + characteristic.getUuid() + " status=" + status);
+			writeCallback = null;
 		} else if (writeCallback != null) {
 			final Callback callback = writeCallback;
 			mainHandler.post(new Runnable() {
