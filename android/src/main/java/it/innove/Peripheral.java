@@ -52,8 +52,8 @@ public class Peripheral extends BluetoothGattCallback {
 	private final Map<String, NotifyBufferContainer> bufferedCharacteristics;
 	protected volatile byte[] advertisingDataBytes = new byte[0];
 	protected volatile int advertisingRSSI;
-	private boolean connected = false;
-	private boolean connecting = false;
+	private volatile boolean connected = false;
+	private volatile boolean connecting = false;
 	private ReactContext reactContext;
 
 	private BluetoothGatt gatt;
