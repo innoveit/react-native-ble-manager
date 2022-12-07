@@ -430,7 +430,7 @@ public class Peripheral extends BluetoothGattCallback {
 				if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
 					Log.d(BleManager.LOG_TAG, "Read needs bonding");
 				}
-				readCallback.invoke(readCallback, "Error reading " + characteristic.getUuid() + " status=" + status);
+				readCallback.invoke("Error reading " + characteristic.getUuid() + " status=" + status, null);
 				readCallback = null;
 			} else if (readCallback != null) {
 				final byte[] dataValue = copyOf(characteristic.getValue());
