@@ -146,7 +146,7 @@ public class LollipopScanManager extends ScanManager {
 		@Override
 		public void onScanFailed(final int errorCode) {
             WritableMap map = Arguments.createMap();
-						map.putInt("reason", errorCode);
+						map.putInt("status", errorCode);
             bleManager.sendEvent("BleManagerStopScan", map);
 		}
 	};
