@@ -834,8 +834,8 @@ public class Peripheral extends BluetoothGattCallback {
 					// write without response, caller will handle the callback
 					if (writeCallback != null) {
 						writeCallback.invoke("Write failed", writeCallback);
+						writeCallback = null;
 					}
-					writeCallback = null;
 					completedCommand();
 				}
 			}
