@@ -437,7 +437,6 @@ public class Peripheral extends BluetoothGattCallback {
 				readCallback.invoke(null, BleManager.bytesToWritableArray(dataValue));
 				readCallback = null;
 			}
-
 			completedCommand();
 		});
 
@@ -464,7 +463,6 @@ public class Peripheral extends BluetoothGattCallback {
 				writeCallback.invoke();
 				writeCallback = null;
 			}
-
 			completedCommand();
 		});
 	}
