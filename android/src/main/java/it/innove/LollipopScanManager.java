@@ -101,7 +101,7 @@ public class LollipopScanManager extends ScanManager {
                                     btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
                                 }
                                 WritableMap map = Arguments.createMap();
-																map.putInt("reason", 10);
+																map.putInt("status", 10);
                                 bleManager.sendEvent("BleManagerStopScan", map);
                             }
                         }

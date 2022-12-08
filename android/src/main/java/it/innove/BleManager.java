@@ -218,7 +218,7 @@ class BleManager extends ReactContextBaseJavaModule {
         if (scanManager != null) {
             scanManager.stopScan(callback);
             WritableMap map = Arguments.createMap();
-						map.putInt("reason", 0);
+						map.putInt("status", 0);
             sendEvent("BleManagerStopScan", map);
         }
     }

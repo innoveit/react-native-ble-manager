@@ -80,7 +80,7 @@ public class LegacyScanManager extends ScanManager {
 									btAdapter.stopLeScan(mLeScanCallback);
 								}
 								WritableMap map = Arguments.createMap();
-								map.putInt("reason", 0);
+								map.putInt("status", 0);
 								bleManager.sendEvent("BleManagerStopScan", map);
 							}
 						}
