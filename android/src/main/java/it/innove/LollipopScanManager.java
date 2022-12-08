@@ -39,7 +39,7 @@ public class LollipopScanManager extends ScanManager {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
 
-        if (options.hasKey("legacy")) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && options.hasKey("legacy")) {
             scanSettingsBuilder.setLegacy(options.getBoolean("legacy"));
         }
         
