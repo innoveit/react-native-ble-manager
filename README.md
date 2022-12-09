@@ -691,12 +691,12 @@ The scanning for peripherals is ended.
 
 **Arguments**
 
-- `none`
+- `status` - `Number` - [iOS] the reason for stopping the scan. Error code 10 is used for timeouts, 0 covers everything else. [Android] the reason for stopping the scan (<https://developer.android.com/reference/android/bluetooth/le/ScanCallback#constants_1>). Error code 10 is used for timeouts
 
 **Examples**
 
 ```js
-bleManagerEmitter.addListener("BleManagerStopScan", () => {
+bleManagerEmitter.addListener("BleManagerStopScan", (args) => {
   // Scanning is stopped
 });
 ```

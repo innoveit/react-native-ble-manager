@@ -39,7 +39,7 @@ public class LollipopScanManager extends ScanManager {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
 
-        if (options.hasKey("legacy")) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && options.hasKey("legacy")) {
             scanSettingsBuilder.setLegacy(options.getBoolean("legacy"));
         }
         
@@ -101,6 +101,7 @@ public class LollipopScanManager extends ScanManager {
                                     btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
                                 }
                                 WritableMap map = Arguments.createMap();
+																map.putInt("status", 10);
                                 bleManager.sendEvent("BleManagerStopScan", map);
                             }
                         }
@@ -145,6 +146,7 @@ public class LollipopScanManager extends ScanManager {
 		@Override
 		public void onScanFailed(final int errorCode) {
             WritableMap map = Arguments.createMap();
+						map.putInt("status", errorCode);
             bleManager.sendEvent("BleManagerStopScan", map);
 		}
 	};
