@@ -291,8 +291,7 @@ class BleManager extends ReactContextBaseJavaModule {
 
         Peripheral peripheral = peripherals.get(peripheralUUID);
         if (peripheral != null) {
-            peripheral.disconnect(force);
-            callback.invoke();
+            peripheral.disconnect(callback, force);
         } else
             callback.invoke("Peripheral not found");
     }
@@ -590,7 +589,7 @@ class BleManager extends ReactContextBaseJavaModule {
             synchronized (peripherals) {
                 for (Peripheral peripheral : peripherals.values()) {
                     if (peripheral.isConnected()) {
-                        peripheral.disconnect(true);
+                        peripheral.disconnect(null,true);
                     }
                 }
             }
