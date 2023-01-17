@@ -26,6 +26,7 @@ declare module "react-native-ble-manager" {
   export interface ScanOptions {
     numberOfMatches?: number;
     matchMode?: number;
+    callbackType?: number;
     scanMode?: number;
     reportDelay?: number;
     phy?: number;
