@@ -1,25 +1,33 @@
 package it.innove;
 
 
+import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
+
+import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
-
-import androidx.annotation.RequiresApi;
-
 import android.util.Log;
 
-import com.facebook.react.bridge.*;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 public class LollipopScanManager extends ScanManager {
@@ -125,7 +133,16 @@ public class LollipopScanManager extends ScanManager {
       runOnUiThread(new Runnable() {
         @Override
         public void run() {
-          Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + result.getScanRecord().getDeviceName());
+          String info;
+          ScanRecord record = result.getScanRecord();
+          if (record != null)
+            info = record.getDeviceName();
+          else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
+            info = result.getDevice().getName();
+          else
+            info = result.toString();
+
+          Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + info);
 
           LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
           if (peripheral == null) {
