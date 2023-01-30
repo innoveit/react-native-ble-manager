@@ -180,10 +180,12 @@ android {
     }
 }
 
+def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
+
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"  // From node_modules
+
+    implementation "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
