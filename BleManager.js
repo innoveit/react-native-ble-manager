@@ -250,7 +250,7 @@ class BleManager {
       }
 
       // (ANDROID) Match as many advertisement per filter as hw could allow
-      // dependes on current capability and availability of the resources in hw.
+      // depends on current capability and availability of the resources in hw.
       if (scanningOptions.numberOfMatches == null) {
         scanningOptions.numberOfMatches = 3;
       }
@@ -260,11 +260,19 @@ class BleManager {
         scanningOptions.matchMode = 1;
       }
 
-      // (ANDROID) Defaults to SCAN_MODE_LOW_POWER on android
+      // (ANDROID) Defaults to SCAN_MODE_LOW_POWER
       if (scanningOptions.scanMode == null) {
         scanningOptions.scanMode = 0;
       }
+      
+      // (ANDROID) Defaults to CALLBACK_TYPE_ALL_MATCHES 
+      // WARN: sometimes, setting a scanSetting instead of leaving it untouched might result in unexpected behaviors.
+      // https://github.com/dariuszseweryn/RxAndroidBle/issues/462
+      if (scanningOptions.callbackType == null) {
+        scanningOptions.callbackType = 1;
+      }
 
+      // (ANDROID) Defaults to 0ms (report results immediately).
       if (scanningOptions.reportDelay == null) {
         scanningOptions.reportDelay = 0;
       }

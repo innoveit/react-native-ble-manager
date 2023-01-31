@@ -122,7 +122,7 @@ BleManager.start({ showAlert: false }).then(() => {
 
 ### scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions)
 
-Scan for availables peripherals.
+Scan for available peripherals.
 Returns a `Promise` object.
 
 **Arguments**
@@ -131,10 +131,11 @@ Returns a `Promise` object.
 - `seconds` - `Integer` - the amount of seconds to scan.
 - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
 - `scanningOptions` - `JSON` - [Android only] after Android 5.0, user can control specific ble scan behaviors:
-  - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>)
-  - `matchMode` - `Number` - [Android only] corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>)
-  - `scanMode` - `Number` - [Android only] corresponding to [`setScanMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int)>)
-  - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>)
+  - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>). Defaults to `ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT`.
+  - `matchMode` - `Number` - [Android only] corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>). Defaults to `ScanSettings.MATCH_MODE_AGGRESSIVE`.
+  - `callbackType` - `Number` - [Android only] corresponding to [`setCallbackType`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setCallbackType(int)>). Defaults `ScanSettings.CALLBACK_TYPE_ALL_MATCHES`.
+  - `scanMode` - `Number` - [Android only] corresponding to [`setScanMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int)>). Defaults to `ScanSettings.SCAN_MODE_LOW_POWER`.
+  - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>). Defaults to `0ms`.
   - `phy` - `Number` - [Android only] corresponding to [`setPhy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int))
   - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean))
 

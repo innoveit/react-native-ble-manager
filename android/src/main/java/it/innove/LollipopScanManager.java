@@ -54,6 +54,9 @@ public class LollipopScanManager extends ScanManager {
             if (options.hasKey("matchMode")) {
                 scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
             }
+            if (options.hasKey("callbackType")) {
+                scanSettingsBuilder.setCallbackType(options.getInt("callbackType"));
+            }
         }
 
         if (options.hasKey("reportDelay")) {
