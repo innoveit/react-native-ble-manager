@@ -470,8 +470,19 @@ class BleManager extends ReactContextBaseJavaModule {
                 case BluetoothAdapter.STATE_ON:
                     state = "on";
                     break;
+                case BluetoothAdapter.STATE_TURNING_ON:
+                    state = "turning_on";
+                    break;
                 case BluetoothAdapter.STATE_OFF:
                     state = "off";
+                    break;
+                case BluetoothAdapter.STATE_TURNING_OFF:
+                    state = "turning_off";
+                    break;
+                default:
+                    // should not happen as per https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#getState()
+                    state = "off";
+                    break;
             }
         }
 
@@ -511,6 +522,10 @@ class BleManager extends ReactContextBaseJavaModule {
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
                         stringState = "turning_on";
+                        break;
+                    default:
+                        // should not happen as per https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
+                        stringState = "off";
                         break;
                 }
 
