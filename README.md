@@ -441,7 +441,7 @@ BleManager.writeWithoutResponse(
 ### readRSSI(peripheralId)
 
 Read the current value of the RSSI.
-Returns a `Promise` object.
+Returns a `Promise` object resolving with the updated RSSI value (`number`) if it succeeds.
 
 **Arguments**
 
@@ -464,7 +464,7 @@ BleManager.readRSSI("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 ### requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
 
 Request a connection parameter update.
-Returns a `Promise` object.
+Returns a `Promise` object which fulfills with the status of the request.
 
 **Arguments**
 
@@ -708,7 +708,7 @@ The BLE change state.
 
 **Arguments**
 
-- `state` - `String` - the new BLE state ('on'/'off').
+- `state` - `String` - the new BLE state. can be one of `unknown` (iOS only), `resetting` (iOS only), `unsupported`, `unauthorized` (iOS only), `on`, `off`, `turning_on` (android only), `turning_off` (android only).
 
 **Examples**
 
