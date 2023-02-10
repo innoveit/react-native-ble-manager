@@ -4,7 +4,13 @@
 [![npm downloads](https://img.shields.io/npm/dm/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
 [![GitHub issues](https://img.shields.io/github/issues/innoveit/react-native-ble-manager.svg?style=flat)](https://github.com/innoveit/react-native-ble-manager/issues)
 
-This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
+A React Native Bluetooth Low Energy library.
+
+Originally inspired by https://github.com/don/cordova-plugin-ble-central.
+
+## Introduction
+
+The library is a simple connection with the OS APIs, the BLE stack should be standard but often has different behaviors based on the device used, the operating system and the BLE chip it connects to. Before opening an issue verify that the problem is really the library.
 
 ## Requirements
 
