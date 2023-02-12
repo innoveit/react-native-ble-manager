@@ -92,11 +92,14 @@ The easiest way to test is simple make your AppRegistry point to our example com
 import React, { Component } from "react";
 import { AppRegistry } from "react-native";
 import App from "react-native-ble-manager/example/App"; //<-- simply point to the example js!
-
+/* 
+Note: The react-native-ble-manager/example directory is only included when cloning the repo, the above import will not work 
+if trying to import react-native-ble-manager/example from node_modules
+*/
 AppRegistry.registerComponent("MyAwesomeApp", () => App);
 ```
 
-Or, you can still look into the whole [example](https://github.com/innoveit/react-native-ble-manager/tree/master/example) folder for a standalone project.
+Or, [use the example directly](https://github.com/innoveit/react-native-ble-manager/tree/master/example)
 
 ## Methods
 
