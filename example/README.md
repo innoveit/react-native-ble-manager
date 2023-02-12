@@ -1,4 +1,6 @@
-Install native pods with ```npx pod-install```
+
+
+Install native pods with ```npm i``` then ```npx pod-install```
 
 Run example in iOS: 
 ```npm run ios```
