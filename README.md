@@ -99,7 +99,7 @@ if trying to import react-native-ble-manager/example from node_modules
 AppRegistry.registerComponent("MyAwesomeApp", () => App);
 ```
 
-Or, [use the example directly](https://github.com/innoveit/react-native-ble-manager/tree/master/example)
+Or, [use the example directly](example)
 
 ## Methods
 
