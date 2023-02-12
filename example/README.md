@@ -1,7 +1,6 @@
 Install native pods with ```npx pod-install```
 
 Run example in iOS: 
-```cd ios```
 ```npm run ios```
 
 If error occurs using ```npm run ios``` its recommended you run the example directly in Xcode: (You might need to select a development team in Xcode or otherwise [setup your react-native env](https://reactnative.dev/docs/environment-setup)). These errors won't be communicated very clearly if relying soley on ```npm run ios```.
