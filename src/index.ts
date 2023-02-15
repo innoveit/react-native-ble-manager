@@ -1,19 +1,39 @@
-"use strict";
-var React = require("react-native");
-var bleManager = React.NativeModules.BleManager;
+import { NativeModules } from 'react-native';
+import {
+  BleScanCallbackType,
+  BleScanMatchCount,
+  BleScanMatchMode,
+  BleScanMode,
+  ConnectionPriority,
+  Peripheral,
+  PeripheralInfo,
+  ScanOptions,
+  StartOptions
+} from './types';
+
+export * from './types';
+
+var bleManager = NativeModules.BleManager;
 
 class BleManager {
   constructor() {
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
   }
 
-  read(peripheralId, serviceUUID, characteristicUUID) {
-    return new Promise((fulfill, reject) => {
+  /**
+   * 
+   * @param peripheralId 
+   * @param serviceUUID 
+   * @param characteristicUUID 
+   * @returns read data as a JS byteArray (Uint8Array).
+   */
+  read(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
+    return new Promise<Uint8Array>((fulfill, reject) => {
       bleManager.read(
         peripheralId,
         serviceUUID,
         characteristicUUID,
-        (error, data) => {
+        (error: string | null, data: Uint8Array) => {
           if (error) {
             reject(error);
           } else {
@@ -24,9 +44,14 @@ class BleManager {
     });
   }
 
-  readRSSI(peripheralId) {
-    return new Promise((fulfill, reject) => {
-      bleManager.readRSSI(peripheralId, (error, rssi) => {
+  /**
+   * 
+   * @param peripheralId 
+   * @returns a promise resolving with the updated RSSI (`number`) if it succeeds.
+   */
+  readRSSI(peripheralId: string) {
+    return new Promise<number>((fulfill, reject) => {
+      bleManager.readRSSI(peripheralId, (error: string | null, rssi: number) => {
         if (error) {
           reject(error);
         } else {
@@ -36,9 +61,14 @@ class BleManager {
     });
   }
 
-  refreshCache(peripheralId) {
-    return new Promise((fulfill, reject) => {
-      bleManager.refreshCache(peripheralId, (error, result) => {
+  /**
+   * [Android only]
+   * @param peripheralId 
+   * @returns a promise that resolves to a boolean indicating if gatt was successfully refreshed or not.
+   */
+  refreshCache(peripheralId: string) {
+    return new Promise<boolean>((fulfill, reject) => {
+      bleManager.refreshCache(peripheralId, (error: string | null, result: boolean) => {
         if (error) {
           reject(error);
         } else {
@@ -48,12 +78,18 @@ class BleManager {
     });
   }
 
-  retrieveServices(peripheralId, services) {
-    return new Promise((fulfill, reject) => {
+  /**
+   * 
+   * @param peripheralId 
+   * @param serviceUUIDs [iOS only] optional filter of services to retrieve.
+   * @returns 
+   */
+  retrieveServices(peripheralId: string, serviceUUIDs: string[] = []) {
+    return new Promise<PeripheralInfo>((fulfill, reject) => {
       bleManager.retrieveServices(
         peripheralId,
-        services,
-        (error, peripheral) => {
+        serviceUUIDs,
+        (error: string | null, peripheral: PeripheralInfo) => {
           if (error) {
             reject(error);
           } else {
@@ -64,18 +100,31 @@ class BleManager {
     });
   }
 
-  write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize) {
-    if (maxByteSize == null) {
-      maxByteSize = 20;
-    }
-    return new Promise((fulfill, reject) => {
+  /**
+   * 
+   * @param peripheralId 
+   * @param serviceUUID 
+   * @param characteristicUUID 
+   * @param data data to write as a JS byteArray (Uint8Array)
+   * @param maxByteSize optional, defaults to 20
+   * @returns 
+   */
+  write(
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    data: Uint8Array,
+    maxByteSize: number = 20
+  ) {
+
+    return new Promise<void>((fulfill, reject) => {
       bleManager.write(
         peripheralId,
         serviceUUID,
         characteristicUUID,
         data,
         maxByteSize,
-        error => {
+        (error: string | null) => {
           if (error) {
             reject(error);
           } else {
@@ -86,21 +135,26 @@ class BleManager {
     });
   }
 
+  /**
+   * 
+   * @param peripheralId 
+   * @param serviceUUID 
+   * @param characteristicUUID 
+   * @param data data to write as a JS byteArray (Uint8Array)
+   * @param maxByteSize optional, defaults to 20
+   * @param queueSleepTime optional, defaults to 10. Only useful if data length is greater than maxByteSize.
+   * @returns 
+   */
   writeWithoutResponse(
-    peripheralId,
-    serviceUUID,
-    characteristicUUID,
-    data,
-    maxByteSize,
-    queueSleepTime
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    data: Uint8Array,
+    maxByteSize: number = 20,
+    queueSleepTime: number = 10
   ) {
-    if (maxByteSize == null) {
-      maxByteSize = 20;
-    }
-    if (queueSleepTime == null) {
-      queueSleepTime = 10;
-    }
-    return new Promise((fulfill, reject) => {
+
+    return new Promise<void>((fulfill, reject) => {
       bleManager.writeWithoutResponse(
         peripheralId,
         serviceUUID,
@@ -108,7 +162,7 @@ class BleManager {
         data,
         maxByteSize,
         queueSleepTime,
-        error => {
+        (error: string | null) => {
           if (error) {
             reject(error);
           } else {
@@ -119,9 +173,9 @@ class BleManager {
     });
   }
 
-  connect(peripheralId) {
-    return new Promise((fulfill, reject) => {
-      bleManager.connect(peripheralId, error => {
+  connect(peripheralId: string) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.connect(peripheralId, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -131,9 +185,15 @@ class BleManager {
     });
   }
 
-  createBond(peripheralId, peripheralPin = null) {
-    return new Promise((fulfill, reject) => {
-      bleManager.createBond(peripheralId, peripheralPin, error => {
+  /**
+   * [Android only]
+   * @param peripheralId 
+   * @param peripheralPin optional. will be used to auto-bond if possible.
+   * @returns 
+   */
+  createBond(peripheralId: string, peripheralPin: string | null = null) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.createBond(peripheralId, peripheralPin, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -143,9 +203,14 @@ class BleManager {
     });
   }
 
-  removeBond(peripheralId) {
-    return new Promise((fulfill, reject) => {
-      bleManager.removeBond(peripheralId, error => {
+  /**
+   * [Android only]
+   * @param peripheralId 
+   * @returns 
+   */
+  removeBond(peripheralId: string) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.removeBond(peripheralId, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -155,9 +220,15 @@ class BleManager {
     });
   }
 
-  disconnect(peripheralId, force = true) {
-    return new Promise((fulfill, reject) => {
-      bleManager.disconnect(peripheralId, force, error => {
+  /**
+   * 
+   * @param peripheralId 
+   * @param force [Android only] defaults to true.
+   * @returns 
+   */
+  disconnect(peripheralId: string, force: boolean = true) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.disconnect(peripheralId, force, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -167,13 +238,13 @@ class BleManager {
     });
   }
 
-  startNotification(peripheralId, serviceUUID, characteristicUUID) {
-    return new Promise((fulfill, reject) => {
+  startNotification(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
+    return new Promise<void>((fulfill, reject) => {
       bleManager.startNotification(
         peripheralId,
         serviceUUID,
         characteristicUUID,
-        error => {
+        (error: string | null) => {
           if (error) {
             reject(error);
           } else {
@@ -184,19 +255,27 @@ class BleManager {
     });
   }
 
+  /**
+   * [Android only]
+   * @param peripheralId 
+   * @param serviceUUID 
+   * @param characteristicUUID 
+   * @param buffer 
+   * @returns 
+   */
   startNotificationUseBuffer(
-    peripheralId,
-    serviceUUID,
-    characteristicUUID,
-    buffer
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    buffer: number
   ) {
-    return new Promise((fulfill, reject) => {
+    return new Promise<void>((fulfill, reject) => {
       bleManager.startNotificationUseBuffer(
         peripheralId,
         serviceUUID,
         characteristicUUID,
         buffer,
-        error => {
+        (error: string | null) => {
           if (error) {
             reject(error);
           } else {
@@ -207,13 +286,13 @@ class BleManager {
     });
   }
 
-  stopNotification(peripheralId, serviceUUID, characteristicUUID) {
-    return new Promise((fulfill, reject) => {
+  stopNotification(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
+    return new Promise<void>((fulfill, reject) => {
       bleManager.stopNotification(
         peripheralId,
         serviceUUID,
         characteristicUUID,
-        error => {
+        (error: string | null) => {
           if (error) {
             reject(error);
           } else {
@@ -228,12 +307,12 @@ class BleManager {
     bleManager.checkState();
   }
 
-  start(options) {
-    return new Promise((fulfill, reject) => {
+  start(options?: StartOptions) {
+    return new Promise<void>((fulfill, reject) => {
       if (options == null) {
         options = {};
       }
-      bleManager.start(options, error => {
+      bleManager.start(options, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -243,8 +322,22 @@ class BleManager {
     });
   }
 
-  scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
-    return new Promise((fulfill, reject) => {
+  /**
+   * 
+   * @param serviceUUIDs 
+   * @param seconds amount of seconds to scan. if set to 0 or less, will scan until you call stopScan() or the OS stops the scan (background etc).
+   * @param allowDuplicates [iOS only]
+   * @param scanningOptions [Android only] optional map of properties to fine-tune scan behavior on android, see README.
+   * @returns 
+   */
+  scan(
+    serviceUUIDs: string[],
+    seconds: number,
+    allowDuplicates?: boolean,
+    scanningOptions: ScanOptions = {}
+  ) {
+
+    return new Promise<void>((fulfill, reject) => {
       if (allowDuplicates == null) {
         allowDuplicates = false;
       }
@@ -252,24 +345,24 @@ class BleManager {
       // (ANDROID) Match as many advertisement per filter as hw could allow
       // depends on current capability and availability of the resources in hw.
       if (scanningOptions.numberOfMatches == null) {
-        scanningOptions.numberOfMatches = 3;
+        scanningOptions.numberOfMatches = BleScanMatchCount.MaxAdvertisements;
       }
 
       // (ANDROID) Defaults to MATCH_MODE_AGGRESSIVE
       if (scanningOptions.matchMode == null) {
-        scanningOptions.matchMode = 1;
+        scanningOptions.matchMode = BleScanMatchMode.Aggressive;
       }
 
       // (ANDROID) Defaults to SCAN_MODE_LOW_POWER
       if (scanningOptions.scanMode == null) {
-        scanningOptions.scanMode = 0;
+        scanningOptions.scanMode = BleScanMode.LowPower;
       }
 
       // (ANDROID) Defaults to CALLBACK_TYPE_ALL_MATCHES 
       // WARN: sometimes, setting a scanSetting instead of leaving it untouched might result in unexpected behaviors.
       // https://github.com/dariuszseweryn/RxAndroidBle/issues/462
       if (scanningOptions.callbackType == null) {
-        scanningOptions.callbackType = 1;
+        scanningOptions.callbackType = BleScanCallbackType.AllMatches;
       }
 
       // (ANDROID) Defaults to 0ms (report results immediately).
@@ -282,7 +375,7 @@ class BleManager {
         seconds,
         allowDuplicates,
         scanningOptions,
-        error => {
+        (error: string | null) => {
           if (error) {
             reject(error);
           } else {
@@ -294,36 +387,46 @@ class BleManager {
   }
 
   stopScan() {
-    return new Promise((fulfill, reject) => {
-      bleManager.stopScan(error => {
-        if (error != null) {
-          reject(error);
-        } else {
-          fulfill();
-        }
-      });
-    });
-  }
-
-  enableBluetooth() {
-    return new Promise((fulfill, reject) => {
-      bleManager.enableBluetooth(error => {
-        if (error != null) {
-          reject(error);
-        } else {
-          fulfill();
-        }
-      });
-    });
-  }
-
-  getConnectedPeripherals(serviceUUIDs) {
-    return new Promise((fulfill, reject) => {
-      bleManager.getConnectedPeripherals(serviceUUIDs, (error, result) => {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.stopScan((error: string | null) => {
         if (error) {
           reject(error);
         } else {
-          if (result != null) {
+          fulfill();
+        }
+      });
+    });
+  }
+
+  /**
+   * [Android only] triggers an ENABLE_REQUEST intent to the end-user to enable bluetooth.
+   * @returns 
+   */
+  enableBluetooth() {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.enableBluetooth((error: string | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
+  /**
+   * 
+   * @param serviceUUIDs [optional] not used on android, optional on ios.
+   * @returns 
+   */
+  getConnectedPeripherals(serviceUUIDs: string[] = []) {
+    return new Promise<Peripheral[]>((fulfill, reject) => {
+
+      bleManager.getConnectedPeripherals(serviceUUIDs, (error: string | null, result: Peripheral[] | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          if (result) {
             fulfill(result);
           } else {
             fulfill([]);
@@ -333,13 +436,17 @@ class BleManager {
     });
   }
 
+  /**
+   * [Android only]
+   * @returns 
+   */
   getBondedPeripherals() {
-    return new Promise((fulfill, reject) => {
-      bleManager.getBondedPeripherals((error, result) => {
+    return new Promise<Peripheral[]>((fulfill, reject) => {
+      bleManager.getBondedPeripherals((error: string | null, result: Peripheral[] | null) => {
         if (error) {
           reject(error);
         } else {
-          if (result != null) {
+          if (result) {
             fulfill(result);
           } else {
             fulfill([]);
@@ -350,12 +457,12 @@ class BleManager {
   }
 
   getDiscoveredPeripherals() {
-    return new Promise((fulfill, reject) => {
-      bleManager.getDiscoveredPeripherals((error, result) => {
+    return new Promise<Peripheral[]>((fulfill, reject) => {
+      bleManager.getDiscoveredPeripherals((error: string | null, result: Peripheral[] | null) => {
         if (error) {
           reject(error);
         } else {
-          if (result != null) {
+          if (result) {
             fulfill(result);
           } else {
             fulfill([]);
@@ -365,9 +472,14 @@ class BleManager {
     });
   }
 
-  removePeripheral(peripheralId) {
-    return new Promise((fulfill, reject) => {
-      bleManager.removePeripheral(peripheralId, error => {
+  /**
+   * [Android only]
+   * @param peripheralId 
+   * @returns 
+   */
+  removePeripheral(peripheralId: string) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.removePeripheral(peripheralId, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -377,13 +489,14 @@ class BleManager {
     });
   }
 
-  isPeripheralConnected(peripheralId, serviceUUIDs) {
+  /**
+   * @param peripheralId 
+   * @param serviceUUIDs [optional] not used on android, optional on ios.
+   * @returns 
+   */
+  isPeripheralConnected(peripheralId: string, serviceUUIDs: string[] = []) {
     return this.getConnectedPeripherals(serviceUUIDs).then(result => {
-      if (
-        result.find(p => {
-          return p.id === peripheralId;
-        })
-      ) {
+      if (result.find(p => p.id === peripheralId)) {
         return true;
       } else {
         return false;
@@ -391,12 +504,18 @@ class BleManager {
     });
   }
 
-  requestConnectionPriority(peripheralId, connectionPriority) {
-    return new Promise((fulfill, reject) => {
+  /**
+   * [Android only, API 21+]
+   * @param peripheralId 
+   * @param connectionPriority 
+   * @returns a promise that resolves with a boolean indicating of the connection priority was changed successfully, or rejects with an error message.
+   */
+  requestConnectionPriority(peripheralId: string, connectionPriority: ConnectionPriority) {
+    return new Promise<boolean>((fulfill, reject) => {
       bleManager.requestConnectionPriority(
         peripheralId,
         connectionPriority,
-        (error, status) => {
+        (error: string | null, status: boolean) => {
           if (error) {
             reject(error);
           } else {
@@ -407,9 +526,16 @@ class BleManager {
     });
   }
 
-  requestMTU(peripheralId, mtu) {
-    return new Promise((fulfill, reject) => {
-      bleManager.requestMTU(peripheralId, mtu, (error, mtu) => {
+
+  /**
+   * [Android only, API 21+]
+   * @param peripheralId
+   * @param mtu size to be requested, in bytes.
+   * @returns a promise resolving with the negotiated MTU if it succeeded. Beware that it might not be the one requested due to device's BLE limitations on both side of the negotiation.
+   */
+  requestMTU(peripheralId: string, mtu: number) {
+    return new Promise<number>((fulfill, reject) => {
+      bleManager.requestMTU(peripheralId, mtu, (error: string | null, mtu: number) => {
         if (error) {
           reject(error);
         } else {
@@ -419,9 +545,13 @@ class BleManager {
     });
   }
 
-  setName(name) {
+  /**
+   * [Android only]
+   * @param name 
+   */
+  setName(name: string) {
     bleManager.setName(name);
   }
 }
 
-module.exports = new BleManager();
+export default new BleManager();
