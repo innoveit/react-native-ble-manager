@@ -41,28 +41,41 @@ The library support the react native autolink feature.
     xmlns:tools="http://schemas.android.com/tools"
     package="YOUR_PACKAGE_NAME">
 
-    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <!--
+      HACK: this permission should not be needed on android 12+ devices anymore,
+      but in fact some manufacturers still need it for BLE to properly work : 
+      https://stackoverflow.com/a/72370969
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH" tools:remove="android:maxSdkVersion" />
+    <!--
+      should normally only be needed on android < 12 if you want to:
+      - activate bluetooth programmatically
+      - discover local BLE devices
+      see: https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#discover-local-devices.
+      Same as above, may still be wrongly needed by some manufacturers on android 12+.
+     -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" tools:remove="android:maxSdkVersion" />
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28"/>
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" tools:targetApi="Q"/>
+    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30"/>
 
     <!-- Only when targeting Android 12 or higher -->
-    <!-- Please make sure you read the following documentation to have a
-         better understanding of the new permissions.
-         https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location
-         -->
+    <!-- 
+      Please make sure you read the following documentation
+      to have a better understanding of the new permissions.
+      https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location
+    -->
 
-    <!-- If your app doesn't use Bluetooth scan results to derive physical location information,
-         you can strongly assert that your app
-         doesn't derive physical location. -->
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" 
-                     android:usesPermissionFlags="neverForLocation"
-                     tools:targetApi="s" />
-
-    <!-- Needed only if your app looks for Bluetooth devices. -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
-    <!-- Needed only if your app makes the device discoverable to Bluetooth devices. -->
+    <!-- Needed if your app search for Bluetooth devices. -->
+     <!--
+      If your app doesn't use Bluetooth scan results to derive physical location information,
+      you can strongly assert that your app doesn't derive physical location.
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+                     android:usesPermissionFlags="neverForLocation" />
+    <!-- Needed if you want to interact with a BLE device. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Needed if your app makes the current device discoverable to other Bluetooth devices. -->
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
 ...
 ```
@@ -81,7 +94,7 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 - Android API >= 29 require the ACCESS_FINE_LOCATION permission to scan for peripherals.
    React-Native 0.63.X started targeting Android API 29.
 - Before write, read or start notification you need to call `retrieveServices` method
-- Because location and bluetooth permissions are runtime permissions, you **must** request these permissions at runtime along with declaring them    in your manifest.
+- Because location and bluetooth permissions are runtime permissions, you **must** request these permissions at runtime along with declaring them in your manifest.
 
 ## Example
 
@@ -858,3 +871,17 @@ The peripheral received a request to start or stop providing notifications for a
 - `isNotifying` - `Boolean` - Is the characteristic notifying or not
 - `domain` - `String` - [iOS only] error domain
 - `code` - `Number` - [iOS only] error code
+
+## Library development
+
+- the library is written in typescript and needs to be built before being used for publication or local development, using the provided npm scripts in `package.json`.
+- the local `example` project is configured to work with the locally built version of the library. To be able to run it, you need to build at least once the library so that its outputs listed as entrypoint in `package.json` (in the `dist` folder) are properly generated for consumption by the example project:
+
+from the root folder:
+
+```shell
+npm install
+npm run build
+```
+
+> if you are modifying the typescript files of the library (in `src/`) on the fly, you can run `npm run watch` instead. If you are modifying files from the native counterparts, you'll need to rebuild the whole app for your target environnement (`npm run android/ios`).
