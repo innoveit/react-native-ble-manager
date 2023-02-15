@@ -131,9 +131,9 @@ class BleManager {
     });
   }
 
-  createBond(peripheralId,peripheralPin=null) {
+  createBond(peripheralId, peripheralPin = null) {
     return new Promise((fulfill, reject) => {
-      bleManager.createBond(peripheralId,peripheralPin, error => {
+      bleManager.createBond(peripheralId, peripheralPin, error => {
         if (error) {
           reject(error);
         } else {
@@ -264,7 +264,7 @@ class BleManager {
       if (scanningOptions.scanMode == null) {
         scanningOptions.scanMode = 0;
       }
-      
+
       // (ANDROID) Defaults to CALLBACK_TYPE_ALL_MATCHES 
       // WARN: sometimes, setting a scanSetting instead of leaving it untouched might result in unexpected behaviors.
       // https://github.com/dariuszseweryn/RxAndroidBle/issues/462

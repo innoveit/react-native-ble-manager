@@ -30,7 +30,7 @@ declare module "react-native-ble-manager" {
   }
 
   export interface CustomAdvertisingData {
-    CDVType : 'ArrayBuffer',
+    CDVType: 'ArrayBuffer',
     bytes: Uint8Array,
     data: string // base64-encoded string of the data
   }
