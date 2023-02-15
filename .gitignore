@@ -1,36 +1,32 @@
+# android
 .idea
-
-android/local.properties
-android/.project
-android/.settings
-android/.classpath
+.vscode
+.gradle
+*.iml
+*.hprof
+/android/local.properties
+/android/.project
+/android/.settings
+/android/.classpath
 gen/
 
-
-.gradle
-gradle
-gradlew
-gradlew.bat
-
-node_modules
-
-# OSX
-#
-.DS_Store
-
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+# JS dependencies & generated files
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
 
 ## Build generated
 build/
+
+# OSX
+.DS_Store
+
+# Xcode
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
 DerivedData
-
 *.tgz
-
 *.xcuserstate
-
 xcuserdata
-
 *.iml
 *.swp
