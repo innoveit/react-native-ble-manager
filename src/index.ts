@@ -370,6 +370,13 @@ class BleManager {
         scanningOptions.reportDelay = 0;
       }
 
+      // (ANDROID) ScanFilter used to restrict search to devices with a specific advertising name.
+      // https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
+      if (!scanningOptions.exactAdvertisingName
+        || typeof scanningOptions.exactAdvertisingName !== 'string') {
+        delete scanningOptions.exactAdvertisingName;
+      }
+
       bleManager.scan(
         serviceUUIDs,
         seconds,

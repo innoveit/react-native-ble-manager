@@ -92,7 +92,15 @@ public class LollipopScanManager extends ScanManager {
             }
         }
 
+        if (options.hasKey("exactAdvertisingName")) {
+            String expectedName = options.getString("exactAdvertisingName");
+            Log.d(BleManager.LOG_TAG, "Filter on advertising name:" + expectedName);
+            ScanFilter filter = new ScanFilter.Builder().setDeviceName(expectedName).build();
+            filters.add(filter);
+        }
+
         getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, scanSettingsBuilder.build(), mScanCallback);
+
         if (scanSeconds > 0) {
             Thread thread = new Thread() {
                 private int currentScanSession = scanSessionId.incrementAndGet();
@@ -109,11 +117,13 @@ public class LollipopScanManager extends ScanManager {
                         @Override
                         public void run() {
                             BluetoothAdapter btAdapter = getBluetoothAdapter();
+
                             // check current scan session was not stopped
                             if (scanSessionId.intValue() == currentScanSession) {
                                 if (btAdapter.getState() == BluetoothAdapter.STATE_ON) {
                                     btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
                                 }
+
                                 WritableMap map = Arguments.createMap();
                                 map.putInt("status", 10);
                                 bleManager.sendEvent("BleManagerStopScan", map);
