@@ -4,7 +4,13 @@
 [![npm downloads](https://img.shields.io/npm/dm/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
 [![GitHub issues](https://img.shields.io/github/issues/innoveit/react-native-ble-manager.svg?style=flat)](https://github.com/innoveit/react-native-ble-manager/issues)
 
-This is a porting of https://github.com/don/cordova-plugin-ble-central project to React Native.
+A React Native Bluetooth Low Energy library.
+
+Originally inspired by https://github.com/don/cordova-plugin-ble-central.
+
+## Introduction
+
+The library is a simple connection with the OS APIs, the BLE stack should be standard but often has different behaviors based on the device used, the operating system and the BLE chip it connects to. Before opening an issue verify that the problem is really the library.
 
 ## Requirements
 
@@ -86,11 +92,14 @@ The easiest way to test is simple make your AppRegistry point to our example com
 import React, { Component } from "react";
 import { AppRegistry } from "react-native";
 import App from "react-native-ble-manager/example/App"; //<-- simply point to the example js!
-
+/* 
+Note: The react-native-ble-manager/example directory is only included when cloning the repo, the above import will not work 
+if trying to import react-native-ble-manager/example from node_modules
+*/
 AppRegistry.registerComponent("MyAwesomeApp", () => App);
 ```
 
-Or, you can still look into the whole [example](https://github.com/innoveit/react-native-ble-manager/tree/master/example) folder for a standalone project.
+Or, [use the example directly](example)
 
 ## Methods
 
@@ -441,7 +450,7 @@ BleManager.writeWithoutResponse(
 ### readRSSI(peripheralId)
 
 Read the current value of the RSSI.
-Returns a `Promise` object.
+Returns a `Promise` object resolving with the updated RSSI value (`number`) if it succeeds.
 
 **Arguments**
 
@@ -464,7 +473,7 @@ BleManager.readRSSI("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 ### requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
 
 Request a connection parameter update.
-Returns a `Promise` object.
+Returns a `Promise` object which fulfills with the status of the request.
 
 **Arguments**
 
@@ -708,7 +717,7 @@ The BLE change state.
 
 **Arguments**
 
-- `state` - `String` - the new BLE state ('on'/'off').
+- `state` - `String` - the new BLE state. can be one of `unknown` (iOS only), `resetting` (iOS only), `unsupported`, `unauthorized` (iOS only), `on`, `off`, `turning_on` (android only), `turning_off` (android only).
 
 **Examples**
 
