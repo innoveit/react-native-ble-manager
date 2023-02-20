@@ -27,8 +27,12 @@
   "module": "dist/esm/index.js",
   "react-native": "src/index.ts",
   "files": [
-    "dist",
-    "src"
+    "/dist",
+    "/src",
+    "/android",
+    "!/android/build",
+    "/ios",
+    "/*.podspec"
   ],
   "scripts": {
     "version": "git add -A",
@@ -39,6 +43,7 @@
     "build:esm": "tsc --outDir dist/esm",
     "build": "npm run build:esm && npm run build:cjs",
     "watch": "npm run build --watch",
+    "prepare": "npm run build",
     "preversion": "npm run build",
     "postversion": "git push --follow-tags"
   },
