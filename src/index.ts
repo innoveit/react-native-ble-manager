@@ -25,15 +25,15 @@ class BleManager {
    * @param peripheralId 
    * @param serviceUUID 
    * @param characteristicUUID 
-   * @returns read data as a JS byteArray (Uint8Array).
+   * @returns data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
    */
   read(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
-    return new Promise<Uint8Array>((fulfill, reject) => {
+    return new Promise<number[]>((fulfill, reject) => {
       bleManager.read(
         peripheralId,
         serviceUUID,
         characteristicUUID,
-        (error: string | null, data: Uint8Array) => {
+        (error: string | null, data: number[]) => {
           if (error) {
             reject(error);
           } else {
@@ -105,7 +105,7 @@ class BleManager {
    * @param peripheralId 
    * @param serviceUUID 
    * @param characteristicUUID 
-   * @param data data to write as a JS byteArray (Uint8Array)
+   * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
    * @param maxByteSize optional, defaults to 20
    * @returns 
    */
@@ -113,7 +113,7 @@ class BleManager {
     peripheralId: string,
     serviceUUID: string,
     characteristicUUID: string,
-    data: Uint8Array,
+    data: number[],
     maxByteSize: number = 20
   ) {
 
@@ -140,7 +140,7 @@ class BleManager {
    * @param peripheralId 
    * @param serviceUUID 
    * @param characteristicUUID 
-   * @param data data to write as a JS byteArray (Uint8Array)
+   * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
    * @param maxByteSize optional, defaults to 20
    * @param queueSleepTime optional, defaults to 10. Only useful if data length is greater than maxByteSize.
    * @returns 
@@ -149,7 +149,7 @@ class BleManager {
     peripheralId: string,
     serviceUUID: string,
     characteristicUUID: string,
-    data: Uint8Array,
+    data: number[],
     maxByteSize: number = 20,
     queueSleepTime: number = 10
   ) {

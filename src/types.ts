@@ -1,14 +1,31 @@
-// android states: https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
-// ios states: https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerstate
+/**
+ * android states: https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
+ * ios states: https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerstate
+ * */
 export enum BleState {
-  Unknown = 'unknown', // [iOS only]
-  Resetting = 'resetting', // [iOS only]
+  /**
+   * [iOS only]
+   */
+  Unknown = 'unknown',
+  /**
+   * [iOS only]
+   */
+  Resetting = 'resetting',
   Unsupported = 'unsupported',
-  Unauthorized = 'unauthorized', // [iOS only]
+  /**
+   * [iOS only]
+   */
+  Unauthorized = 'unauthorized',
   On = 'on',
   Off = 'off',
-  TurningOn = 'turning_on', // [android only]
-  TurningOff = 'turning_off', // [android only]
+  /**
+   * [android only]
+   */
+  TurningOn = 'turning_on',
+  /**
+   * [android only]
+   */ 
+  TurningOff = 'turning_off',
 }
 
 export interface Peripheral {
@@ -29,36 +46,55 @@ export interface AdvertisingData {
 
 export interface CustomAdvertisingData {
   CDVType: 'ArrayBuffer',
-  bytes: Uint8Array,
-  data: string // base64-encoded string of the data
+  /**
+   * data as an array of numbers (which can be converted back to a Uint8Array (ByteArray),
+   * using something like [Buffer.from()](https://github.com/feross/buffer))
+   */
+  bytes: number[],
+  /**
+   * base64-encoded string of the data
+   */
+  data: string
 }
 
 export interface StartOptions {
-  showAlert?: boolean; // [iOS only]
-  restoreIdentifierKey?: string; // [iOS only]
-  queueIdentifierKey?: string; // [iOS only]
-  forceLegacy?: boolean; // [android only]
+  /**
+   * [iOS only]
+   */
+  showAlert?: boolean;
+  /**
+   * [iOS only]
+   */
+  restoreIdentifierKey?: string;
+  /**
+   * [iOS only]
+   */
+  queueIdentifierKey?: string;
+  /**
+   * [android only]
+   */
+  forceLegacy?: boolean;
 }
 
-// [android only]
-// https://developer.android.com/reference/android/bluetooth/le/ScanSettings
+/**
+ * [android only]
+ * https://developer.android.com/reference/android/bluetooth/le/ScanSettings
+ */ 
 export interface ScanOptions {
   /** 
-   * This will only works if a ScanFilter is active. Otherwise, will not retrieve any result.
+   * This will only works if a ScanFilter is active. Otherwise, may not retrieve any result.
    * See https://developer.android.com/reference/android/bluetooth/le/ScanSettings#MATCH_NUM_FEW_ADVERTISEMENT. 
    * */
   numberOfMatches?: BleScanMatchCount;
-
   matchMode?: BleScanMatchMode;
-
   /** 
-   * This will only works if a ScanFilter is active. Otherwise, will not retrieve any result.
-   * See https://developer.android.com/reference/android/bluetooth/le/ScanSettings#CALLBACK_TYPE_FIRST_MATCH. 
+   * This will only works if a ScanFilter is active. Otherwise, may not retrieve any result.
+   * See https://developer.android.com/reference/android/bluetooth/le/ScanSettings#CALLBACK_TYPE_FIRST_MATCH.
+   * Also read [this issue](https://github.com/dariuszseweryn/RxAndroidBle/issues/561#issuecomment-532295346) for a deeper understanding 
+   * of the very brittle stability of ScanSettings on android.
    * */
   callbackType?: BleScanCallbackType;
-
   scanMode?: BleScanMode;
-
   /**
    * This is supposed to push results after a certain delay.
    * In practice it is tricky, use with caution.
@@ -68,14 +104,12 @@ export interface ScanOptions {
    * https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setReportDelay(long)
    */
   reportDelay?: number;
-
   /**
    * Does not work in conjunction with legacy scans. Setting an unsupported PHY will result in a failure to scan,
    * use with caution.
    * https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int)
    */
   phy?: BleScanPhyMode;
-
   /**
    * true by default for compatibility with older apps. 
    * In that mode, scan will only retrieve advertisements data as specified by BLE 4.2 and below.
@@ -85,7 +119,9 @@ export interface ScanOptions {
   legacy?: boolean;
 }
 
-// [android only]
+/**
+ * [android only]
+ */
 export enum BleScanMode {
   Opportunistic = -1,
   LowPower = 0,
@@ -93,27 +129,35 @@ export enum BleScanMode {
   LowLatency = 2,
 }
 
-// [android only]
+/**
+ * [android only]
+ */
 export enum BleScanMatchMode {
   Aggressive = 1,
   Sticky = 2,
 }
 
-// [android only]
+/**
+ * [android only]
+ */
 export enum BleScanCallbackType {
   AllMatches = 1,
   FirstMatch = 2,
   MatchLost = 4,
 }
 
-// [android only]
+/**
+ * [android only]
+ */
 export enum BleScanMatchCount {
   OneAdvertisement = 1,
   FewAdvertisements = 2,
   MaxAdvertisements = 3,
 }
 
-// [android only]
+/**
+ * [android only]
+ */
 export enum BleScanPhyMode {
   LE_1M = 1,
   LE_2M = 2,
@@ -121,7 +165,9 @@ export enum BleScanPhyMode {
   ALL_SUPPORTED = 255,
 }
 
-// [Android only API 21+]
+/**
+ * [android only API 21+]
+ */
 export enum ConnectionPriority {
   balanced = 0,
   high = 1,
@@ -138,7 +184,9 @@ export interface Descriptor {
 }
 
 export interface Characteristic {
-  // See https://developer.apple.com/documentation/corebluetooth/cbcharacteristicproperties
+  /**
+   * See https://developer.apple.com/documentation/corebluetooth/cbcharacteristicproperties
+   */
   properties: {
     Broadcast?: "Broadcast";
     Read?: "Read";
@@ -170,13 +218,25 @@ export enum BleEventType {
   BleManagerDidUpdateValueForCharacteristic = 'BleManagerDidUpdateValueForCharacteristic',
   BleManagerConnectPeripheral = 'BleManagerConnectPeripheral',
   BleManagerDisconnectPeripheral = 'BleManagerDisconnectPeripheral',
-  BleManagerPeripheralDidBond = 'BleManagerPeripheralDidBond', // [Android only]
-  BleManagerCentralManagerWillRestoreState = 'BleManagerCentralManagerWillRestoreState', // [iOS only]
-  BleManagerDidUpdateNotificationStateFor = 'BleManagerDidUpdateNotificationStateFor', // [iOS only]
+  /**
+   * [Android only]
+   */
+  BleManagerPeripheralDidBond = 'BleManagerPeripheralDidBond',
+  /**
+   * [iOS only]
+   */
+  BleManagerCentralManagerWillRestoreState = 'BleManagerCentralManagerWillRestoreState',
+  /**
+   * [iOS only]
+   */
+  BleManagerDidUpdateNotificationStateFor = 'BleManagerDidUpdateNotificationStateFor',
 }
 
 export interface BleStopScanEvent {
-  status?: number; // [iOS only]
+  /**
+   * [iOS only]
+   */
+  status?: number;
 }
 
 export interface BleManagerDidUpdateStateEvent {
@@ -184,34 +244,84 @@ export interface BleManagerDidUpdateStateEvent {
 }
 
 export interface BleConnectPeripheralEvent {
-  readonly peripheral: string; // peripheral id
-  readonly status?: number; // [android only]
+  /**
+   * peripheral id
+   */
+  readonly peripheral: string;
+  /**
+   * [android only]
+   */
+  readonly status?: number;
 }
 
 export type BleDiscoverPeripheralEvent = Peripheral;
 
-// [Android only]
+/**
+ * [Android only]
+ */
 export type BleBondedPeripheralEvent = Peripheral;
 
 export interface BleDisconnectPeripheralEvent {
-  readonly peripheral: string; // peripheral id
-  readonly status?: number; // [android only] disconnect reason.
-  readonly domain?: string; // [iOS only] disconnect error domain.
-  readonly code?: number; // [iOS only] disconnect error code.
+  /**
+   * peripheral id
+   */
+  readonly peripheral: string;
+  /**
+   * [android only] disconnect reason.
+   */
+  readonly status?: number;
+  /**
+   * [iOS only] disconnect error domain.
+   */
+  readonly domain?: string;
+  /**
+   * [iOS only] disconnect error code.
+   */
+  readonly code?: number;
 }
 
 export interface BleManagerDidUpdateValueForCharacteristicEvent {
-  readonly characteristic: string; // characteristic UUID
-  readonly peripheral: string; // peripheral id
-  readonly service: string; // service UUID
-  readonly value: Uint8Array;
+  /**
+   * characteristic UUID
+   */
+  readonly characteristic: string;
+  /**
+   * peripheral id
+   */
+  readonly peripheral: string;
+  /**
+   * service UUID
+   */
+  readonly service: string;
+  /**
+   * data as an array of numbers (which can be converted back to a Uint8Array (ByteArray), 
+   * using something like [Buffer.from()](https://github.com/feross/buffer))
+   */
+  readonly value: number[];
 }
 
-// [iOS only]
+/**
+ * [iOS only]
+ */
 export interface BleManagerDidUpdateNotificationStateForEvent {
-  readonly peripheral: string; // peripheral id
-  readonly characteristic: string; // characteristic UUID
-  readonly isNotifying: boolean; // is the characteristic notifying or not
-  readonly domain: string; // error domain.
-  readonly code: number; // error code.
+  /**
+   * peripheral id
+   */
+  readonly peripheral: string;
+  /**
+   * characteristic UUID
+   */
+  readonly characteristic: string;
+  /**
+   * is the characteristic notifying or not
+   */
+  readonly isNotifying: boolean;
+  /**
+   * error domain
+   */
+  readonly domain: string;
+  /**
+   * error code
+   */
+  readonly code: number;
 }
