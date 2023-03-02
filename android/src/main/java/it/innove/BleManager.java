@@ -1,5 +1,9 @@
 package it.innove;
 
+import static android.app.Activity.RESULT_OK;
+import static android.bluetooth.BluetoothProfile.GATT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -11,14 +15,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import android.util.Log;
-
 import com.facebook.react.bridge.ActivityEventListener;
-import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -35,10 +38,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static android.app.Activity.RESULT_OK;
-import static android.bluetooth.BluetoothProfile.GATT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
 class BleManager extends ReactContextBaseJavaModule {
 
@@ -218,7 +217,7 @@ class BleManager extends ReactContextBaseJavaModule {
         if (scanManager != null) {
             scanManager.stopScan(callback);
             WritableMap map = Arguments.createMap();
-						map.putInt("status", 0);
+            map.putInt("status", 0);
             sendEvent("BleManagerStopScan", map);
         }
     }
@@ -538,7 +537,7 @@ class BleManager extends ReactContextBaseJavaModule {
                 final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
                 final int prevState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE,
                         BluetoothDevice.ERROR);
-                BluetoothDevice device = (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                 String bondStateStr = "UNKNOWN";
                 switch (bondState) {
@@ -604,7 +603,7 @@ class BleManager extends ReactContextBaseJavaModule {
             synchronized (peripherals) {
                 for (Peripheral peripheral : peripherals.values()) {
                     if (peripheral.isConnected()) {
-                        peripheral.disconnect(null,true);
+                        peripheral.disconnect(null, true);
                     }
                 }
             }
@@ -743,14 +742,14 @@ class BleManager extends ReactContextBaseJavaModule {
         return peripheral;
     }
 
-   @ReactMethod
+    @ReactMethod
     public void addListener(String eventName) {
-      // Keep: Required for RN built in Event Emitter Calls.
+        // Keep: Required for RN built in Event Emitter Calls.
     }
 
     @ReactMethod
-     public void removeListeners(Integer count) {
-      // Keep: Required for RN built in Event Emitter Calls.
+    public void removeListeners(Integer count) {
+        // Keep: Required for RN built in Event Emitter Calls.
     }
 
     @Override
@@ -759,13 +758,14 @@ class BleManager extends ReactContextBaseJavaModule {
             // Disconnect all known peripherals, otherwise android system will think we are still connected
             // while we have lost the gatt instance
             disconnectPeripherals();
-        }catch(Exception e) {
+        } catch (Exception e) {
             Log.d(LOG_TAG, "Could not disconnect peripherals", e);
         }
 
         if (scanManager != null) {
             // Stop scan in case one was started to stop events from being emitted after destroy
-            scanManager.stopScan(args -> {});
+            scanManager.stopScan(args -> {
+            });
         }
     }
 }

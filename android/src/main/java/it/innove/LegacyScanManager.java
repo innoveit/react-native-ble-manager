@@ -1,12 +1,17 @@
 package it.innove;
 
+import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.facebook.react.bridge.*;
-
-import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
 
 public class LegacyScanManager extends ScanManager {
 
@@ -24,38 +29,38 @@ public class LegacyScanManager extends ScanManager {
     }
 
     private BluetoothAdapter.LeScanCallback mLeScanCallback =
-        new BluetoothAdapter.LeScanCallback() {
+            new BluetoothAdapter.LeScanCallback() {
 
-            @Override
-            public void onLeScan(final BluetoothDevice device, final int rssi,
-                                 final byte[] scanRecord) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + device.getName());
+                @Override
+                public void onLeScan(final BluetoothDevice device, final int rssi,
+                                     final byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(BleManager.LOG_TAG, "DiscoverPeripheral: " + device.getName());
 
-                        Peripheral peripheral = bleManager.getPeripheral(device);
-                        if (peripheral == null) {
-                            peripheral = new Peripheral(device, rssi, scanRecord, bleManager.getReactContext());
-                        } else {
-                            peripheral.updateData(scanRecord);
-                            peripheral.updateRssi(rssi);
+                            Peripheral peripheral = bleManager.getPeripheral(device);
+                            if (peripheral == null) {
+                                peripheral = new Peripheral(device, rssi, scanRecord, bleManager.getReactContext());
+                            } else {
+                                peripheral.updateData(scanRecord);
+                                peripheral.updateRssi(rssi);
+                            }
+                            bleManager.savePeripheral(peripheral);
+
+                            WritableMap map = peripheral.asWritableMap();
+                            bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
                         }
-                        bleManager.savePeripheral(peripheral);
-
-                        WritableMap map = peripheral.asWritableMap();
-                        bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
-                    }
-                });
-            }
+                    });
+                }
 
 
-        };
+            };
 
     @Override
     public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback) {
         if (serviceUUIDs.size() > 0) {
-            Log.d(bleManager.LOG_TAG, "Filter is not working in pre-lollipop devices");
+            Log.d(BleManager.LOG_TAG, "Filter is not working in pre-lollipop devices");
         }
         getBluetoothAdapter().startLeScan(mLeScanCallback);
 

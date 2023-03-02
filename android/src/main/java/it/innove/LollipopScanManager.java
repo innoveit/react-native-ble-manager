@@ -88,7 +88,7 @@ public class LollipopScanManager extends ScanManager {
             for (int i = 0; i < serviceUUIDs.size(); i++) {
                 ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)))).build();
                 filters.add(filter);
-                Log.d(bleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
+                Log.d(BleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
             }
         }
 
@@ -145,7 +145,7 @@ public class LollipopScanManager extends ScanManager {
                     else
                         info = result.toString();
 
-                    Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + info);
+                    Log.i(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
 
                     LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
                     if (peripheral == null) {
