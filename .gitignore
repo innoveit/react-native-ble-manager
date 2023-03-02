@@ -8,6 +8,9 @@
 /android/.project
 /android/.settings
 /android/.classpath
+/android/gradle
+/android/gradlew
+/android/gradlew.bat
 gen/
 
 # JS dependencies & generated files
