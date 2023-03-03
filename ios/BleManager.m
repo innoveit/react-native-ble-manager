@@ -146,17 +146,17 @@ bool hasListeners;
 - (NSString *) centralManagerStateToString: (int)state
 {
     switch (state) {
-        case CBCentralManagerStateUnknown:
+        case CBManagerStateUnknown:
             return @"unknown";
-        case CBCentralManagerStateResetting:
+        case CBManagerStateResetting:
             return @"resetting";
-        case CBCentralManagerStateUnsupported:
+        case CBManagerStateUnsupported:
             return @"unsupported";
-        case CBCentralManagerStateUnauthorized:
+        case CBManagerStateUnauthorized:
             return @"unauthorized";
-        case CBCentralManagerStatePoweredOff:
+        case CBManagerStatePoweredOff:
             return @"off";
-        case CBCentralManagerStatePoweredOn:
+        case CBManagerStatePoweredOn:
             return @"on";
         default:
             return @"unknown";
@@ -186,12 +186,18 @@ bool hasListeners;
 - (NSString *) periphalManagerStateToString: (int)state
 {
     switch (state) {
-        case CBPeripheralManagerStateUnknown:
-            return @"Unknown";
-        case CBPeripheralManagerStatePoweredOn:
-            return @"PoweredOn";
-        case CBPeripheralManagerStatePoweredOff:
-            return @"PoweredOff";
+        case CBManagerStateUnknown:
+            return @"unknown";
+        case CBManagerStateResetting:
+            return @"resetting";
+        case CBManagerStateUnsupported:
+            return @"unsupported";
+        case CBManagerStateUnauthorized:
+            return @"unauthorized";
+        case CBManagerStatePoweredOff:
+            return @"off";
+        case CBManagerStatePoweredOn:
+            return @"on";
         default:
             return @"unknown";
     }
@@ -469,10 +475,13 @@ RCT_EXPORT_METHOD(disconnect:(NSString *)peripheralUUID force:(BOOL)force callba
     }
 }
 
-RCT_EXPORT_METHOD(checkState)
+RCT_EXPORT_METHOD(checkState:(nonnull RCTResponseSenderBlock)callback)
 {
     if (manager != nil){
         [self centralManagerDidUpdateState:self.manager];
+
+        NSString *stateName = [self centralManagerStateToString:self.manager.state];
+        callback(@[stateName]);
     }
 }
 

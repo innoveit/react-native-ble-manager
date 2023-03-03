@@ -261,12 +261,13 @@ BleManager.enableBluetooth()
 
 ### checkState()
 
-Force the module to check the state of BLE and trigger a BleManagerDidUpdateState event.
+Force the module to check the state of the native BLE manager and trigger a BleManagerDidUpdateState event.
+Resolves to a promise containing the current BleState.
 
 **Examples**
 
 ```js
-BleManager.checkState();
+BleManager.checkState().then(state => console.log(`current BLE state = '${state}'.`));
 ```
 
 ### startNotification(peripheralId, serviceUUID, characteristicUUID)
