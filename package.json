@@ -2,8 +2,6 @@
   "name": "react-native-ble-manager",
   "version": "8.8.0",
   "description": "A BLE module for react native.",
-  "main": "BleManager",
-  "types": "./index.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/innoveit/react-native-ble-manager.git"
@@ -24,8 +22,37 @@
     "name": "Innove",
     "url": "https://github.com/innoveit"
   },
+  "main": "dist/cjs/index.js",
+  "types": "dist/esm/index.d.ts",
+  "module": "dist/esm/index.js",
+  "react-native": "src/index.ts",
+  "files": [
+    "/dist",
+    "/src",
+    "/android",
+    "!/android/build",
+    "/ios",
+    "/*.podspec"
+  ],
   "scripts": {
     "version": "git add -A",
-    "postversion": "git push && git push --tags"
+    "clean": "rimraf dist",
+    "type:check": "tsc -p tsconfig.json --noEmit",
+    "prebuild": "npm run clean",
+    "build:cjs": "tsc --module commonjs --outDir dist/cjs",
+    "build:esm": "tsc --outDir dist/esm",
+    "build": "npm run build:esm && npm run build:cjs",
+    "watch": "npm run build --watch",
+    "prepare": "npm run build",
+    "preversion": "npm run build",
+    "postversion": "git push --follow-tags"
+  },
+  "peerDependencies": {
+    "react-native": ">=0.60.0"
+  },
+  "devDependencies": {
+    "react-native": "0.71.0",
+    "rimraf": "4.1.2",
+    "typescript": "4.9.5"
   }
 }

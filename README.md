@@ -140,9 +140,9 @@ Returns a `Promise` object.
 - `seconds` - `Integer` - the amount of seconds to scan.
 - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
 - `scanningOptions` - `JSON` - [Android only] after Android 5.0, user can control specific ble scan behaviors:
-  - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>). Defaults to `ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT`.
+  - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>). Defaults to `ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
   - `matchMode` - `Number` - [Android only] corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>). Defaults to `ScanSettings.MATCH_MODE_AGGRESSIVE`.
-  - `callbackType` - `Number` - [Android only] corresponding to [`setCallbackType`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setCallbackType(int)>). Defaults `ScanSettings.CALLBACK_TYPE_ALL_MATCHES`.
+  - `callbackType` - `Number` - [Android only] corresponding to [`setCallbackType`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setCallbackType(int)>). Defaults `ScanSettings.CALLBACK_TYPE_ALL_MATCHES`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
   - `scanMode` - `Number` - [Android only] corresponding to [`setScanMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int)>). Defaults to `ScanSettings.SCAN_MODE_LOW_POWER`.
   - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>). Defaults to `0ms`.
   - `phy` - `Number` - [Android only] corresponding to [`setPhy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int))
@@ -329,7 +329,8 @@ Returns a `Promise` object.
 ### read(peripheralId, serviceUUID, characteristicUUID)
 
 Read the current value of the specified characteristic, you need to call `retrieveServices` method before.
-Returns a `Promise` object.
+Returns a `Promise` object that will resolves to an array of plain integers (`number[]`) representing a `ByteArray` structure.
+That array can then be converted to a JS `ArrayBuffer` for example using `Buffer.from()` [thanks to this buffer module](https://github.com/feross/buffer).
 
 **Arguments**
 
@@ -349,7 +350,9 @@ BleManager.read(
     // Success code
     console.log("Read: " + readData);
 
-    const buffer = Buffer.Buffer.from(readData); //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
+    // https://github.com/feross/buffer
+    // https://nodejs.org/api/buffer.html#static-method-bufferfromarray
+    const buffer = Buffer.from(readData); 
     const sensorData = buffer.readUInt8(1, true);
   })
   .catch((error) => {
@@ -368,25 +371,31 @@ Returns a `Promise` object.
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `data` - `Byte array` - the data to write.
+- `data` - `number[]` - the data to write as a plain integer array representing a `ByteArray` structure.
 - `maxByteSize` - `Integer` - specify the max byte size before splitting message, defaults to 20 bytes if not specified
 
 **Data preparation**
 
-If your data is not in byte array format you should convert it first. For strings you can use `convert-string` or other npm package in order to achieve that.
-Install the package first:
+To convert your data to a `number[]`, you should probably be manipulating a `Buffer` or anything representing a JS `ArrayBuffer`.
+This will make sure you are converting from valid byte representations of your data first and not with [an integer outside the expected range](https://techtutorialsx.com/2019/10/27/node-js-converting-array-to-buffer/).
 
-```shell
-npm install convert-string
-```
-
-Then use it in your application:
+You can create a buffer from files, numbers or strings easily (see examples bellow).
 
 ```js
-// Import/require in the beginning of the file
-import { stringToBytes } from "convert-string";
-// Convert data to byte array before write/writeWithoutResponse
-const data = stringToBytes(yourStringData);
+// https://github.com/feross/buffer
+import { Buffer } from 'buffer';
+
+ * // Creates a Buffer containing the bytes [0x01, 0x02, 0x03].
+ * const buffer = Buffer.from([1, 2, 3]);
+ *
+ * // Creates a Buffer containing the bytes [0x01, 0x01, 0x01, 0x01] – the entries
+ * // are all truncated using `(value & 255)` to fit into the range 0–255.
+ * const buffer = Buffer.from([257, 257.5, -255, '1']);
+ *
+ * // Creates a Buffer containing the UTF-8-encoded bytes for the string 'tést':
+ * // [0x74, 0xc3, 0xa9, 0x73, 0x74] (in hexadecimal notation)
+ * // [116, 195, 169, 115, 116] (in decimal notation)
+ * const buffer = Buffer.from('tést');
 ```
 
 Feel free to use other packages or google how to convert into byte array if your data has other format.
@@ -398,7 +407,9 @@ BleManager.write(
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  data
+  // encode & extract raw `number[]`.
+  // Each number should be in the 0-255 range as it is converted from a valid byte.
+  buffer.toJSON().data
 )
   .then(() => {
     // Success code
@@ -420,13 +431,13 @@ Returns a `Promise` object.
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `data` - `Byte array` - the data to write.
+- `data` - `number[]` - the data to write as a plain integer array representing a `ByteArray` structure. (see `write()`).
 - `maxByteSize` - `Integer` - (Optional) specify the max byte size
 - `queueSleepTime` - `Integer` - (Optional) specify the wait time before each write if the data is greater than maxByteSize
 
 **Data preparation**
 
-If your data is not in byte array format check info for the write function above.
+If your data is not in `number[]` format check info fom the `write()` function example above.
 
 **Example**
 
@@ -585,7 +596,7 @@ BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
 ### createBond(peripheralId,peripheralPin) [Android only]
 
 Start the bonding (pairing) process with the remote device. If you pass peripheralPin(optional), bonding will be auto(without manual entering pin)
-Returns a `Promise` object. The promise is resolved when either `new bond successfully created` or `bond already existed`, otherwise it will be rejected.
+Returns a `Promise` object that will resolves if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
 
 **Examples**
 

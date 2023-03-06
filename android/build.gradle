@@ -1,27 +1,27 @@
 buildscript {
-    // The Android Gradle plugin is only required when opening the android folder stand-alone.
-    // This avoids unnecessary downloads and potential conflicts when the library is included as a
-    // module dependency in an application project.
-    if (project == rootProject) {
-        repositories {
-            google()
-            jcenter()
-        }
+	// The Android Gradle plugin is only required when opening the android folder stand-alone.
+	// This avoids unnecessary downloads and potential conflicts when the library is included as a
+	// module dependency in an application project.
+	if (project == rootProject) {
+		repositories {
+			google()
+			jcenter()
+		}
 
-        dependencies {
-            classpath("com.android.tools.build:gradle:4.2.2")
-        }
-    }
+		dependencies {
+			classpath("com.android.tools.build:gradle:7.3.1")
+		}
+	}
 }
 apply plugin: 'com.android.library'
 
 def safeExtGet(prop, fallback) {
-    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+	rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
 }
 
 android {
-	compileSdkVersion safeExtGet("compileSdkVersion", 30)
-	
+	compileSdkVersion safeExtGet("compileSdkVersion", 31)
+
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_8
 		targetCompatibility JavaVersion.VERSION_1_8
