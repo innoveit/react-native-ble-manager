@@ -6,13 +6,14 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
+    "type:check": "tsc -p tsconfig.json --noEmit",
     "start": "react-native start",
     "test": "jest"
   },
   "dependencies": {
     "react": "18.2.0",
     "react-native": "0.71.2",
-    "react-native-ble-manager": "^8.8.0"
+    "react-native-ble-manager": "file:.."
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
