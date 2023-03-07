@@ -160,6 +160,7 @@ Returns a `Promise` object.
   - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>). Defaults to `0ms`.
   - `phy` - `Number` - [Android only] corresponding to [`setPhy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int))
   - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean))
+  - `exactAdvertisingName` - `string` - [Android only] corresponds to the `ScanFilter` [deviceName](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String))
 
 **Examples**
 

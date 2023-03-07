@@ -117,6 +117,15 @@ export interface ScanOptions {
    * https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean)
    */
   legacy?: boolean;
+  /**
+   * an android ScanFilter, used if present to restrict scan results to devices with a specific advertising name.
+   * This is a whole word match, not a partial search.
+   * Use with caution, it's behavior is tricky and seems to be the following: 
+   * if `callbackType` is set to `AllMatches`, only the completeLocalName will be used for filtering.
+   * if `callbackType` is set to `FirstMatch`, the shortenedLocalName will be used for filtering.
+   * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
+   */
+  exactAdvertisingName?: string;
 }
 
 /**
