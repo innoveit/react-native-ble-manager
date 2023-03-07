@@ -88,7 +88,7 @@ public class LollipopScanManager extends ScanManager {
             for (int i = 0; i < serviceUUIDs.size(); i++) {
                 ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)))).build();
                 filters.add(filter);
-                Log.d(bleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
+                Log.d(BleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
             }
         }
 
@@ -129,41 +129,58 @@ public class LollipopScanManager extends ScanManager {
         callback.invoke();
     }
 
-    private ScanCallback mScanCallback = new ScanCallback() {
+    private void onDiscoveredPeripheral(final ScanResult result) {
+        String info;
+        ScanRecord record = result.getScanRecord();
+
+        if (record != null) {
+            info = record.getDeviceName();
+        } else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            info = result.getDevice().getName();
+        } else {
+            info = result.toString();
+        }
+
+        Log.i(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
+
+        LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
+        if (peripheral == null) {
+            peripheral = new LollipopPeripheral(bleManager.getReactContext(), result);
+        } else {
+            peripheral.updateData(result);
+            peripheral.updateRssi(result.getRssi());
+        }
+        bleManager.savePeripheral(peripheral);
+
+        WritableMap map = peripheral.asWritableMap();
+        bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
+    }
+
+    private final ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(final int callbackType, final ScanResult result) {
-
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    String info;
-                    ScanRecord record = result.getScanRecord();
-                    if (record != null)
-                        info = record.getDeviceName();
-                    else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED)
-                        info = result.getDevice().getName();
-                    else
-                        info = result.toString();
-
-                    Log.i(bleManager.LOG_TAG, "DiscoverPeripheral: " + info);
-
-                    LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
-                    if (peripheral == null) {
-                        peripheral = new LollipopPeripheral(bleManager.getReactContext(), result);
-                    } else {
-                        peripheral.updateData(result);
-                        peripheral.updateRssi(result.getRssi());
-                    }
-                    bleManager.savePeripheral(peripheral);
-
-                    WritableMap map = peripheral.asWritableMap();
-                    bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
+                    onDiscoveredPeripheral(result);
                 }
             });
         }
 
         @Override
         public void onBatchScanResults(final List<ScanResult> results) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (results.isEmpty()) {
+                        return;
+                    }
+
+                    for (ScanResult result : results) {
+                        onDiscoveredPeripheral(result);
+                    }
+                }
+            });
         }
 
         @Override
