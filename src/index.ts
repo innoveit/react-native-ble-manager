@@ -4,6 +4,7 @@ import {
   BleScanMatchCount,
   BleScanMatchMode,
   BleScanMode,
+  BleState,
   ConnectionPriority,
   Peripheral,
   PeripheralInfo,
@@ -304,7 +305,11 @@ class BleManager {
   }
 
   checkState() {
-    bleManager.checkState();
+    return new Promise<BleState>((fulfill, _) => {
+      bleManager.checkState((state: BleState) => {
+        fulfill(state);
+      });
+    });
   }
 
   start(options?: StartOptions) {

@@ -457,7 +457,7 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void checkState() {
+    public void checkState(Callback callback) {
         Log.d(LOG_TAG, "checkState");
 
         BluetoothAdapter adapter = getBluetoothAdapter();
@@ -489,6 +489,7 @@ class BleManager extends ReactContextBaseJavaModule {
         map.putString("state", state);
         Log.d(LOG_TAG, "state:" + state);
         sendEvent("BleManagerDidUpdateState", map);
+        callback.invoke(state);
     }
 
     @ReactMethod
