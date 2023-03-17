@@ -95,7 +95,7 @@ bool hasListeners;
         [self invokeAndClearDictionary:readCallbacks withKey:key usingParameters:@[[NSNull null], ([characteristic.value length] > 0) ? [characteristic.value toArray] : [NSNull null]]];
     } else {
         if (hasListeners) {
-            [self sendEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString, @"service":characteristic.service.UUID.UUIDString, @"value": ([characteristic.value length] > 0) ? [characteristic.value toArray] : [NSNull null]}];
+            [self sendEventWithName:@"BleManagerDidUpdateValueForCharacteristic" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic":characteristic.UUID.UUIDString.lowercaseString, @"service":characteristic.service.UUID.UUIDString.lowercaseString, @"value": ([characteristic.value length] > 0) ? [characteristic.value toArray] : [NSNull null]}];
         }
     }
 }
@@ -107,7 +107,7 @@ bool hasListeners;
             return;
         }
         if (hasListeners) {
-            [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying": @(false), @"domain": [error domain], @"code": @(error.code)}];
+            [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString.lowercaseString, @"isNotifying": @(false), @"domain": [error domain], @"code": @(error.code)}];
         }
     }
     
@@ -136,7 +136,7 @@ bool hasListeners;
         }
     }
     if (hasListeners) {
-        [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString, @"isNotifying": @(characteristic.isNotifying)}];
+        [self sendEventWithName:@"BleManagerDidUpdateNotificationStateFor" body:@{@"peripheral": peripheral.uuidAsString, @"characteristic": characteristic.UUID.UUIDString.lowercaseString, @"isNotifying": @(characteristic.isNotifying)}];
     }
 }
 
@@ -211,7 +211,7 @@ bool hasListeners;
     @synchronized(peripherals) {
         for (CBPeripheral *p in peripherals) {
             
-            NSString* other = p.identifier.UUIDString;
+            NSString* other = p.identifier.UUIDString.lowercaseString;
             
             if ([uuid isEqualToString:other]) {
                 peripheral = p;
@@ -878,7 +878,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     for(int i=0; i < service.characteristics.count; i++)
     {
         CBCharacteristic *c = [service.characteristics objectAtIndex:i];
-        if ((c.properties & prop) != 0x0 && [c.UUID.UUIDString isEqualToString: UUID.UUIDString]) {
+        if ((c.properties & prop) != 0x0 && [c.UUID.UUIDString.lowercaseString isEqualToString: UUID.UUIDString.lowercaseString]) {
             NSLog(@"Found %@", UUID);
             return c;
         }
@@ -893,7 +893,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     for(int i=0; i < service.characteristics.count; i++)
     {
         CBCharacteristic *c = [service.characteristics objectAtIndex:i];
-        if ([c.UUID.UUIDString isEqualToString: UUID.UUIDString]) {
+        if ([c.UUID.UUIDString.lowercaseString isEqualToString: UUID.UUIDString.lowercaseString]) {
             NSLog(@"Found %@", UUID);
             return c;
         }
@@ -931,10 +931,10 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     {
         NSString* err = [NSString stringWithFormat:@"Could not find service with UUID %@ on peripheral with UUID %@",
                          serviceUUIDString,
-                         peripheral.identifier.UUIDString];
+                         peripheral.identifier.UUIDString.lowercaseString];
         NSLog(@"Could not find service with UUID %@ on peripheral with UUID %@",
               serviceUUIDString,
-              peripheral.identifier.UUIDString);
+              peripheral.identifier.UUIDString.lowercaseString);
         callback(@[err]);
         return nil;
     }
@@ -953,11 +953,11 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     
     if (!characteristic)
     {
-        NSString* err = [NSString stringWithFormat:@"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@", characteristicUUIDString,serviceUUIDString, peripheral.identifier.UUIDString];
+        NSString* err = [NSString stringWithFormat:@"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@", characteristicUUIDString,serviceUUIDString, peripheral.identifier.UUIDString.lowercaseString];
         NSLog(@"Could not find characteristic with UUID %@ on service with UUID %@ on peripheral with UUID %@",
               characteristicUUIDString,
               serviceUUIDString,
-              peripheral.identifier.UUIDString);
+              peripheral.identifier.UUIDString.lowercaseString);
         callback(@[err]);
         return nil;
     }

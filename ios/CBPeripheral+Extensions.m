@@ -8,7 +8,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
 
 -(NSString *)uuidAsString {
   if (self.identifier.UUIDString) {
-    return self.identifier.UUIDString;
+    return [self.identifier.UUIDString lowercaseString];
   } else {
     return @"";
   }
@@ -18,7 +18,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
 -(NSDictionary *)asDictionary {
   NSString *uuidString = NULL;
   if (self.identifier.UUIDString) {
-    uuidString = self.identifier.UUIDString;
+    uuidString = [self.identifier.UUIDString lowercaseString];
   } else {
     uuidString = @"";
   }
@@ -112,7 +112,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     
     for (CBUUID *key in [serviceData allKeys]) {
         if ([serviceData objectForKey:key]) {
-            [serviceData setObject:dataToArrayBuffer([serviceData objectForKey:key]) forKey:[key UUIDString]];
+            [serviceData setObject:dataToArrayBuffer([serviceData objectForKey:key]) forKey:[[key UUIDString] lowercaseString]];
             [serviceData removeObjectForKey:key];
         }
     }
@@ -129,7 +129,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     serviceUUIDStrings = [[NSMutableArray alloc] initWithCapacity:serviceUUIDs.count];
     
     for (CBUUID *uuid in serviceUUIDs) {
-      [serviceUUIDStrings addObject:[uuid UUIDString]];
+      [serviceUUIDStrings addObject:[[uuid UUIDString] lowercaseString]];
     }
     
     // replace the UUID list with list of strings
@@ -145,7 +145,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     solicitiedServiceUUIDStrings = [[NSMutableArray alloc] initWithCapacity:solicitiedServiceUUIDs.count];
     
     for (CBUUID *uuid in solicitiedServiceUUIDs) {
-      [solicitiedServiceUUIDStrings addObject:[uuid UUIDString]];
+      [solicitiedServiceUUIDStrings addObject:[[uuid UUIDString] lowercaseString]];
     }
     
     // replace the UUID list with list of strings
@@ -161,7 +161,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
     overflowServiceUUIDStrings = [[NSMutableArray alloc] initWithCapacity:overflowServiceUUIDs.count];
 
     for (CBUUID *uuid in overflowServiceUUIDs) {
-      [overflowServiceUUIDStrings addObject:[uuid UUIDString]];
+      [overflowServiceUUIDStrings addObject:[[uuid UUIDString] lowercaseString]];
     }
 
     // replace the UUID list with list of strings
@@ -188,11 +188,13 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
   
   // This can move into the CBPeripherial Extension
   for (CBService *service in [self services]) {
-    [serviceList addObject:[[service UUID] UUIDString]];
+    NSMutableDictionary *serviceDictionary = [NSMutableDictionary new];
+    [serviceDictionary setObject:[[[service UUID] UUIDString] lowercaseString] forKey:@"uuid"];
+    [serviceList addObject:serviceDictionary];
     for (CBCharacteristic *characteristic in service.characteristics) {
       NSMutableDictionary *characteristicDictionary = [NSMutableDictionary new];
-      [characteristicDictionary setObject:[[service UUID] UUIDString] forKey:@"service"];
-      [characteristicDictionary setObject:[[characteristic UUID] UUIDString] forKey:@"characteristic"];
+      [characteristicDictionary setObject:[[[service UUID] UUIDString] lowercaseString] forKey:@"service"];
+      [characteristicDictionary setObject:[[[characteristic UUID] UUIDString] lowercaseString] forKey:@"characteristic"];
       
       if ([characteristic value] && [[characteristic value] length] > 0) {
         [characteristicDictionary setObject:dataToArrayBuffer([characteristic value]) forKey:@"value"];
@@ -209,7 +211,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
       NSMutableArray *descriptorList = [NSMutableArray new];
       for (CBDescriptor *descriptor in characteristic.descriptors) {
         NSMutableDictionary *descriptorDictionary = [NSMutableDictionary new];
-        [descriptorDictionary setObject:[[descriptor UUID] UUIDString] forKey:@"descriptor"];
+        [descriptorDictionary setObject:[[[descriptor UUID] UUIDString] lowercaseString] forKey:@"uuid"];
         if ([descriptor value]) { // should always have a value?
           [descriptorDictionary setObject:[descriptor value] forKey:@"value"];
         }
@@ -227,50 +229,50 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
   
 }
 
--(NSArray *) decodeCharacteristicProperties: (CBCharacteristic *) characteristic {
-  NSMutableArray *props = [NSMutableArray new];
+-(NSDictionary *) decodeCharacteristicProperties: (CBCharacteristic *) characteristic {
+  NSMutableDictionary *props = [NSMutableDictionary new];
   
   CBCharacteristicProperties p = [characteristic properties];
   
   // NOTE: props strings need to be consistent across iOS and Android
   if ((p & CBCharacteristicPropertyBroadcast) != 0x0) {
-    [props addObject:@"Broadcast"];
+    [props setValue:@"Broadcast" forKey:@"Broadcast"];
   }
   
   if ((p & CBCharacteristicPropertyRead) != 0x0) {
-    [props addObject:@"Read"];
+    [props setValue:@"Read" forKey:@"Read"];
   }
   
   if ((p & CBCharacteristicPropertyWriteWithoutResponse) != 0x0) {
-    [props addObject:@"WriteWithoutResponse"];
+    [props setValue:@"WriteWithoutResponse" forKey:@"WriteWithoutResponse"];
   }
   
   if ((p & CBCharacteristicPropertyWrite) != 0x0) {
-    [props addObject:@"Write"];
+    [props setValue:@"Write" forKey:@"Write"];
   }
   
   if ((p & CBCharacteristicPropertyNotify) != 0x0) {
-    [props addObject:@"Notify"];
+    [props setValue:@"Notify" forKey:@"Notify"];
   }
   
   if ((p & CBCharacteristicPropertyIndicate) != 0x0) {
-    [props addObject:@"Indicate"];
+    [props setValue:@"Indicate" forKey:@"Indicate"];
   }
   
   if ((p & CBCharacteristicPropertyAuthenticatedSignedWrites) != 0x0) {
-    [props addObject:@"AuthenticateSignedWrites"];
+    [props setValue:@"AuthenticateSignedWrites" forKey:@"AuthenticateSignedWrites"];
   }
   
   if ((p & CBCharacteristicPropertyExtendedProperties) != 0x0) {
-    [props addObject:@"ExtendedProperties"];
+    [props setValue:@"ExtendedProperties" forKey:@"ExtendedProperties"];
   }
   
   if ((p & CBCharacteristicPropertyNotifyEncryptionRequired) != 0x0) {
-    [props addObject:@"NotifyEncryptionRequired"];
+    [props setValue:@"NotifyEncryptionRequired" forKey:@"NotifyEncryptionRequired"];
   }
   
   if ((p & CBCharacteristicPropertyIndicateEncryptionRequired) != 0x0) {
-    [props addObject:@"IndicateEncryptionRequired"];
+    [props setValue:@"IndicateEncryptionRequired" forKey:@"IndicateEncryptionRequired"];
   }
   
   return props;
