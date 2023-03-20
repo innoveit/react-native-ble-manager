@@ -48,6 +48,32 @@ class BleManager {
   /**
    * 
    * @param peripheralId 
+   * @param serviceUUID 
+   * @param characteristicUUID 
+   * @param descriptorUUID
+   * @returns data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
+   */
+  readDescriptor(peripheralId: string, serviceUUID: string, characteristicUUID: string, descriptorUUID: string) {
+    return new Promise<number[]>((fulfill, reject) => {
+      bleManager.readDescriptor(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+        descriptorUUID,
+        (error: string | null, data: number[]) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(data);
+          }
+        }
+      );
+    });
+  }
+
+  /**
+   * 
+   * @param peripheralId 
    * @returns a promise resolving with the updated RSSI (`number`) if it succeeds.
    */
   readRSSI(peripheralId: string) {

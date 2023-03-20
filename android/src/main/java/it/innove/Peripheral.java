@@ -63,6 +63,7 @@ public class Peripheral extends BluetoothGattCallback {
     private LinkedList<Callback> connectCallbacks = new LinkedList<>();
     private LinkedList<Callback> retrieveServicesCallbacks = new LinkedList<>();
     private LinkedList<Callback> readCallbacks = new LinkedList<>();
+    private LinkedList<Callback> readDescriptorCallbacks = new LinkedList<>();
     private LinkedList<Callback> readRSSICallbacks = new LinkedList<>();
     private LinkedList<Callback> writeCallbacks = new LinkedList<>();
     private LinkedList<Callback> registerNotifyCallbacks = new LinkedList<>();
@@ -364,6 +365,11 @@ public class Peripheral extends BluetoothGattCallback {
 				}
 				readCallbacks.clear();
 
+                for (Callback readDescriptorCallback: readDescriptorCallbacks) {
+                    readDescriptorCallback.invoke("Device disconnected");
+                }
+                readDescriptorCallbacks.clear();
+
 				for (Callback connectCallback: connectCallbacks) {
 					connectCallback.invoke("Connection error");
 				}
@@ -520,6 +526,39 @@ public class Peripheral extends BluetoothGattCallback {
                 Log.e(BleManager.LOG_TAG, "onDescriptorWrite with no callback");
             }
 
+            completedCommand();
+        });
+    }
+
+    @Override
+    public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+        super.onDescriptorRead(gatt, descriptor, status);
+
+        mainHandler.post(() -> {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
+                    Log.d(BleManager.LOG_TAG, "Read needs bonding");
+                }
+
+                for (Callback readDescriptorCallback : readDescriptorCallbacks) {
+                    readDescriptorCallback.invoke(
+                            "Error reading descriptor " + descriptor.getUuid() + " status=" + status,
+                            null
+                    );
+                }
+                readDescriptorCallbacks.clear();
+            } else if (!readDescriptorCallbacks.isEmpty()) {
+                final byte[] dataValue = copyOf(descriptor.getValue());
+
+                for (Callback readDescriptorCallback : readDescriptorCallbacks) {
+                    readDescriptorCallback.invoke(
+                            null,
+                            BleManager.bytesToWritableArray(dataValue)
+                    );
+                }
+
+                readDescriptorCallbacks.clear();
+            }
             completedCommand();
         });
     }
@@ -713,6 +752,50 @@ public class Peripheral extends BluetoothGattCallback {
 			}
 		});
 	}
+
+    public void readDescriptor(UUID serviceUUID, UUID characteristicUUID, UUID descriptorUUID, final Callback callback) {
+        enqueue(() -> {
+            if (!isConnected() || gatt == null) {
+                callback.invoke("Device is not connected", null);
+                completedCommand();
+                return;
+            }
+
+            BluetoothGattService service = gatt.getService(serviceUUID);
+            final BluetoothGattCharacteristic characteristic = findReadableCharacteristic(service, characteristicUUID);
+
+            if (characteristic == null) {
+                callback.invoke("Characteristic " + characteristicUUID + " not found.", null);
+                completedCommand();
+                return;
+            }
+
+            final BluetoothGattDescriptor descriptor = characteristic.getDescriptor(descriptorUUID);
+            if (descriptor == null) {
+                callback.invoke("Read descriptor failed for " + descriptorUUID, null);
+                completedCommand();
+                return;
+            }
+
+            final int readPermissionBitMask = BluetoothGattDescriptor.PERMISSION_READ
+                | BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED
+                | BluetoothGattDescriptor.PERMISSION_READ_ENCRYPTED_MITM;
+            if ((descriptor.getPermissions() & readPermissionBitMask) != 0) {
+                callback.invoke("Read descriptor failed for " + descriptorUUID + ": Descriptor is missing read permission", null);
+                completedCommand();
+                return;
+            }
+
+            this.readDescriptorCallbacks.addLast(callback);
+            if (!gatt.readDescriptor(descriptor)) {
+                for (Callback readDescriptorCallback: readDescriptorCallbacks) {
+                    readDescriptorCallback.invoke("Reading descriptor failed", null);
+                }
+                readDescriptorCallbacks.clear();
+                completedCommand();
+            }
+        });
+    }
 
     private byte[] copyOf(byte[] source) {
         if (source == null) return new byte[0];
