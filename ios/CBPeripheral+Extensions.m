@@ -209,7 +209,7 @@ static char ADVERTISEMENT_RSSI_IDENTIFER;
       NSMutableArray *descriptorList = [NSMutableArray new];
       for (CBDescriptor *descriptor in characteristic.descriptors) {
         NSMutableDictionary *descriptorDictionary = [NSMutableDictionary new];
-        [descriptorDictionary setObject:[[descriptor UUID] UUIDString] forKey:@"descriptor"];
+        [descriptorDictionary setObject:[[descriptor UUID] UUIDString] forKey:@"uuid"];
         if ([descriptor value]) { // should always have a value?
           [descriptorDictionary setObject:[descriptor value] forKey:@"value"];
         }

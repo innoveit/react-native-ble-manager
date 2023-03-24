@@ -188,6 +188,21 @@ const App = () => {
           `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`,
         );
 
+        if (peripheralData.characteristics) {
+          for (let characteristic of peripheralData.characteristics) {
+            if (characteristic.descriptors) {
+              for (let descriptor of characteristic.descriptors) {
+                try {
+                  let data = await BleManager.readDescriptor(peripheral.id, characteristic.service, characteristic.characteristic, descriptor.uuid);
+                  console.debug(`[connectPeripheral][${peripheral.id}] descriptor read as:`, data);
+                } catch (error) {
+                  console.error(`[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`, error);
+                }
+              }
+            }
+          }
+        }
+
         let p = peripherals.get(peripheral.id);
         if (p) {
           addOrUpdatePeripheral(peripheral.id, {...peripheral, rssi});
