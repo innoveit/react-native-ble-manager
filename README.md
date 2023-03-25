@@ -496,6 +496,44 @@ BleManager.readRSSI("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
   });
 ```
 
+### readDescriptor(peripheralId, serviceId, characteristicId, descriptorId)
+
+Read the current value of the specified descriptor, you need to call `retrieveServices` method before.
+Returns a `Promise` object that will resolves to an array of plain integers (`number[]`) representing a `ByteArray` structure.
+That array can then be converted to a JS `ArrayBuffer` for example using `Buffer.from()` [thanks to this buffer module](https://github.com/feross/buffer).
+
+**Arguments**
+
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+- `descriptorUUID` - `String` - the UUID of the descriptor.
+
+**Examples**
+
+```js
+BleManager.readDescriptor(
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXX"
+)
+  .then((readData) => {
+    // Success code
+    console.log("Read: " + readData);
+
+    // https://github.com/feross/buffer
+    // https://nodejs.org/api/buffer.html#static-method-bufferfromarray
+    const buffer = Buffer.from(readData);
+    const sensorData = buffer.readUInt8(1, true);
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
+
+
 ### requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
 
 Request a connection parameter update.

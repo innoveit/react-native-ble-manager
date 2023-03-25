@@ -399,6 +399,26 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void readDescriptor(String deviceUUID, String serviceUUID, String characteristicUUID, String descriptorUUID, Callback callback) {
+        Log.d(LOG_TAG, "Read descriptor from: " + deviceUUID);
+        if (serviceUUID == null || characteristicUUID == null || descriptorUUID == null) {
+            callback.invoke("ServiceUUID, CharacteristicUUID and descriptorUUID required.", null);
+            return;
+        }
+
+        Peripheral peripheral = peripherals.get(deviceUUID);
+        if (peripheral == null) {
+            callback.invoke("Peripheral not found", null);
+        }
+
+        peripheral.readDescriptor(
+                UUIDHelper.uuidFromString(serviceUUID),
+                UUIDHelper.uuidFromString(characteristicUUID),
+                UUIDHelper.uuidFromString(descriptorUUID),
+                callback);
+    }
+
+    @ReactMethod
     public void retrieveServices(String deviceUUID, ReadableArray services, Callback callback) {
         Log.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);

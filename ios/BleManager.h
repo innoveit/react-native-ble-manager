@@ -9,6 +9,7 @@
     NSMutableDictionary *readCallbacks;
     NSMutableDictionary *writeCallbacks;
     NSMutableDictionary *readRSSICallbacks;
+    NSMutableDictionary *readDescriptorCallbacks;
     NSMutableDictionary *retrieveServicesCallbacks;
     NSMutableArray *writeQueue;
     NSMutableDictionary *notificationCallbacks;
