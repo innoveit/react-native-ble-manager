@@ -19,7 +19,7 @@ public class NotifyBufferContainer {
             rest = new byte[restLength];
             toInsert = new byte[value.length - restLength];
             System.arraycopy(value, 0, toInsert, 0, toInsert.length);
-            System.arraycopy(value, 0, rest, toInsert.length, rest.length);
+            System.arraycopy(value, toInsert.length, rest, restLength, rest.length);
         } else {
             toInsert = value;
         }
