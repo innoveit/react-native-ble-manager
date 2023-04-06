@@ -301,7 +301,7 @@ BleManager.startNotification(
 
 ### startNotificationUseBuffer(peripheralId, serviceUUID, characteristicUUID, buffer) [Android only]
 
-Start the notification on the specified characteristic, you need to call `retrieveServices` method before. The buffer will collect a number or messages from the server and then emit once the buffer count it reached. Helpful to reducing the number or js bridge crossings when a characteristic is sending a lot of messages.
+Start the notification on the specified characteristic, you need to call `retrieveServices` method before. The buffer collect messages until the buffer of messages bytes reaches the limit defined with the `buffer` argument and then emit all the collected data. Helpful to reducing the number or js bridge crossings when a characteristic is sending a lot of messages.
 Returns a `Promise` object.
 
 **Arguments**
@@ -309,7 +309,7 @@ Returns a `Promise` object.
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
-- `buffer` - `Integer` - a number of message to buffer prior to emit for the characteristic.
+- `buffer` - `Integer` - the capacity of the buffer (bytes) stored before emitting the data for the characteristic.
 
 **Examples**
 
