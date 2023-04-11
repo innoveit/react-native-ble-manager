@@ -3,30 +3,34 @@ package it.innove;
 import java.nio.ByteBuffer;
 
 public class NotifyBufferContainer {
-    public final Integer maxBufferSize;
-    private Integer bufferCount;
     public ByteBuffer items;
 
-    public NotifyBufferContainer(Integer size) {
-        this.maxBufferSize = size;
-        this.resetBuffer();
+    public NotifyBufferContainer(int size) {
+        this.items = ByteBuffer.allocate(size);
     }
     public void resetBuffer(){
-        this.bufferCount = 0;
-        this.items = ByteBuffer.allocate(this.maxBufferSize);
+        this.items.clear();
     }
-    public void put(byte[] value){
-        this.bufferCount += value.length;
-        if (this.items.remaining() < value.length) {
-            return;
+    public byte[] put(byte[] value){
+        int restLength = value.length - this.items.remaining();
+        byte[] toInsert;
+        byte[] rest;
+        if (restLength < 0) {
+            rest = new byte[restLength];
+            toInsert = new byte[value.length - restLength];
+            System.arraycopy(value, 0, toInsert, 0, toInsert.length);
+            System.arraycopy(value, toInsert.length, rest, restLength, rest.length);
+        } else {
+            toInsert = value;
         }
-        this.items.put(value);
+        this.items.put(toInsert);
+        return rest;
     }
     public boolean isBufferFull(){
-        return this.bufferCount >= this.maxBufferSize;
+        return this.remaining() == 0;
     }
-    public Integer size() {
-        return this.bufferCount;
+    public int size() {
+        return this.items.limit();
     }
     @Override 
     protected void finalize() throws Throwable {
