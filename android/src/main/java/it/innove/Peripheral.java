@@ -421,7 +421,7 @@ public class Peripheral extends BluetoothGattCallback {
             // If for some reason the value's length >= 2*buffer size this will be able to
             // handle it
             while (dataValue != null) {
-                byte[] rest;
+                byte[] rest = null;
                 if (buffer != null) {
                     rest = buffer.put(dataValue);
                     Log.d(BleManager.LOG_TAG, "onCharacteristicChanged-buffering: " +

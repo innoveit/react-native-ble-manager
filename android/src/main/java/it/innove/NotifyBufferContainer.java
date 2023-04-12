@@ -13,8 +13,8 @@ public class NotifyBufferContainer {
     }
     public byte[] put(byte[] value){
         int restLength = value.length - this.items.remaining();
-        byte[] toInsert;
-        byte[] rest;
+        byte[] toInsert = null;
+        byte[] rest = null;
         if (restLength < 0) {
             rest = new byte[restLength];
             toInsert = new byte[value.length - restLength];
@@ -27,7 +27,7 @@ public class NotifyBufferContainer {
         return rest;
     }
     public boolean isBufferFull(){
-        return this.remaining() == 0;
+        return this.items.remaining() == 0;
     }
     public int size() {
         return this.items.limit();
