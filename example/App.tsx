@@ -193,10 +193,21 @@ const App = () => {
             if (characteristic.descriptors) {
               for (let descriptor of characteristic.descriptors) {
                 try {
-                  let data = await BleManager.readDescriptor(peripheral.id, characteristic.service, characteristic.characteristic, descriptor.uuid);
-                  console.debug(`[connectPeripheral][${peripheral.id}] descriptor read as:`, data);
+                  let data = await BleManager.readDescriptor(
+                    peripheral.id,
+                    characteristic.service,
+                    characteristic.characteristic,
+                    descriptor.uuid,
+                  );
+                  console.debug(
+                    `[connectPeripheral][${peripheral.id}] descriptor read as:`,
+                    data,
+                  );
                 } catch (error) {
-                  console.error(`[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`, error);
+                  console.error(
+                    `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
+                    error,
+                  );
                 }
               }
             }
