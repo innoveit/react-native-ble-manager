@@ -29,8 +29,8 @@ RN 0.30-0.39 supported until 2.4.3
 ```shell
 npm i --save react-native-ble-manager
 ```
-The library support the react native autolink feature.
 
+The library support the react native autolink feature.
 
 ##### Android - Update Manifest
 
@@ -43,7 +43,7 @@ The library support the react native autolink feature.
 
     <!--
       HACK: this permission should not be needed on android 12+ devices anymore,
-      but in fact some manufacturers still need it for BLE to properly work : 
+      but in fact some manufacturers still need it for BLE to properly work :
       https://stackoverflow.com/a/72370969
     -->
     <uses-permission android:name="android.permission.BLUETOOTH" tools:remove="android:maxSdkVersion" />
@@ -60,7 +60,7 @@ The library support the react native autolink feature.
     <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30"/>
 
     <!-- Only when targeting Android 12 or higher -->
-    <!-- 
+    <!--
       Please make sure you read the following documentation
       to have a better understanding of the new permissions.
       https://developer.android.com/guide/topics/connectivity/bluetooth/permissions#assert-never-for-location
@@ -92,7 +92,7 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 - If you have problem with old devices try avoid to connect/read/write to a peripheral during scan.
 - Android API >= 23 require the ACCESS_COARSE_LOCATION permission to scan for peripherals. React Native >= 0.33 natively support PermissionsAndroid like in the example.
 - Android API >= 29 require the ACCESS_FINE_LOCATION permission to scan for peripherals.
-   React-Native 0.63.X started targeting Android API 29.
+  React-Native 0.63.X started targeting Android API 29.
 - Before write, read or start notification you need to call `retrieveServices` method
 - Because location and bluetooth permissions are runtime permissions, you **must** request these permissions at runtime along with declaring them in your manifest.
 
@@ -158,9 +158,9 @@ Returns a `Promise` object.
   - `callbackType` - `Number` - [Android only] corresponding to [`setCallbackType`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setCallbackType(int)>). Defaults `ScanSettings.CALLBACK_TYPE_ALL_MATCHES`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
   - `scanMode` - `Number` - [Android only] corresponding to [`setScanMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setScanMode(int)>). Defaults to `ScanSettings.SCAN_MODE_LOW_POWER`.
   - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>). Defaults to `0ms`.
-  - `phy` - `Number` - [Android only] corresponding to [`setPhy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int))
-  - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean))
-  - `exactAdvertisingName` - `string` - [Android only] corresponds to the `ScanFilter` [deviceName](https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String))
+  - `phy` - `Number` - [Android only] corresponding to [`setPhy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int)>)
+  - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean)>)
+  - `exactAdvertisingName` - `string` - [Android only] corresponds to the `ScanFilter` [deviceName](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)>)
 
 **Examples**
 
@@ -267,7 +267,9 @@ Resolves to a promise containing the current BleState.
 **Examples**
 
 ```js
-BleManager.checkState().then(state => console.log(`current BLE state = '${state}'.`));
+BleManager.checkState().then((state) =>
+  console.log(`current BLE state = '${state}'.`)
+);
 ```
 
 ### startNotification(peripheralId, serviceUUID, characteristicUUID)
@@ -367,7 +369,7 @@ BleManager.read(
 
     // https://github.com/feross/buffer
     // https://nodejs.org/api/buffer.html#static-method-bufferfromarray
-    const buffer = Buffer.from(readData); 
+    const buffer = Buffer.from(readData);
     const sensorData = buffer.readUInt8(1, true);
   })
   .catch((error) => {
@@ -532,7 +534,6 @@ BleManager.readDescriptor(
     console.log(error);
   });
 ```
-
 
 ### requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
 
