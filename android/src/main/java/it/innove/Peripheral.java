@@ -418,7 +418,7 @@ public class Peripheral extends BluetoothGattCallback {
 				// *not* doing completedCommand()
 				return;
 			}
-			sendBackrError(readCallback, "Error reading " + characteristic.getUuid() + " status=" + status);
+			sendBackError(readCallback, "Error reading " + characteristic.getUuid() + " status=" + status);
 		} else if (readCallback != null) {
 			final byte[] dataValue = copyOf(characteristic.getValue());
 			final Callback callback = readCallback;
@@ -448,7 +448,7 @@ public class Peripheral extends BluetoothGattCallback {
 				// *not* doing completedCommand()
 				return;
 			}
-			sendBackrError(writeCallback, "Error writing " + characteristic.getUuid() + " status=" + status);
+			sendBackError(writeCallback, "Error writing " + characteristic.getUuid() + " status=" + status);
 		} else if (writeCallback != null) {
 			final Callback callback = writeCallback;
 			mainHandler.post(new Runnable() {
@@ -570,7 +570,7 @@ public class Peripheral extends BluetoothGattCallback {
 					}
 
 					if (! result) {
-						sendBackrError(registerNotifyCallback, "writeDescriptor failed for descriptor: " + descriptor.getUuid());
+						sendBackError(registerNotifyCallback, "writeDescriptor failed for descriptor: " + descriptor.getUuid());
 						registerNotifyCallback = null;
 						completedCommand();
 					}
@@ -661,7 +661,7 @@ public class Peripheral extends BluetoothGattCallback {
 					readCallback = reactcb;
 					if (! gatt.readCharacteristic(characteristic)) {
 						readCallback = null;
-						sendBackrError(reactcb, "Read failed");
+						sendBackError(reactcb, "Read failed");
 						completedCommand();
 					}
 				}
@@ -674,13 +674,16 @@ public class Peripheral extends BluetoothGattCallback {
 		}
 	}
 
-	private void sendBackrError(final Callback callback, final String message) {
-		new Handler(Looper.getMainLooper()).post(new Runnable() {
-				@Override
-				public void run() {
-					callback.invoke(message, null);
-				}
-			});
+	private void sendBackError(final Callback callback, final String message) {
+    final AtomicBoolean hasBeenCalled = new AtomicBoolean(false); // initialize flag to false
+    new Handler(Looper.getMainLooper()).post(new Runnable() {
+        @Override
+        public void run() {
+            if (!hasBeenCalled.getAndSet(true)) { // check flag and update it
+                callback.invoke(message, null); // invoke the callback only if flag is false
+            }
+        }
+    });
 	}
 
 	private byte[] copyOf(byte[] source) {
@@ -751,7 +754,7 @@ public class Peripheral extends BluetoothGattCallback {
 				readRSSICallback = callback;
 				if (! gatt.readRemoteRssi()) {
 					readRSSICallback = null;
-				    sendBackrError(callback, "Read RSSI failed");
+				    sendBackError(callback, "Read RSSI failed");
 				    completedCommand();
 				}
 			    } else {
@@ -832,7 +835,7 @@ public class Peripheral extends BluetoothGattCallback {
 					else
 						writeCallback = null;
 					if (!gatt.writeCharacteristic(characteristic)) {
-						sendBackrError(writeCallback, "Write failed");
+						sendBackError(writeCallback, "Write failed");
 						writeCallback = null;
 						completedCommand();
 					}
