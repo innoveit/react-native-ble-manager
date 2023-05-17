@@ -10,21 +10,9 @@ require_relative '../node_modules/@react-native-community/cli-platform-ios/nativ
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-#linkage = ENV['USE_FRAMEWORKS']
-#if linkage != nil
-#  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-#  use_frameworks! :linkage => linkage.to_sym
-#end
-
 flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
 
-
 target 'BleManager' do
-  # Comment the next line if you don't want to use dynamic frameworks
-  # use_frameworks!
-
-  # Pods for BleManager
-
   config = use_native_modules!
   
   flags = get_default_flags()
@@ -53,5 +41,4 @@ target 'BleManager' do
     #__fix_double_definition_of_clockid_in_folly()
     system("sed -i '' 's|^typedef uint8_t clockid_t;|//&| ' Pods/RCT-Folly/folly/portability/Time.h")
   end
-
 end
