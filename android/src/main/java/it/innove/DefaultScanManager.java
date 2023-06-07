@@ -4,6 +4,7 @@ package it.innove;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanCallback;
@@ -16,7 +17,6 @@ import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 
 import com.facebook.react.bridge.Arguments;
@@ -29,12 +29,13 @@ import com.facebook.react.bridge.WritableMap;
 import java.util.ArrayList;
 import java.util.List;
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public class LollipopScanManager extends ScanManager {
+@SuppressLint("MissingPermission")
+public class DefaultScanManager extends ScanManager {
 
-    public LollipopScanManager(ReactApplicationContext reactContext, BleManager bleManager) {
+    public DefaultScanManager(ReactApplicationContext reactContext, BleManager bleManager) {
         super(reactContext, bleManager);
     }
+
 
     @Override
     public void stopScan(Callback callback) {
@@ -103,7 +104,7 @@ public class LollipopScanManager extends ScanManager {
 
         if (scanSeconds > 0) {
             Thread thread = new Thread() {
-                private int currentScanSession = scanSessionId.incrementAndGet();
+                private final int currentScanSession = scanSessionId.incrementAndGet();
 
                 @Override
                 public void run() {
@@ -153,9 +154,9 @@ public class LollipopScanManager extends ScanManager {
 
         Log.i(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
 
-        LollipopPeripheral peripheral = (LollipopPeripheral) bleManager.getPeripheral(result.getDevice());
+        DefaultPeripheral peripheral = (DefaultPeripheral) bleManager.getPeripheral(result.getDevice());
         if (peripheral == null) {
-            peripheral = new LollipopPeripheral(bleManager.getReactContext(), result);
+            peripheral = new DefaultPeripheral(bleManager.getReactContext(), result);
         } else {
             peripheral.updateData(result);
             peripheral.updateRssi(result.getRssi());

@@ -127,7 +127,7 @@ public class BundleJSONConverter {
 		JSONObject json = new JSONObject();
 
 		for(String key : bundle.keySet()) {
-			Object value = bundle.get(key);
+			Object value = bundle.getString(key);
 			if (value == null) {
 				// Null is not supported.
 				continue;

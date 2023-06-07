@@ -20,15 +20,16 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-	compileSdkVersion safeExtGet("compileSdkVersion", 31)
+	compileSdk safeExtGet("compileSdk", 33)
 
 	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_8
-		targetCompatibility JavaVersion.VERSION_1_8
+		sourceCompatibility JavaVersion.VERSION_1_9
+		targetCompatibility JavaVersion.VERSION_1_9
 	}
 
 	defaultConfig {
 		minSdkVersion safeExtGet("minSdkVersion", 21)
+		targetSdk safeExtGet("targetSdk", 33)
 	}
 	lintOptions {
 		abortOnError false

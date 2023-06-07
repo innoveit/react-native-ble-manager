@@ -6,8 +6,6 @@ import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.ParcelUuid;
 
-import androidx.annotation.RequiresApi;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
@@ -16,19 +14,19 @@ import com.facebook.react.bridge.WritableMap;
 
 import java.util.Map;
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-public class LollipopPeripheral extends Peripheral {
+
+public class DefaultPeripheral extends Peripheral {
 
     private ScanRecord advertisingData;
     private ScanResult scanResult;
 
-    public LollipopPeripheral(ReactContext reactContext, ScanResult result) {
+    public DefaultPeripheral(ReactContext reactContext, ScanResult result) {
         super(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
         this.advertisingData = result.getScanRecord();
         this.scanResult = result;
     }
 
-    public LollipopPeripheral(BluetoothDevice device, ReactApplicationContext reactContext) {
+    public DefaultPeripheral(BluetoothDevice device, ReactApplicationContext reactContext) {
         super(device, reactContext);
     }
 
