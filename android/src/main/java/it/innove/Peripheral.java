@@ -1,8 +1,8 @@
 package it.innove;
 
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static com.facebook.react.common.ReactConstants.TAG;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -44,6 +44,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Peripheral wraps the BluetoothDevice and provides methods to convert to JSON.
  */
+@SuppressLint("MissingPermission")
 public class Peripheral extends BluetoothGattCallback {
 
     private static final String CHARACTERISTIC_NOTIFICATION_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
@@ -1071,12 +1072,8 @@ public class Peripheral extends BluetoothGattCallback {
     public void requestConnectionPriority(int connectionPriority, Callback callback) {
         enqueue(() -> {
             if (gatt != null) {
-                if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-                    boolean status = gatt.requestConnectionPriority(connectionPriority);
-                    callback.invoke(null, status);
-                } else {
-                    callback.invoke("Requesting connection priority requires at least API level 21", null);
-                }
+                boolean status = gatt.requestConnectionPriority(connectionPriority);
+                callback.invoke(null, status);
             } else {
                 callback.invoke("BluetoothGatt is null", null);
             }
@@ -1099,17 +1096,12 @@ public class Peripheral extends BluetoothGattCallback {
                 return;
             }
 
-            if (Build.VERSION.SDK_INT >= LOLLIPOP) {
-                requestMTUCallbacks.addLast(callback);
-                if (!gatt.requestMtu(mtu)) {
-                    for (Callback requestMTUCallback : requestMTUCallbacks) {
-                        requestMTUCallback.invoke("Request MTU failed", null);
-                    }
-                    requestMTUCallbacks.clear();
-                    completedCommand();
+            requestMTUCallbacks.addLast(callback);
+            if (!gatt.requestMtu(mtu)) {
+                for (Callback requestMTUCallback : requestMTUCallbacks) {
+                    requestMTUCallback.invoke("Request MTU failed", null);
                 }
-            } else {
-                callback.invoke("Requesting MTU requires at least API level 21", null);
+                requestMTUCallbacks.clear();
                 completedCommand();
             }
         });
