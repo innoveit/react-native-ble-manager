@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
@@ -107,7 +108,7 @@ public class Peripheral extends BluetoothGattCallback {
         Log.d(BleManager.LOG_TAG, "Peripheral event (" + eventName + "):" + device.getAddress());
     }
 
-    public void connect(final Callback callback, Activity activity) {
+    public void connect(final Callback callback, Activity activity, ReadableMap options) {
         mainHandler.post(() -> {
             if (!connected) {
                 BluetoothDevice device = getDevice();
@@ -115,7 +116,16 @@ public class Peripheral extends BluetoothGattCallback {
                 this.connecting = true;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     Log.d(BleManager.LOG_TAG, " Is Or Greater than M $mBluetoothDevice");
-                    gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE);
+                    boolean autoconnect = false;
+                    if (options.hasKey("autoconnect")) {
+                        autoconnect = options.getBoolean("autoconnect");
+                    }
+                    if (!autoconnect && options.hasKey("phy")) {
+                        int phy = options.getInt("phy");
+                        gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE, phy);
+                    } else {
+                        gatt = device.connectGatt(activity, autoconnect, this, BluetoothDevice.TRANSPORT_LE);
+                    }
                 } else {
                     Log.d(BleManager.LOG_TAG, " Less than M");
                     try {

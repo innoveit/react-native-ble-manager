@@ -76,6 +76,17 @@ export interface StartOptions {
   forceLegacy?: boolean;
 }
 
+export interface ConnectOptions {  
+  /**
+   * [android only]
+   */
+  autoconnect?: boolean;
+  /**
+   * [android only]
+   */
+  phy?: BleScanPhyMode;
+}
+
 /**
  * [android only]
  * https://developer.android.com/reference/android/bluetooth/le/ScanSettings
