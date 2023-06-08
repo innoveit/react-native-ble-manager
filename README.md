@@ -185,7 +185,7 @@ BleManager.stopScan().then(() => {
 });
 ```
 
-### connect(peripheralId)
+### connect(peripheralId, options)
 
 Attempts to connect to a peripheral. In many case if you can't connect you have to scan for the peripheral before.
 Returns a `Promise` object.
@@ -195,6 +195,11 @@ Returns a `Promise` object.
 **Arguments**
 
 - `peripheralId` - `String` - the id/mac address of the peripheral to connect.
+- `options` - `JSON` - The parameter is optional the configuration keys are:
+
+  - `phy` - `Number` - [Android only] corresponding to the preferred phy channel ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
+  - `autoconnect` - `Boolean` - [Android only] whether to directly connect to the remote device (false) or to automatically connect as soon as the remote device becomes available (true) ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
+
 
 **Examples**
 
@@ -756,6 +761,32 @@ BleManager.setName("INNOVEIT_CENTRAL")
     // Failure code
     console.log("Name could not be set");
   });
+```
+
+### getMaximumWriteValueLengthForWithoutResponse(peripheralId) [iOS only]
+
+Return the maximum value length for WriteWithoutResponse.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.getMaximumWriteValueLengthForWithoutResponse("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then((maxValue) => {
+  console.log("Maximum length for WriteWithoutResponse: " + maxValue);
+});
+```
+
+### getMaximumWriteValueLengthForWitResponse(peripheralId) [iOS only]
+
+Return the maximum value length for WriteWithResponse.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.getMaximumWriteValueLengthForWitResponse("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then((maxValue) => {
+  console.log("Maximum length for WriteWithResponse: " + maxValue);
+});
 ```
 
 ## Events
