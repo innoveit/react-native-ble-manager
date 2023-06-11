@@ -360,7 +360,7 @@ class BleManager extends ReactContextBaseJavaModule {
         if (peripheral != null) {
             byte[] decoded = new byte[message.size()];
             for (int i = 0; i < message.size(); i++) {
-                decoded[i] = Integer.valueOf(i).byteValue();
+                decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
             }
             Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
             peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
@@ -381,7 +381,7 @@ class BleManager extends ReactContextBaseJavaModule {
         if (peripheral != null) {
             byte[] decoded = new byte[message.size()];
             for (int i = 0; i < message.size(); i++) {
-                decoded[i] = Integer.valueOf(i).byteValue();
+              decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
             }
             Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
             peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
