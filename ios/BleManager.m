@@ -17,7 +17,7 @@ RCT_EXPORT_MODULE();
 @synthesize manager;
 @synthesize peripherals;
 @synthesize scanTimer;
-bool hasListeners;
+static bool hasListeners = NO;
 
 - (instancetype)init
 {
