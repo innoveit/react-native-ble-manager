@@ -185,7 +185,7 @@ static bool hasListeners = NO;
 
 
 
-- (NSString *) centralManagerStateToString: (int)state
+- (NSString *) centralManagerStateToString: (CBManagerState)state
 {
     switch (state) {
         case CBManagerStateUnknown:
