@@ -972,7 +972,6 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
     }
     NSLog(@"Characteristics For Service Discover");
     
-    NSString *peripheralUUIDString = [peripheral uuidAsString];
     NSMutableSet *characteristicsForService = [NSMutableSet new];
     [characteristicsForService addObjectsFromArray:service.characteristics];
     [retrieveServicesLatches setObject:characteristicsForService forKey:service.UUID.UUIDString];
