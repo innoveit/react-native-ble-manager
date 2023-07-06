@@ -178,7 +178,7 @@ class BleManager extends ReactContextBaseJavaModule {
                 {
                     try{
                         getCurrentActivity().startActivityForResult(intentEnable, ENABLE_REQUEST);
-                    }catch{
+                    }catch(Exception e){
                         callback.invoke("Current activity not available");
                     }
                     
