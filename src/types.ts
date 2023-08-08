@@ -39,7 +39,7 @@ export interface AdvertisingData {
   isConnectable?: boolean;
   localName?: string;
   manufacturerData?: CustomAdvertisingData;
-  serviceData?: CustomAdvertisingData;
+  serviceData?: Record<string, CustomAdvertisingData>;
   serviceUUIDs?: string[];
   txPowerLevel?: number;
 }
@@ -76,7 +76,7 @@ export interface StartOptions {
   forceLegacy?: boolean;
 }
 
-export interface ConnectOptions {  
+export interface ConnectOptions {
   /**
    * [android only]
    */
