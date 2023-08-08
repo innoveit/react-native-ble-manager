@@ -52,7 +52,7 @@ public class Peripheral extends BluetoothGattCallback {
     public static final int GATT_INSUFFICIENT_AUTHENTICATION = 5;
     public static final int GATT_AUTH_FAIL = 137;
 
-    private final BluetoothDevice device;
+    protected final BluetoothDevice device;
     private final Map<String, NotifyBufferContainer> bufferedCharacteristics;
     protected volatile byte[] advertisingDataBytes = new byte[0];
     protected volatile int advertisingRSSI;
