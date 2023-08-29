@@ -15,9 +15,9 @@ public class NotifyBufferContainer {
         int restLength = value.length - this.items.remaining();
         byte[] toInsert = null;
         byte[] rest = null;
-        if (restLength < 0) {
+        if (restLength>0) {          
             rest = new byte[restLength];
-            toInsert = new byte[value.length - restLength];
+            toInsert = new byte[this.items.remaining()];
             System.arraycopy(value, 0, toInsert, 0, toInsert.length);
             System.arraycopy(value, toInsert.length, rest, restLength, rest.length);
         } else {
