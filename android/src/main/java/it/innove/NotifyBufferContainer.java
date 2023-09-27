@@ -12,18 +12,21 @@ public class NotifyBufferContainer {
         this.items.clear();
     }
     public byte[] put(byte[] value){
-        int restLength = value.length - this.items.remaining();
         byte[] toInsert = null;
         byte[] rest = null;
-        if (restLength>0) {          
+        
+        if (value.length > this.items.remaining()) {
+            int restLength = value.length - this.items.remaining();
             rest = new byte[restLength];
             toInsert = new byte[this.items.remaining()];
             System.arraycopy(value, 0, toInsert, 0, toInsert.length);
-            System.arraycopy(value, toInsert.length, rest, restLength, rest.length);
+            System.arraycopy(value, toInsert.length, rest, 0, rest.length);
         } else {
             toInsert = value;
         }
+        
         this.items.put(toInsert);
+
         return rest;
     }
     public boolean isBufferFull(){
