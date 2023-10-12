@@ -1148,6 +1148,7 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
             NSMutableArray *data = [NSMutableArray new];
             for (CBPeripheral *peripheral in peripherals) {
                 [data addObject:[peripheral asDictionary]];
+		peripheral.delegate = self;
             }
 
             [self sendEventWithName:@"BleManagerCentralManagerWillRestoreState" body:@{@"peripherals": data}];
