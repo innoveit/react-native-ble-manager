@@ -95,10 +95,10 @@ public class DefaultScanManager extends ScanManager {
 
 
         if (options.hasKey("exactAdvertisingNames")) {
-            ArrayList<String> expectedNames = options.getArray("exactAdvertisingNames").toArrayList();
+            ArrayList<Object> expectedNames = options.getArray("exactAdvertisingNames").toArrayList();
             Log.d(BleManager.LOG_TAG, "Filter on advertising names:" + expectedNames);
-            for (String name : expectedNames) {
-                ScanFilter filter = new ScanFilter.Builder().setDeviceName(name).build();
+            for (Object name : expectedNames) {
+                ScanFilter filter = new ScanFilter.Builder().setDeviceName(name.toString()).build();
                 filters.add(filter);
             }
         }
