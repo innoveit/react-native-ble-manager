@@ -160,7 +160,7 @@ Returns a `Promise` object.
   - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>). Defaults to `0ms`.
   - `phy` - `Number` - [Android only] corresponding to [`setPhy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int)>)
   - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean)>)
-  - `exactAdvertisingName` - `string` - [Android only] corresponds to the `ScanFilter` [deviceName](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)>)
+  - `exactAdvertisingName` - `string[]` - [Android only] corresponds to the `ScanFilter` [deviceName](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)>)
 
 **Examples**
 
@@ -199,7 +199,6 @@ Returns a `Promise` object.
 
   - `phy` - `Number` - [Android only] corresponding to the preferred phy channel ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
   - `autoconnect` - `Boolean` - [Android only] whether to directly connect to the remote device (false) or to automatically connect as soon as the remote device becomes available (true) ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
-
 
 **Examples**
 
@@ -272,9 +271,7 @@ Resolves to a promise containing the current BleState.
 **Examples**
 
 ```js
-BleManager.checkState().then((state) =>
-  console.log(`current BLE state = '${state}'.`)
-);
+BleManager.checkState().then((state) => console.log(`current BLE state = '${state}'.`));
 ```
 
 ### startNotification(peripheralId, serviceUUID, characteristicUUID)
@@ -291,11 +288,7 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.startNotification(
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-)
+BleManager.startNotification("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
   .then(() => {
     // Success code
     console.log("Notification started");
@@ -363,11 +356,7 @@ That array can then be converted to a JS `ArrayBuffer` for example using `Buffer
 **Examples**
 
 ```js
-BleManager.read(
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-)
+BleManager.read("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
   .then((readData) => {
     // Success code
     console.log("Read: " + readData);
@@ -604,12 +593,10 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then(
-  (peripheralInfo) => {
-    // Success code
-    console.log("Peripheral info:", peripheralInfo);
-  }
-);
+BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then((peripheralInfo) => {
+  // Success code
+  console.log("Peripheral info:", peripheralInfo);
+});
 ```
 
 ### refreshCache(peripheralId) [Android only]
@@ -732,10 +719,7 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.isPeripheralConnected(
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  []
-).then((isConnected) => {
+BleManager.isPeripheralConnected("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", []).then((isConnected) => {
   if (isConnected) {
     console.log("Peripheral is connected!");
   } else {
@@ -878,14 +862,11 @@ async function connectAndPrepare(peripheral, service, characteristic) {
   // To enable BleManagerDidUpdateValueForCharacteristic listener
   await BleManager.startNotification(peripheral, service, characteristic);
   // Add event listener
-  bleManagerEmitter.addListener(
-    "BleManagerDidUpdateValueForCharacteristic",
-    ({ value, peripheral, characteristic, service }) => {
-      // Convert bytes array to string
-      const data = bytesToString(value);
-      console.log(`Received ${data} for characteristic ${characteristic}`);
-    }
-  );
+  bleManagerEmitter.addListener("BleManagerDidUpdateValueForCharacteristic", ({ value, peripheral, characteristic, service }) => {
+    // Convert bytes array to string
+    const data = bytesToString(value);
+    console.log(`Received ${data} for characteristic ${characteristic}`);
+  });
   // Actions triggereng BleManagerDidUpdateValueForCharacteristic event
 }
 ```

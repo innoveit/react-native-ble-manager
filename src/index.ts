@@ -405,26 +405,22 @@ class BleManager {
         scanningOptions.reportDelay = 0;
       }
 
-      // (ANDROID) ScanFilter used to restrict search to devices with a specific advertising name.
+      // (ANDROID) ScanFilter used to restrict search to devices within the specific advertising names list.
       // https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
-      if (!scanningOptions.exactAdvertisingName
-        || typeof scanningOptions.exactAdvertisingName !== 'string') {
-        delete scanningOptions.exactAdvertisingName;
+      if (!scanningOptions.exactAdvertisingNames || !Array.isArray(scanningOptions.exactAdvertisingNames)) {
+        delete scanningOptions.exactAdvertisingNames;
+      } else {
+        const validNames = scanningOptions.exactAdvertisingNames.filter((name) => typeof name === "string");
+        scanningOptions.exactAdvertisingNames = validNames;
       }
 
-      bleManager.scan(
-        serviceUUIDs,
-        seconds,
-        allowDuplicates,
-        scanningOptions,
-        (error: string | null) => {
-          if (error) {
-            reject(error);
-          } else {
-            fulfill();
-          }
+      bleManager.scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions, (error: string | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
         }
-      );
+      });
     });
   }
 

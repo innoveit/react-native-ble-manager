@@ -93,11 +93,14 @@ public class DefaultScanManager extends ScanManager {
             }
         }
 
-        if (options.hasKey("exactAdvertisingName")) {
-            String expectedName = options.getString("exactAdvertisingName");
-            Log.d(BleManager.LOG_TAG, "Filter on advertising name:" + expectedName);
-            ScanFilter filter = new ScanFilter.Builder().setDeviceName(expectedName).build();
-            filters.add(filter);
+
+        if (options.hasKey("exactAdvertisingNames")) {
+            List<String> expectedNames = options.getArray("exactAdvertisingNames");
+            Log.d(BleManager.LOG_TAG, "Filter on advertising names:" + expectedNames);
+            for (String name : expectedNames) {
+                ScanFilter filter = new ScanFilter.Builder().setDeviceName(name).build();
+                filters.add(filter);
+            }
         }
 
         getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, scanSettingsBuilder.build(), mScanCallback);
