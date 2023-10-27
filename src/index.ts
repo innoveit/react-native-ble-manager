@@ -414,13 +414,19 @@ class BleManager {
         scanningOptions.exactAdvertisingNames = validNames;
       }
 
-      bleManager.scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions, (error: string | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
+      bleManager.scan(
+        serviceUUIDs,
+        seconds,
+        allowDuplicates,
+        scanningOptions,
+        (error: string | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
         }
-      });
+      );
     });
   }
 
