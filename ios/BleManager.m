@@ -1168,24 +1168,32 @@ RCT_EXPORT_METHOD(requestMTU:(NSString *)deviceUUID mtu:(NSInteger)mtu callback:
 
 -(void) insertCallback:(nonnull RCTResponseSenderBlock)callback intoDictionary:(NSMutableDictionary *)dictionary withKey:(NSString *)key
 {
-    NSMutableArray* peripheralCallbacks = [dictionary objectForKey:key];
-    if (!peripheralCallbacks) {
-        peripheralCallbacks = [NSMutableArray array];
-        [dictionary setObject:peripheralCallbacks forKey:key];
-    }
+    @synchronized (dictionary) {
+        NSMutableArray* peripheralCallbacks = [dictionary objectForKey:key];
+        @synchronized (peripheralCallbacks) {
+            if (!peripheralCallbacks) {
+                peripheralCallbacks = [NSMutableArray array];
+                [dictionary setObject:peripheralCallbacks forKey:key];
+            }
 
-    [peripheralCallbacks addObject:callback];
+            [peripheralCallbacks addObject:callback];
+        }
+    }
 }
 
 -(void) invokeAndClearDictionary:(NSMutableDictionary *)dictionary withKey:(NSString *)key usingParameters:(NSArray *)parameters
 {
-    NSMutableArray* peripheralCallbacks = [dictionary objectForKey:key];
-    if (peripheralCallbacks) {
-        for (RCTResponseSenderBlock callback in peripheralCallbacks) {
-            callback(parameters);
-        }
+    @synchronized (dictionary) {
+        NSMutableArray* peripheralCallbacks = [dictionary objectForKey:key];
+        @synchronized (peripheralCallbacks) {
+            if (peripheralCallbacks) {
+                for (RCTResponseSenderBlock callback in peripheralCallbacks) {
+                    callback(parameters);
+                }
 
-        [dictionary removeObjectForKey:key];
+                [dictionary removeObjectForKey:key];
+            }
+        }
     }
 }
 
