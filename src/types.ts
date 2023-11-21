@@ -38,7 +38,8 @@ export interface Peripheral {
 export interface AdvertisingData {
   isConnectable?: boolean;
   localName?: string;
-  manufacturerData?: CustomAdvertisingData;
+  rawData?: CustomAdvertisingData;
+  manufacturerData?: Record<string, CustomAdvertisingData>;
   serviceData?: Record<string, CustomAdvertisingData>;
   serviceUUIDs?: string[];
   txPowerLevel?: number;
