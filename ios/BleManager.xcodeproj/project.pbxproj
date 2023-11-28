@@ -12,6 +12,7 @@
 		A908F1941CEEFEB500BE1488 /* BLECommandContext.m in Sources */ = {isa = PBXBuildFile; fileRef = A908F18F1CEEFEB500BE1488 /* BLECommandContext.m */; };
 		A908F1951CEEFEB500BE1488 /* BleManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A908F1911CEEFEB500BE1488 /* BleManager.m */; };
 		A918B6872B15F605006EC956 /* BleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A918B6862B15F605006EC956 /* BleManager.swift */; };
+		A918B68D2B162CF2006EC956 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A918B68C2B162CF2006EC956 /* Helper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,6 +39,7 @@
 		A908F1911CEEFEB500BE1488 /* BleManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BleManager.m; sourceTree = "<group>"; };
 		A918B6852B15F605006EC956 /* BleManager-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BleManager-Bridging-Header.h"; sourceTree = "<group>"; };
 		A918B6862B15F605006EC956 /* BleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BleManager.swift; sourceTree = "<group>"; };
+		A918B68C2B162CF2006EC956 /* Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +72,7 @@
 		A908F1891CEEFE0F00BE1488 /* BleManager */ = {
 			isa = PBXGroup;
 			children = (
+				A918B68C2B162CF2006EC956 /* Helper.swift */,
 				A908F18A1CEEFEB500BE1488 /* NSData+Conversion.h */,
 				A908F18B1CEEFEB500BE1488 /* NSData+Conversion.m */,
 				A908F18C1CEEFEB500BE1488 /* CBPeripheral+Extensions.h */,
@@ -147,6 +150,7 @@
 				A918B6872B15F605006EC956 /* BleManager.swift in Sources */,
 				A908F1921CEEFEB500BE1488 /* NSData+Conversion.m in Sources */,
 				A908F1941CEEFEB500BE1488 /* BLECommandContext.m in Sources */,
+				A918B68D2B162CF2006EC956 /* Helper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,6 +278,7 @@
 					"$(SRCROOT)/node_modules/react-native/React/**",
 					"$(SRCROOT)/../../../ios/Pods/Headers/Public/**",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BleManager;
@@ -299,6 +304,7 @@
 					"$(SRCROOT)/node_modules/react-native/React/**",
 					"$(SRCROOT)/../../../ios/Pods/Headers/Public/**",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BleManager;
