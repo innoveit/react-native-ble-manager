@@ -74,22 +74,51 @@ class Helper {
             adv.removeValue(forKey: CBAdvertisementDataServiceUUIDsKey)
             adv["serviceUUIDs"] = serviceUUIDStrings
         }
+        // Solicited Services UUIDs is an array of CBUUIDs, convert into Strings
+        if let solicitiedServiceUUIDs = adv[CBAdvertisementDataSolicitedServiceUUIDsKey] as? NSMutableArray {
+            var solicitiedServiceUUIDStrings:Array<String> = []
+            for value in solicitiedServiceUUIDs {
+                if let uuid = value as? CBUUID {
+                    solicitiedServiceUUIDStrings.append(uuid.uuidString.lowercased())
+                }
+            }
+            
+            adv.removeValue(forKey: CBAdvertisementDataSolicitedServiceUUIDsKey)
+            adv["solicitedServiceUUIDs"] = solicitiedServiceUUIDStrings
+        }
+        
+        // Overflow Services UUIDs is an array of CBUUIDs, convert into Strings
+        if let overflowServiceUUIDs = adv[CBAdvertisementDataOverflowServiceUUIDsKey] as? NSMutableArray {
+            var overflowServiceUUIDStrings:Array<String> = []
+            for value in overflowServiceUUIDs {
+                if let uuid = value as? CBUUID {
+                    overflowServiceUUIDStrings.append(uuid.uuidString.lowercased())
+                }
+            }
+            
+            adv.removeValue(forKey: CBAdvertisementDataOverflowServiceUUIDsKey)
+            adv["overflowServiceUUIDs"] = overflowServiceUUIDStrings
+        }
+        
+        // Convert the manufacturer data
+        if let mfgData = adv[CBAdvertisementDataManufacturerDataKey] {
+            adv.removeValue(forKey: CBAdvertisementDataManufacturerDataKey)
+            adv["manufacturerRawData"] = mfgData
+        }
         
         return adv
     }
 }
 
 class Peripheral:Hashable {
-    var peripheral: CBPeripheral
+    var instance: CBPeripheral
     var rssi: NSNumber?
     var advertisementData: [String:Any]?
     
     init(peripheral: CBPeripheral, rssi: NSNumber? = nil, advertisementData: [String:Any]? = nil) {
-        self.peripheral = peripheral
+        self.instance = peripheral
         self.rssi = rssi
-        if let adv = advertisementData {
-            self.advertisementData = Helper.reformatAdvertisementData(adv)
-        }
+        self.advertisementData = advertisementData
     }
     
     func setRSSI(_ newRSSI: NSNumber?) {
@@ -103,19 +132,21 @@ class Peripheral:Hashable {
     func advertisingInfo() -> NSDictionary {
         var peripheralInfo: [String: Any] = [:]
         
-        peripheralInfo["name"] = peripheral.name
-        peripheralInfo["id"] = peripheral.identifier.uuidString.lowercased()
+        peripheralInfo["name"] = instance.name
+        peripheralInfo["id"] = instance.identifier.uuidString.lowercased()
         peripheralInfo["rssi"] = self.rssi
-        peripheralInfo["advertising"] = self.advertisementData
+        if let adv = self.advertisementData {
+            peripheralInfo["advertising"] = Helper.reformatAdvertisementData(adv)
+        }
         
         return NSDictionary(dictionary: peripheralInfo)
     }
     
     static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
-        return lhs.peripheral == rhs.peripheral
+        return lhs.instance.uuidAsString() == rhs.instance.uuidAsString()
     }
     
     func hash(into hasher: inout Hasher) {
-        hasher.combine(peripheral)
+        hasher.combine(instance.uuidAsString())
     }
 }
