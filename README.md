@@ -85,6 +85,7 @@ If you need communication while the app is not in the foreground you need the "A
 ##### iOS - Update Info.plist
 
 In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
+If the deployment target is earlier than iOS 13, you also need to add the `NSBluetoothPeripheralUsageDescription` string key.
 
 ## Note
 
