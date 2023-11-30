@@ -19,4 +19,17 @@ RCT_EXTERN_METHOD(connect:
                   options:(NSDictionary *)options
                   callback:(nonnull RCTResponseSenderBlock)callback
                   )
+RCT_EXTERN_METHOD(disconnect:
+                  (NSString *)peripheralUUID 
+                  force:(BOOL)force
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+RCT_EXTERN_METHOD(retrieveServices:
+                  (NSString *)peripheralUUID
+                  services:(NSArray<NSString *> *)services
+                  callback:(nonnull RCTResponseSenderBlock)callback
+                  )
+RCT_EXTERN_METHOD(readRSSI:
+                  (NSString *)deviceUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback
+                  )
 @end

@@ -142,6 +142,12 @@ class Peripheral:Hashable {
         return NSDictionary(dictionary: peripheralInfo)
     }
     
+    func servicesInfo() -> NSDictionary {
+        var servicesInfo: [String: Any] = [:]
+        return NSDictionary(dictionary: servicesInfo)
+    }
+    
+    
     static func == (lhs: Peripheral, rhs: Peripheral) -> Bool {
         return lhs.instance.uuidAsString() == rhs.instance.uuidAsString()
     }
