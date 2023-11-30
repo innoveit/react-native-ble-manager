@@ -6,6 +6,7 @@ import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.annotation.SuppressLint;
+import android.util.SparseArray;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -42,7 +43,7 @@ public class DefaultPeripheral extends Peripheral {
             map.putString("id", device.getAddress()); // mac address
             map.putInt("rssi", advertisingRSSI);
 
-            advertising.putMap("manufacturerData", byteArrayToWritableMap(advertisingDataBytes));
+            advertising.putMap("rawData", byteArrayToWritableMap(advertisingDataBytes));
 
             if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // We can check if peripheral is connectable using the scanresult
@@ -53,7 +54,6 @@ public class DefaultPeripheral extends Peripheral {
                 // We can't check if peripheral is connectable
                 advertising.putBoolean("isConnectable", true);
             }
-
 
             if (advertisingData != null) {
                 String deviceName = advertisingData.getDeviceName();
@@ -76,8 +76,15 @@ public class DefaultPeripheral extends Peripheral {
                         }
                     }
                 }
-
                 advertising.putMap("serviceData", serviceData);
+
+                WritableMap manufacturerData = Arguments.createMap();
+                SparseArray<byte[]> manufacturerRawData = advertisingData.getManufacturerSpecificData();
+                if (manufacturerRawData != null && manufacturerRawData.size() > 0) {
+                    manufacturerData.putMap(String.format("%04x", manufacturerRawData.keyAt(0)), byteArrayToWritableMap(manufacturerRawData.valueAt(0)));
+                }
+                advertising.putMap("manufacturerData", manufacturerData);
+
                 advertising.putInt("txPowerLevel", advertisingData.getTxPowerLevel());
             }
 
@@ -93,6 +100,4 @@ public class DefaultPeripheral extends Peripheral {
         advertisingData = result.getScanRecord();
         advertisingDataBytes = advertisingData.getBytes();
     }
-
-
 }
