@@ -29,7 +29,28 @@ RCT_EXTERN_METHOD(retrieveServices:
                   callback:(nonnull RCTResponseSenderBlock)callback
                   )
 RCT_EXTERN_METHOD(readRSSI:
-                  (NSString *)deviceUUID
+                  (NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback
+                  )
+RCT_EXTERN_METHOD(readDescriptor:
+                  (NSString *)peripheralUUID
+                  serviceUUID:(NSString*)serviceUUID
+                  characteristicUUID:(NSString*)characteristicUUID
+                  descriptorUUID:(NSString*)descriptorUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback
+                  )
+RCT_EXTERN_METHOD(getDiscoveredPeripherals:
+                  (nonnull RCTResponseSenderBlock)callback
+                  )
+RCT_EXTERN_METHOD(checkState:
+                  (nonnull RCTResponseSenderBlock)callback
+                  )
+RCT_EXTERN_METHOD(write:
+                  (NSString *)peripheralUUID
+                  serviceUUID:(NSString*)serviceUUID
+                  characteristicUUID:(NSString*)characteristicUUID
+                  message:(NSArray*)message
+                  maxByteSize:(NSInteger)maxByteSize
                   callback:(nonnull RCTResponseSenderBlock)callback
                   )
 @end

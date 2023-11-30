@@ -47,7 +47,7 @@ class Helper {
             adv.removeValue(forKey: CBAdvertisementDataTxPowerLevelKey)
             adv["txPowerLevel"] = powerLevel
         }
-          
+        
         // Service Data is a dictionary of CBUUID and NSData
         // Convert to String keys with Array Buffer values
         if let serviceData = adv[CBAdvertisementDataServiceDataKey] as? NSMutableDictionary {
@@ -101,13 +101,142 @@ class Helper {
         }
         
         // Convert the manufacturer data
-        if let mfgData = adv[CBAdvertisementDataManufacturerDataKey] {
+        if let mfgData = adv[CBAdvertisementDataManufacturerDataKey] as? Data {
+            if mfgData.count > 1 {
+                let manufactureID = UInt16(mfgData[0]) + UInt16(mfgData[1]) << 8
+                var manInfo: [String: Any] = [:]
+                manInfo[String(format: "%04X", manufactureID)] = mfgData.subdata(in: 2..<mfgData.endIndex)
+                adv["manufacturerData"] = mfgData
+            }
             adv.removeValue(forKey: CBAdvertisementDataManufacturerDataKey)
             adv["manufacturerRawData"] = mfgData
+            
         }
         
         return adv
     }
+    
+    static func decodeCharacteristicProperties(_ p: CBCharacteristicProperties) -> Dictionary<String, Any> {
+        var props: [String: Any] = [:]
+            
+        // NOTE: props strings need to be consistent across iOS and Android
+        if p.contains(.broadcast) {
+            props["Broadcast"] = "Broadcast"
+        }
+        
+        if p.contains(.read) {
+            props["Read"] = "Read"
+        }
+        
+        if p.contains(.writeWithoutResponse) {
+            props["WriteWithoutResponse"] = "WriteWithoutResponse"
+        }
+        
+        if p.contains(.write) {
+            props["Write"] = "Write"
+        }
+        
+        if p.contains(.notify) {
+            props["Notify"] = "Notify"
+        }
+        
+        if p.contains(.indicate) {
+            props["Indicate"] = "Indicate"
+        }
+        
+        if p.contains(.authenticatedSignedWrites) {
+            props["AuthenticateSignedWrites"] = "AuthenticateSignedWrites"
+        }
+        
+        if p.contains(.extendedProperties) {
+            props["ExtendedProperties"] = "ExtendedProperties"
+        }
+        
+        if p.contains(.notifyEncryptionRequired) {
+            props["NotifyEncryptionRequired"] = "NotifyEncryptionRequired"
+        }
+        
+        if p.contains(.indicateEncryptionRequired) {
+            props["IndicateEncryptionRequired"] = "IndicateEncryptionRequired"
+        }
+        
+        return props
+    }
+    
+    static func key(forPeripheral peripheral: CBPeripheral,
+                    andCharacteristic characteristic: CBCharacteristic) -> String {
+        return "\(String(describing: peripheral.uuidAsString))|\(characteristic.uuid)"
+    }
+
+    static func key(forPeripheral peripheral: CBPeripheral,
+                    andCharacteristic characteristic: CBCharacteristic,
+                    andDescriptor descriptor: CBDescriptor) -> String {
+        return "\(String(describing: peripheral.uuidAsString))|\(characteristic.uuid)|\(descriptor.uuid)"
+    }
+    
+    static func findDescriptor(fromUUID UUID: CBUUID, characteristic: CBCharacteristic) -> CBDescriptor? {
+        if BleManager.verboseLogging {
+            NSLog("Looking for descriptor \(UUID) on characteristic \(characteristic.uuid)")
+        }
+        for descriptor in characteristic.descriptors ?? [] {
+            if descriptor.uuid.isEqual(UUID) {
+                if BleManager.verboseLogging {
+                    NSLog("Found descriptor \(UUID)")
+                }
+                return descriptor
+            }
+        }
+        return nil // Descriptor not found on this characteristic
+    }
+    
+    // Find a service in a peripheral
+    static func findService(fromUUID UUID: CBUUID, peripheral p: CBPeripheral) -> CBService? {
+        for service in p.services ?? [] {
+            if compareCBUUID(service.uuid, UUID2: UUID) {
+                return service
+            }
+        }
+
+        return nil // Service not found on this peripheral
+    }
+
+    static func compareCBUUID(_ UUID1: CBUUID, UUID2: CBUUID) -> Bool {
+        return UUID1.uuidString.caseInsensitiveCompare(UUID2.uuidString) == .orderedSame
+    }
+    
+    // Find a characteristic in service with a specific property
+    static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService, prop: CBCharacteristicProperties) -> CBCharacteristic? {
+        if BleManager.verboseLogging {
+            NSLog("Looking for \(UUID) with properties \(prop.rawValue)")
+        }
+        for characteristic in service.characteristics ?? [] {
+            if (characteristic.properties.contains(prop) && characteristic.uuid.isEqual(UUID)) {
+                if BleManager.verboseLogging {
+                    NSLog("Found \(UUID)")
+                }
+                return characteristic
+            }
+        }
+        return nil // Characteristic with prop not found on this service
+    }
+
+    // Find a characteristic in service by UUID
+    static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService) -> CBCharacteristic? {
+        if BleManager.verboseLogging {
+            NSLog("Looking for \(UUID)")
+        }
+        for characteristic in service.characteristics ?? [] {
+            if characteristic.uuid.isEqual(UUID) {
+                if BleManager.verboseLogging {
+                    NSLog("Found \(UUID)")
+                }
+                return characteristic
+            }
+        }
+        return nil // Characteristic not found on this service
+    }
+
+    
 }
 
 class Peripheral:Hashable {
@@ -129,22 +258,67 @@ class Peripheral:Hashable {
         self.advertisementData = advertisementData
     }
     
-    func advertisingInfo() -> NSDictionary {
+    func advertisingInfo() -> Dictionary<String, Any> {
         var peripheralInfo: [String: Any] = [:]
         
         peripheralInfo["name"] = instance.name
-        peripheralInfo["id"] = instance.identifier.uuidString.lowercased()
+        peripheralInfo["id"] = instance.uuidAsString()
         peripheralInfo["rssi"] = self.rssi
         if let adv = self.advertisementData {
             peripheralInfo["advertising"] = Helper.reformatAdvertisementData(adv)
         }
         
-        return NSDictionary(dictionary: peripheralInfo)
+        return peripheralInfo
     }
     
-    func servicesInfo() -> NSDictionary {
+    func servicesInfo() -> Dictionary<String, Any> {
         var servicesInfo: [String: Any] = [:]
-        return NSDictionary(dictionary: servicesInfo)
+        
+        var serviceList = [[String: Any]]()
+        var characteristicList = [[String: Any]]()
+        
+        for service in instance.services ?? [] {
+            var serviceDictionary = [String: Any]()
+            serviceDictionary["uuid"] = service.uuid.uuidString.lowercased()
+            serviceList.append(serviceDictionary)
+            
+            for characteristic in service.characteristics ?? [] {
+                var characteristicDictionary = [String: Any]()
+                characteristicDictionary["service"] = service.uuid.uuidString.lowercased()
+                characteristicDictionary["characteristic"] = characteristic.uuid.uuidString.lowercased()
+                
+                if let value = characteristic.value, value.count > 0 {
+                    characteristicDictionary["value"] = Helper.dataToArrayBuffer(value)
+                }
+                
+                characteristicDictionary["properties"] = Helper.decodeCharacteristicProperties(characteristic.properties)
+                
+                characteristicDictionary["isNotifying"] = characteristic.isNotifying
+                
+                var descriptorList = [[String: Any]]()
+                for descriptor in characteristic.descriptors ?? [] {
+                    var descriptorDictionary = [String: Any]()
+                    descriptorDictionary["uuid"] = descriptor.uuid.uuidString.lowercased()
+                    
+                    if let value = descriptor.value {
+                        descriptorDictionary["value"] = value
+                    }
+                    
+                    descriptorList.append(descriptorDictionary)
+                }
+                
+                if descriptorList.count > 0 {
+                    characteristicDictionary["descriptors"] = descriptorList
+                }
+                
+                characteristicList.append(characteristicDictionary)
+            }
+        }
+        
+        servicesInfo["services"] = serviceList
+        servicesInfo["characteristics"] = characteristicList
+        
+        return servicesInfo
     }
     
     
@@ -154,5 +328,17 @@ class Peripheral:Hashable {
     
     func hash(into hasher: inout Hasher) {
         hasher.combine(instance.uuidAsString())
+    }
+}
+
+class BLECommandContext:NSObject {
+    var peripheral: Peripheral?
+    var service: CBService?
+    var characteristic: CBCharacteristic?
+}
+
+extension Data {
+    func hexadecimalString() -> String {
+        return map { String(format: "%02hhx", $0) }.joined()
     }
 }
