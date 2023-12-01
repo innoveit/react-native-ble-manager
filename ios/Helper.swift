@@ -118,7 +118,7 @@ class Helper {
     
     static func decodeCharacteristicProperties(_ p: CBCharacteristicProperties) -> Dictionary<String, Any> {
         var props: [String: Any] = [:]
-            
+        
         // NOTE: props strings need to be consistent across iOS and Android
         if p.contains(.broadcast) {
             props["Broadcast"] = "Broadcast"
@@ -167,7 +167,7 @@ class Helper {
                     andCharacteristic characteristic: CBCharacteristic) -> String {
         return "\(String(describing: peripheral.uuidAsString))|\(characteristic.uuid)"
     }
-
+    
     static func key(forPeripheral peripheral: CBPeripheral,
                     andCharacteristic characteristic: CBCharacteristic,
                     andDescriptor descriptor: CBDescriptor) -> String {
@@ -196,10 +196,10 @@ class Helper {
                 return service
             }
         }
-
+        
         return nil // Service not found on this peripheral
     }
-
+    
     static func compareCBUUID(_ UUID1: CBUUID, UUID2: CBUUID) -> Bool {
         return UUID1.uuidString.caseInsensitiveCompare(UUID2.uuidString) == .orderedSame
     }
@@ -219,7 +219,7 @@ class Helper {
         }
         return nil // Characteristic with prop not found on this service
     }
-
+    
     // Find a characteristic in service by UUID
     static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService) -> CBCharacteristic? {
         if BleManager.verboseLogging {
@@ -235,7 +235,7 @@ class Helper {
         }
         return nil // Characteristic not found on this service
     }
-
+    
     
 }
 
@@ -339,6 +339,19 @@ class BLECommandContext:NSObject {
 
 extension Data {
     func hexadecimalString() -> String {
+        /* Returns hexadecimal string of Data. Empty string if data is empty. */
         return map { String(format: "%02hhx", $0) }.joined()
+    }
+    
+    func toArray() -> [NSNumber] {
+        /* Returns an array of NSNumber representing the hexadecimal values of the bytes in the data. Empty array if data is empty. */
+        
+        let dataBuffer = [UInt8](self)
+        
+        if dataBuffer.isEmpty {
+            return []
+        }
+        
+        return dataBuffer.map { NSNumber(value: $0) }
     }
 }

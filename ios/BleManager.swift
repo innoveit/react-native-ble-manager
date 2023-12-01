@@ -491,28 +491,29 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             callback([stateName])
         }
     }
-    
+            
     @objc func write(_ peripheralUUID: String,
                      serviceUUID: String,
                      characteristicUUID: String,
-                     message: [Any],
+                     message: [UInt8],
                      maxByteSize: Int,
                      callback: @escaping RCTResponseSenderBlock) {
         NSLog("write")
+        
+        // TODO check if the queue is working
         
         guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.write, callback: callback) else {
             return
         }
         
-        let bytes = message.compactMap { ($0 as? NSNumber)?.intValue }
-        let dataMessage = Data(bytes: bytes, count: bytes.count)
+        let dataMessage = Data(message)
         
         if let peripheral = context.peripheral, let characteristic = context.characteristic {
             let key = Helper.key(forPeripheral:peripheral.instance, andCharacteristic: characteristic)
             insertCallback(callback, intoDictionary: &writeCallbacks, withKey: key)
             
             if BleManager.verboseLogging {
-                NSLog("Message to write(\(dataMessage.count)): \(String(describing: dataMessage.hexadecimalString))")
+                NSLog("Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())")
             }
             
             if dataMessage.count > maxByteSize {
@@ -530,9 +531,11 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                     writeQueue.append(splitMessage)
                 }
                 
-                NSLog("Queued splitted message: \(writeQueue.count)")
+                if BleManager.verboseLogging {
+                    NSLog("Queued splitted message: \(writeQueue.count)")
+                }
                 
-                if case let firstMessage as Data = writeQueue.first {
+                if case let firstMessage as Data = writeQueue.removeFirst() {
                     peripheral.instance.writeValue(firstMessage, for: characteristic, type: .withResponse)
                 }
             } else {
@@ -541,6 +544,113 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
     }
     
+    @objc func writeWithoutResponse(_ peripheralUUID: String,
+                                    serviceUUID: String,
+                                    characteristicUUID: String,
+                                    message: [UInt8],
+                                    maxByteSize: Int,
+                                    queueSleepTime: Int,
+                                    callback: @escaping RCTResponseSenderBlock) {
+        NSLog("writeWithoutResponse")
+
+        guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.writeWithoutResponse, callback: callback) else {
+            return
+        }
+
+        let dataMessage = Data(message)
+        
+        if BleManager.verboseLogging {
+            NSLog("Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())")
+        }
+
+        if dataMessage.count > maxByteSize {
+            var offset = 0
+            let peripheral = context.peripheral
+            guard let characteristic = context.characteristic else { return }
+
+            repeat {
+                let thisChunkSize = min(maxByteSize, dataMessage.count - offset)
+                let chunk = dataMessage.subdata(in: offset..<offset + thisChunkSize)
+
+                offset += thisChunkSize
+                peripheral?.instance.writeValue(chunk, for: characteristic, type: .withoutResponse)
+
+                let sleepTimeSeconds = TimeInterval(queueSleepTime) / 1000
+                Thread.sleep(forTimeInterval: sleepTimeSeconds)
+            } while offset < dataMessage.count
+
+            callback([])
+        } else {
+            let peripheral = context.peripheral
+            guard let characteristic = context.characteristic else { return }
+                        
+            peripheral?.instance.writeValue(dataMessage, for: characteristic, type: .withoutResponse)
+            callback([])
+        }
+    }
+    
+    @objc func read(_ peripheralUUID: String,
+                    serviceUUID: String,
+                    characteristicUUID: String,
+                    callback: @escaping RCTResponseSenderBlock) {
+        NSLog("read")
+        
+        guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.read, callback: callback) else {
+            return
+        }
+        
+        let peripheral = context.peripheral
+        let characteristic = context.characteristic
+        
+        let key = Helper.key(forPeripheral:peripheral!.instance as CBPeripheral, andCharacteristic: characteristic!)
+        insertCallback(callback, intoDictionary: &readCallbacks, withKey: key)
+        
+        peripheral?.instance.readValue(for: characteristic!)  // callback sends value
+    }
+    
+    @objc func startNotification(_ peripheralUUID: String,
+                                 serviceUUID: String,
+                                 characteristicUUID: String,
+                                 callback: @escaping RCTResponseSenderBlock) {
+        NSLog("startNotification")
+
+        guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.notify, callback: callback) else {
+            return
+        }
+
+        guard let peripheral = context.peripheral else { return }
+        guard let characteristic = context.characteristic else { return }
+
+        let key = Helper.key(forPeripheral: (peripheral.instance as CBPeripheral?)!, andCharacteristic: characteristic)
+        insertCallback(callback, intoDictionary: &notificationCallbacks, withKey: key)
+
+        peripheral.instance.setNotifyValue(true, for: characteristic)
+    }
+
+    @objc func stopNotification(_ peripheralUUID: String,
+                                serviceUUID: String,
+                                characteristicUUID: String,
+                                callback: @escaping RCTResponseSenderBlock) {
+        NSLog("stopNotification")
+
+        guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.notify, callback: callback) else {
+            return
+        }
+
+        let peripheral = context.peripheral
+        guard let characteristic = context.characteristic else { return }
+
+        if characteristic.isNotifying {
+            let key = Helper.key(forPeripheral: (peripheral?.instance as CBPeripheral?)!, andCharacteristic: characteristic)
+            insertCallback(callback, intoDictionary: &stopNotificationCallbacks, withKey: key)
+            peripheral?.instance.setNotifyValue(false, for: characteristic)
+            NSLog("Characteristic stopped notifying")
+        } else {
+            NSLog("Characteristic is not notifying")
+            callback([])
+        }
+    }
+
     
     func centralManager(_ central: CBCentralManager,
                         didConnect peripheral: CBPeripheral) {
@@ -634,6 +744,9 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         let stateName = Helper.centralManagerStateToString(central.state)
         if hasListeners {
             sendEvent(withName: "BleManagerDidUpdateState", body: ["state": stateName])
+        }
+        if stateName == "poweredOff" {
+            // TODO check if the peripherals are still connected and send BleManagerDisconnectPeripheral
         }
     }
     
@@ -804,27 +917,37 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
         
         if let descriptorValue = descriptor.value as? Data {
-            NSLog("Read value [descriptor: \(descriptor.uuid), characteristic: \(descriptor.characteristic!.uuid)]: (\(descriptorValue.count)) \(descriptorValue)")
+            NSLog("Read value [descriptor: \(descriptor.uuid), characteristic: \(descriptor.characteristic!.uuid)]: (\(descriptorValue.count)) \(descriptorValue.hexadecimalString())")
         } else {
             NSLog("Read value [descriptor: \(descriptor.uuid), characteristic: \(descriptor.characteristic!.uuid)]: \(String(describing: descriptor.value))")
         }
-        
+                        
         if readDescriptorCallbacks[key] != nil {
+            // The most future proof way of doing this that I could find, other option would be running strcmp on CBUUID strings
+            // https://developer.apple.com/documentation/corebluetooth/cbuuid/characteristic_descriptors
             if let descriptorValue = descriptor.value as? Data {
-                invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), descriptorValue.count > 0 ? descriptorValue : NSNull()])
+                if (BleManager.verboseLogging) {
+                    NSLog("Descriptor value is Data")
+                }
+                invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), descriptorValue.toArray()])
             } else if let descriptorValue = descriptor.value as? NSNumber {
-                let byteData = NSMutableData()
+                if (BleManager.verboseLogging) {
+                    NSLog("Descriptor value is NSNumber")
+                }
                 var value = descriptorValue.uint64Value
-                byteData.append(&value, length: MemoryLayout.size(ofValue: value))
-                invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), byteData.count > 0 ? byteData.toArray()! : NSNull()])
+                let byteData = Data(bytes: &value, count: MemoryLayout.size(ofValue: value))
+                invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), byteData.toArray()])
             } else if let descriptorValue = descriptor.value as? String {
+                if (BleManager.verboseLogging) {
+                    NSLog("Descriptor value is String")
+                }
                 if let byteData = descriptorValue.data(using: .utf8) {
-                    invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), byteData.count > 0 ? byteData : NSNull()])
+                    invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), byteData.toArray()])
                 }
             } else {
                 NSLog("Unrecognized type of descriptor: (UUID: \(descriptor.uuid), value type: \(type(of: descriptor.value)), value: \(String(describing: descriptor.value)))")
                 if let descriptorValue = descriptor.value as? Data {
-                    invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), descriptorValue.count > 0 ? descriptorValue : NSNull()])
+                    invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), descriptorValue.toArray()])
                 }
             }
         }
@@ -841,17 +964,17 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             return
         }
         
-        NSLog("Read value [\(characteristic.uuid)]: (\(characteristic.value?.count ?? 0)) \(characteristic.value ?? Data())")
+        NSLog("Read value [\(characteristic.uuid)]: (\(String(describing: characteristic.value?.hexadecimalString()))")
         
         if readCallbacks[key] != nil {
             invokeAndClearDictionary(&readCallbacks, withKey: key, usingParameters: [NSNull(), characteristic.value!])
         } else {
             if hasListeners {
                 sendEvent(withName: "BleManagerDidUpdateValueForCharacteristic", body: [
-                    "peripheral": peripheral.uuidAsString,
+                    "peripheral": peripheral.uuidAsString(),
                     "characteristic": characteristic.uuid.uuidString.lowercased(),
-                    "service": characteristic.service?.uuid.uuidString.lowercased(),
-                    "value": characteristic.value!.count > 0 ? characteristic.value : nil
+                    "service": characteristic.service?.uuid.uuidString.lowercased() ?? NSNull(),
+                    "value": characteristic.value?.toArray() ?? NSNull()
                 ])
             }
         }
@@ -865,11 +988,11 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             
             if hasListeners {
                 sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                    "peripheral": peripheral.uuidAsString,
+                    "peripheral": peripheral.uuidAsString(),
                     "characteristic": characteristic.uuid.uuidString.lowercased(),
                     "isNotifying": false,
-                    "domain": (error as NSError).domain,
-                    "code": (error as NSError).code
+                    "domain": error._domain,
+                    "code": error._code
                 ])
             }
         }
@@ -902,14 +1025,38 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
         if hasListeners {
             sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                "peripheral": peripheral.uuidAsString,
+                "peripheral": peripheral.uuidAsString(),
                 "characteristic": characteristic.uuid.uuidString.lowercased(),
                 "isNotifying": characteristic.isNotifying
             ])
         }
     }
     
-    
+    func peripheral(_ peripheral: CBPeripheral, 
+                    didWriteValueFor characteristic: CBCharacteristic,
+                    error: Error?) {
+        NSLog("didWrite")
+
+        let key = Helper.key(forPeripheral:peripheral, andCharacteristic: characteristic)
+        let peripheralWriteCallbacks = writeCallbacks[key]
+
+        if peripheralWriteCallbacks != nil {
+            if let error = error {
+                NSLog("\(error)")
+                invokeAndClearDictionary(&writeCallbacks, withKey: key, usingParameters: [error.localizedDescription])
+            } else {
+                if writeQueue.isEmpty {
+                    invokeAndClearDictionary(&writeCallbacks, withKey: key, usingParameters: [])
+                } else {
+                    // Rimuovi e scrivi il messaggio in coda
+                    let message = writeQueue.removeFirst() as! Data
+                    NSLog("Message to write \(message.hexadecimalString())")
+                    peripheral.writeValue(message, for: characteristic, type: .withResponse)
+                }
+            }
+        }
+    }
+
     
     static func getCentralManager() -> CBCentralManager? {
         return sharedManager
