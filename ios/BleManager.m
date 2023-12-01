@@ -81,4 +81,51 @@ RCT_EXTERN_METHOD(stopNotification:
                   characteristicUUID:(NSString*)characteristicUUID
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
+RCT_EXTERN_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(isPeripheralConnected:
+                  (NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(getMaximumWriteValueLengthForWithoutResponse:
+                  (NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(getMaximumWriteValueLengthForWithResponse:
+                  (NSString *)deviceUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+// Not supported
+                  
+
+RCT_EXTERN_METHOD(enableBluetooth:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(getBondedPeripherals:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(createBond:(NSString *)peripheralUUID
+                  devicePin:(NSString *)devicePin
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(removeBond:(NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(removePeripheral:(NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(requestMTU:(NSString *)peripheralUUID
+                  mtu:(NSInteger)mtu
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(requestConnectionPriority:(NSString *)peripheralUUID
+                  connectionPriority:(NSInteger)connectionPriority
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(refreshCache:(NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(setName:(NSString *)name
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+
 @end
