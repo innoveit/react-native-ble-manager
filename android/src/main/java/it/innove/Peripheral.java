@@ -18,6 +18,7 @@ import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
@@ -120,7 +121,7 @@ public class Peripheral extends BluetoothGattCallback {
                     if (options.hasKey("autoconnect")) {
                         autoconnect = options.getBoolean("autoconnect");
                     }
-                    if (!autoconnect && options.hasKey("phy")) {
+                    if (!autoconnect && options.hasKey("phy") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         int phy = options.getInt("phy");
                         gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE, phy);
                     } else {
@@ -291,8 +292,8 @@ public class Peripheral extends BluetoothGattCallback {
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         super.onServicesDiscovered(gatt, status);
         mainHandler.post(() -> {
-            WritableMap map = this.asWritableMap(gatt);
             for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
+                WritableMap map = this.asWritableMap(gatt);
                 retrieveServicesCallback.invoke(null, map);
             }
             retrieveServicesCallbacks.clear();
@@ -414,21 +415,22 @@ public class Peripheral extends BluetoothGattCallback {
         advertisingDataBytes = data;
     }
 
-    public int unsignedToBytes(byte b) {
-        return b & 0xFF;
-    }
-
     //////
 
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        super.onCharacteristicChanged(gatt, characteristic);
+        onCharacteristicChanged(gatt, characteristic, characteristic.getValue());
+    }
+
+    @Override
+    public void onCharacteristicChanged(@NonNull final BluetoothGatt gatt, @NonNull final BluetoothGattCharacteristic characteristic, @NonNull final byte[] data) {
+        super.onCharacteristicChanged(gatt, characteristic, data);
         try {
             String charString = characteristic.getUuid().toString();
             String service = characteristic.getService().getUuid().toString();
             NotifyBufferContainer buffer = this.bufferedCharacteristics
                     .get(this.bufferedCharacteristicsKey(service, charString));
-            byte[] dataValue = characteristic.getValue();
+            byte[] dataValue = data;
             // If for some reason the value's length >= 2*buffer size this will be able to
             // handle it
             while (dataValue != null) {
@@ -463,7 +465,13 @@ public class Peripheral extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-        super.onCharacteristicRead(gatt, characteristic, status);
+        onCharacteristicRead(gatt, characteristic, characteristic.getValue(), status);
+    }
+    @Override
+    public void onCharacteristicRead(@NonNull final BluetoothGatt gatt,
+                                     @NonNull final BluetoothGattCharacteristic characteristic,
+                                     @NonNull byte[] data, int status) {
+        super.onCharacteristicRead(gatt, characteristic, data, status);
 
         mainHandler.post(() -> {
             if (status != BluetoothGatt.GATT_SUCCESS) {
@@ -478,7 +486,7 @@ public class Peripheral extends BluetoothGattCallback {
                 }
                 readCallbacks.clear();
             } else if (!readCallbacks.isEmpty()) {
-                final byte[] dataValue = copyOf(characteristic.getValue());
+                final byte[] dataValue = copyOf(data);
 
                 for (Callback readCallback : readCallbacks) {
                     readCallback.invoke(null, BleManager.bytesToWritableArray(dataValue));
@@ -907,12 +915,8 @@ public class Peripheral extends BluetoothGattCallback {
         enqueue(() -> {
             try {
                 Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
-                if (localMethod != null) {
-                    boolean res = ((Boolean) localMethod.invoke(gatt, new Object[0])).booleanValue();
-                    callback.invoke(null, res);
-                } else {
-                    callback.invoke("Could not refresh cache for device.");
-                }
+                boolean res = (Boolean) localMethod.invoke(gatt, new Object[0]);
+                callback.invoke(null, res);
             } catch (Exception localException) {
                 Log.e(TAG, "An exception occured while refreshing device");
                 callback.invoke(localException.getMessage());
