@@ -836,9 +836,10 @@ The scanning find a new peripheral.
 - `advertising` - `JSON` - the advertising payload, here are some examples:
   - `isConnectable` - `Boolean`
   - `serviceUUIDs` - `Array of String`
-  - `manufacturerData` - `JSON` - contains the raw `bytes` and `data` (Base64 encoded string)
+  - `manufacturerData` - `JSON` - contains a json with the company id as field and the custom value as raw `bytes` and `data` (Base64 encoded string)
   - `serviceData` - `JSON` - contains the raw `bytes` and `data` (Base64 encoded string)
   - `txPowerLevel` - `Int`
+  - `rawData` - [Android only] `JSON` - contains the raw `bytes` and `data` (Base64 encoded string) of the all advertising data
 
 **Examples**
 
