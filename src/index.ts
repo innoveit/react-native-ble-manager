@@ -405,13 +405,15 @@ class BleManager {
         scanningOptions.reportDelay = 0;
       }
 
-      // (ANDROID) ScanFilter used to restrict search to devices within the specific advertising names list.
+      // In Android ScanFilter used to restrict search to devices with a specific advertising name.
       // https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
-      if (!scanningOptions.exactAdvertisingNames || !Array.isArray(scanningOptions.exactAdvertisingNames)) {
-        delete scanningOptions.exactAdvertisingNames;
+      // In iOS, this is a whole word match, not a partial search.
+      if (!scanningOptions.exactAdvertisingName) {
+        delete scanningOptions.exactAdvertisingName;
       } else {
-        const validNames = scanningOptions.exactAdvertisingNames.filter((name) => typeof name === "string");
-        scanningOptions.exactAdvertisingNames = validNames;
+        if (typeof scanningOptions.exactAdvertisingName === 'string') {
+          scanningOptions.exactAdvertisingName = [scanningOptions.exactAdvertisingName];
+        }
       }
 
       bleManager.scan(

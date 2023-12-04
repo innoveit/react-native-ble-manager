@@ -7,10 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A908F1921CEEFEB500BE1488 /* NSData+Conversion.m in Sources */ = {isa = PBXBuildFile; fileRef = A908F18B1CEEFEB500BE1488 /* NSData+Conversion.m */; };
-		A908F1931CEEFEB500BE1488 /* CBPeripheral+Extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = A908F18D1CEEFEB500BE1488 /* CBPeripheral+Extensions.m */; };
-		A908F1941CEEFEB500BE1488 /* BLECommandContext.m in Sources */ = {isa = PBXBuildFile; fileRef = A908F18F1CEEFEB500BE1488 /* BLECommandContext.m */; };
 		A908F1951CEEFEB500BE1488 /* BleManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A908F1911CEEFEB500BE1488 /* BleManager.m */; };
+		A918B6872B15F605006EC956 /* BleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A918B6862B15F605006EC956 /* BleManager.swift */; };
+		A918B68D2B162CF2006EC956 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A918B68C2B162CF2006EC956 /* Helper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,14 +26,11 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libBleManager.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBleManager.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		A908F18A1CEEFEB500BE1488 /* NSData+Conversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Conversion.h"; sourceTree = "<group>"; };
-		A908F18B1CEEFEB500BE1488 /* NSData+Conversion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Conversion.m"; sourceTree = "<group>"; };
-		A908F18C1CEEFEB500BE1488 /* CBPeripheral+Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CBPeripheral+Extensions.h"; sourceTree = "<group>"; };
-		A908F18D1CEEFEB500BE1488 /* CBPeripheral+Extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CBPeripheral+Extensions.m"; sourceTree = "<group>"; };
-		A908F18E1CEEFEB500BE1488 /* BLECommandContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLECommandContext.h; sourceTree = "<group>"; };
-		A908F18F1CEEFEB500BE1488 /* BLECommandContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLECommandContext.m; sourceTree = "<group>"; };
 		A908F1901CEEFEB500BE1488 /* BleManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BleManager.h; sourceTree = "<group>"; };
 		A908F1911CEEFEB500BE1488 /* BleManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BleManager.m; sourceTree = "<group>"; };
+		A918B6852B15F605006EC956 /* BleManager-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "BleManager-Bridging-Header.h"; sourceTree = "<group>"; };
+		A918B6862B15F605006EC956 /* BleManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BleManager.swift; sourceTree = "<group>"; };
+		A918B68C2B162CF2006EC956 /* Helper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,14 +63,11 @@
 		A908F1891CEEFE0F00BE1488 /* BleManager */ = {
 			isa = PBXGroup;
 			children = (
-				A908F18A1CEEFEB500BE1488 /* NSData+Conversion.h */,
-				A908F18B1CEEFEB500BE1488 /* NSData+Conversion.m */,
-				A908F18C1CEEFEB500BE1488 /* CBPeripheral+Extensions.h */,
-				A908F18D1CEEFEB500BE1488 /* CBPeripheral+Extensions.m */,
-				A908F18E1CEEFEB500BE1488 /* BLECommandContext.h */,
-				A908F18F1CEEFEB500BE1488 /* BLECommandContext.m */,
+				A918B68C2B162CF2006EC956 /* Helper.swift */,
 				A908F1901CEEFEB500BE1488 /* BleManager.h */,
 				A908F1911CEEFEB500BE1488 /* BleManager.m */,
+				A918B6862B15F605006EC956 /* BleManager.swift */,
+				A918B6852B15F605006EC956 /* BleManager-Bridging-Header.h */,
 			);
 			name = BleManager;
 			sourceTree = "<group>";
@@ -110,6 +103,7 @@
 				TargetAttributes = {
 					58B511DA1A9E6C8500147676 = {
 						CreatedOnToolsVersion = 6.1.1;
+						LastSwiftMigration = 1500;
 					};
 				};
 			};
@@ -118,6 +112,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 58B511D21A9E6C8500147676;
@@ -135,10 +130,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A908F1931CEEFEB500BE1488 /* CBPeripheral+Extensions.m in Sources */,
 				A908F1951CEEFEB500BE1488 /* BleManager.m in Sources */,
-				A908F1921CEEFEB500BE1488 /* NSData+Conversion.m in Sources */,
-				A908F1941CEEFEB500BE1488 /* BLECommandContext.m in Sources */,
+				A918B6872B15F605006EC956 /* BleManager.swift in Sources */,
+				A918B68D2B162CF2006EC956 /* Helper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +249,7 @@
 		58B511F01A9E6C8500147676 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
@@ -265,17 +260,22 @@
 					"$(SRCROOT)/node_modules/react-native/React/**",
 					"$(SRCROOT)/../../../ios/Pods/Headers/Public/**",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BleManager;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "BleManager-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
 		58B511F11A9E6C8500147676 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
@@ -286,11 +286,14 @@
 					"$(SRCROOT)/node_modules/react-native/React/**",
 					"$(SRCROOT)/../../../ios/Pods/Headers/Public/**",
 				);
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = BleManager;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "BleManager-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

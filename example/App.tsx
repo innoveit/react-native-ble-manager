@@ -20,7 +20,7 @@ import {
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-const SECONDS_TO_SCAN_FOR = 7;
+const SECONDS_TO_SCAN_FOR = 3;
 const SERVICE_UUIDS: string[] = [];
 const ALLOW_DUPLICATES = true;
 
@@ -49,13 +49,7 @@ const App = () => {
     new Map<Peripheral['id'], Peripheral>(),
   );
 
-  console.debug('peripherals map updated', [...peripherals.entries()]);
-
-  const addOrUpdatePeripheral = (id: string, updatedPeripheral: Peripheral) => {
-    // new Map() enables changing the reference & refreshing UI.
-    // TOFIX not efficient.
-    setPeripherals(map => new Map(map.set(id, updatedPeripheral)));
-  };
+  //console.debug('peripherals map updated', [...peripherals.entries()]);
 
   const startScan = () => {
     if (!isScanning) {
@@ -73,7 +67,7 @@ const App = () => {
           .then(() => {
             console.debug('[startScan] scan promise returned successfully.');
           })
-          .catch(err => {
+          .catch((err: any) => {
             console.error('[startScan] ble scan returned in error', err);
           });
       } catch (error) {
@@ -90,17 +84,21 @@ const App = () => {
   const handleDisconnectedPeripheral = (
     event: BleDisconnectPeripheralEvent,
   ) => {
-    let peripheral = peripherals.get(event.peripheral);
-    if (peripheral) {
-      console.debug(
-        `[handleDisconnectedPeripheral][${peripheral.id}] previously connected peripheral is disconnected.`,
-        event.peripheral,
-      );
-      addOrUpdatePeripheral(peripheral.id, {...peripheral, connected: false});
-    }
     console.debug(
       `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`,
     );
+    setPeripherals(map => {
+      let p = map.get(event.peripheral);
+      if (p) {
+        p.connected = false;
+        return new Map(map.set(event.peripheral, p));
+      }
+      return map;
+    });
+  };
+
+  const handleConnectPeripheral = (event: any) => {
+    console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
   };
 
   const handleUpdateValueForCharacteristic = (
@@ -116,7 +114,9 @@ const App = () => {
     if (!peripheral.name) {
       peripheral.name = 'NO NAME';
     }
-    addOrUpdatePeripheral(peripheral.id, peripheral);
+    setPeripherals(map => {
+      return new Map(map.set(peripheral.id, peripheral));
+    });
   };
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
@@ -149,7 +149,14 @@ const App = () => {
 
       for (var i = 0; i < connectedPeripherals.length; i++) {
         var peripheral = connectedPeripherals[i];
-        addOrUpdatePeripheral(peripheral.id, {...peripheral, connected: true});
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.connected = true;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
       }
     } catch (error) {
       console.error(
@@ -162,15 +169,26 @@ const App = () => {
   const connectPeripheral = async (peripheral: Peripheral) => {
     try {
       if (peripheral) {
-        addOrUpdatePeripheral(peripheral.id, {...peripheral, connecting: true});
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.connecting = true;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
 
         await BleManager.connect(peripheral.id);
         console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
 
-        addOrUpdatePeripheral(peripheral.id, {
-          ...peripheral,
-          connecting: false,
-          connected: true,
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.connecting = false;
+            p.connected = true;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
         });
 
         // before retrieving services, it is often a good idea to let bonding & connection finish properly
@@ -200,7 +218,7 @@ const App = () => {
                     descriptor.uuid,
                   );
                   console.debug(
-                    `[connectPeripheral][${peripheral.id}] descriptor read as:`,
+                    `[connectPeripheral][${peripheral.id}] ${characteristic.service} ${characteristic.characteristic} ${descriptor.uuid} descriptor read as:`,
                     data,
                   );
                 } catch (error) {
@@ -214,10 +232,14 @@ const App = () => {
           }
         }
 
-        let p = peripherals.get(peripheral.id);
-        if (p) {
-          addOrUpdatePeripheral(peripheral.id, {...peripheral, rssi});
-        }
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            p.rssi = rssi;
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
       }
     } catch (error) {
       console.error(
@@ -235,7 +257,7 @@ const App = () => {
     try {
       BleManager.start({showAlert: false})
         .then(() => console.debug('BleManager started.'))
-        .catch(error =>
+        .catch((error: any) =>
           console.error('BeManager could not be started.', error),
         );
     } catch (error) {
@@ -256,6 +278,10 @@ const App = () => {
       bleManagerEmitter.addListener(
         'BleManagerDidUpdateValueForCharacteristic',
         handleUpdateValueForCharacteristic,
+      ),
+      bleManagerEmitter.addListener(
+        'BleManagerConnectPeripheral',
+        handleConnectPeripheral,
       ),
     ];
 
