@@ -355,3 +355,10 @@ extension Data {
         return dataBuffer.map { NSNumber(value: $0) }
     }
 }
+
+extension CBPeripheral {
+    
+    func uuidAsString() -> String {
+        return self.identifier.uuidString.lowercased()
+    }
+}

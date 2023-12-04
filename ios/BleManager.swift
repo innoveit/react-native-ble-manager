@@ -880,7 +880,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         
         var servicesForPeripheral = Set<CBService>()
         servicesForPeripheral.formUnion(peripheral.services ?? [])
-        retrieveServicesLatches[peripheral.uuidAsString()!] = servicesForPeripheral
+        retrieveServicesLatches[peripheral.uuidAsString()] = servicesForPeripheral
         
         if let services = peripheral.services {
             for service in services {
@@ -1042,7 +1042,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         } else {
             if hasListeners {
                 sendEvent(withName: "BleManagerDidUpdateValueForCharacteristic", body: [
-                    "peripheral": peripheral.uuidAsString()!,
+                    "peripheral": peripheral.uuidAsString(),
                     "characteristic": characteristic.uuid.uuidString.lowercased(),
                     "service": characteristic.service!.uuid.uuidString.lowercased(),
                     "value": characteristic.value!.toArray()
@@ -1059,7 +1059,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             
             if hasListeners {
                 sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                    "peripheral": peripheral.uuidAsString()!,
+                    "peripheral": peripheral.uuidAsString(),
                     "characteristic": characteristic.uuid.uuidString.lowercased(),
                     "isNotifying": false,
                     "domain": error._domain,
@@ -1096,7 +1096,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
         if hasListeners {
             sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                "peripheral": peripheral.uuidAsString()!,
+                "peripheral": peripheral.uuidAsString(),
                 "characteristic": characteristic.uuid.uuidString.lowercased(),
                 "isNotifying": characteristic.isNotifying
             ])
