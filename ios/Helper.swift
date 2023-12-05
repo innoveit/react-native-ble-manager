@@ -12,9 +12,9 @@ class Helper {
         case .unauthorized:
             return "unauthorized"
         case .poweredOff:
-            return "poweredOff"
+            return "off"
         case .poweredOn:
-            return "poweredOn"
+            return "on"
         @unknown default:
             return "unknown"
         }
