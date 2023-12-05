@@ -419,12 +419,15 @@ public class Peripheral extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+        super.onCharacteristicChanged(gatt, characteristic);
         onCharacteristicChanged(gatt, characteristic, characteristic.getValue());
     }
 
     @Override
     public void onCharacteristicChanged(@NonNull final BluetoothGatt gatt, @NonNull final BluetoothGattCharacteristic characteristic, @NonNull final byte[] data) {
-        super.onCharacteristicChanged(gatt, characteristic, data);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            super.onCharacteristicChanged(gatt, characteristic, data);
+        }
         try {
             String charString = characteristic.getUuid().toString();
             String service = characteristic.getService().getUuid().toString();
@@ -465,14 +468,16 @@ public class Peripheral extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        super.onCharacteristicRead(gatt, characteristic, status);
         onCharacteristicRead(gatt, characteristic, characteristic.getValue(), status);
     }
     @Override
     public void onCharacteristicRead(@NonNull final BluetoothGatt gatt,
                                      @NonNull final BluetoothGattCharacteristic characteristic,
                                      @NonNull byte[] data, int status) {
-        super.onCharacteristicRead(gatt, characteristic, data, status);
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            super.onCharacteristicRead(gatt, characteristic, data, status);
+        }
         mainHandler.post(() -> {
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
