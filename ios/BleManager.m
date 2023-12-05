@@ -15,6 +15,8 @@ RCT_EXTERN_METHOD(scan:
                   scanningOptions:(nonnull NSDictionary*)scanningOptions
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
+RCT_EXTERN_METHOD(stopScan:(nonnull RCTResponseSenderBlock)callback)
+
 RCT_EXTERN_METHOD(connect:
                   (NSString *)peripheralUUID
                   options:(NSDictionary *)options
