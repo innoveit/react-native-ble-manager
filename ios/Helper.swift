@@ -340,7 +340,10 @@ class BLECommandContext:NSObject {
 extension Data {
     func hexadecimalString() -> String {
         /* Returns hexadecimal string of Data. Empty string if data is empty. */
-        return map { String(format: "%02hhx", $0) }.joined()
+        if self.isEmpty {
+            return ""
+        }
+        return map { "0x" + String(format: "%02hhx", $0) }.joined(separator: " ")
     }
     
     func toArray() -> [NSNumber] {

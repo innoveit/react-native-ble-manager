@@ -197,6 +197,10 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             initOptions[CBCentralManagerOptionShowPowerAlertKey] = showAlert
         }
         
+        if let verboseLogging = options["verboseLogging"] as? Bool {
+            BleManager.verboseLogging = verboseLogging
+        }
+        
         var queue: DispatchQueue
         if let queueIdentifierKey = options["queueIdentifierKey"] as? String {
             queue = DispatchQueue(label: queueIdentifierKey, qos: DispatchQoS.background)
@@ -1035,10 +1039,12 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             return
         }
         
-        NSLog("Read value [\(characteristic.uuid)]: (\(String(describing: characteristic.value?.hexadecimalString()))")
+        if BleManager.verboseLogging, let value = characteristic.value {
+            NSLog("Read value [\(characteristic.uuid)]: \( value.hexadecimalString())")
+        }
         
         if readCallbacks[key] != nil {
-            invokeAndClearDictionary(&readCallbacks, withKey: key, usingParameters: [NSNull(), characteristic.value!])
+            invokeAndClearDictionary(&readCallbacks, withKey: key, usingParameters: [NSNull(), characteristic.value!.toArray()])
         } else {
             if hasListeners {
                 sendEvent(withName: "BleManagerDidUpdateValueForCharacteristic", body: [
