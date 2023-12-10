@@ -7,6 +7,7 @@ import {
   BleState,
   ConnectOptions,
   ConnectionPriority,
+  CompanionScanOptions,
   Peripheral,
   PeripheralInfo,
   ScanOptions,
@@ -587,6 +588,94 @@ class BleManager extends NativeEventEmitter {
           reject(error);
         } else {
           fulfill(mtu);
+        }
+      });
+    });
+  }
+
+  /**
+   * [Android only, API 26+]
+   *
+   * @returns
+   */
+  getAssociatedPeripherals() {
+    return new Promise<Peripheral[]>((fulfill, reject) => {
+      bleManager.getAssociatedPeripherals((error: string | null, peripherals: Peripheral[] | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(peripherals || []);
+        }
+      });
+    });
+  }
+
+  /**
+   * [Android only, API 26+]
+   * @param peripheralId Peripheral to remove
+   * @returns Promise that resolves once the peripheral has been removed. Rejects
+   *          if no association is found.
+   */
+  removeAssociatedPeripheral(peripheralId: string) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.removeAssociatedPeripheral(peripheralId, (error: string | null) => {
+        if (error !== null) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
+  /**
+   * [Android only]
+   *
+   * Check if current device supports companion device manager.
+   *
+   * If not, companionScan will always reject.
+   *
+   * @return Promise resolving to a boolean.
+   */
+  supportsCompanion() {
+    return new Promise<boolean>(fulfill => {
+      bleManager.supportsCompanion((supports: boolean) => fulfill(supports));
+    });
+  }
+
+  /**
+   * [Android only, API 26+]
+   *
+   * Scan for companion devices.
+   *
+   * If companion device manger is not supported on this (android) device,
+   * rejects. Otherwise resolves once the scan has started.
+   *
+   * There is no way to "stop" companion scanning. Once its started, it will
+   * eventually emit `BleManagerCompanionPeripheral` event with either:
+   *   1. peripheral if user selects one
+   *   2. null if user "cancels" (i.e. doesn't select anything)
+   *
+   * Emits `BleManagerCompanionPeripheralFailure` on failure.
+   *
+   * Unlike with `BleManager.scan()`, timeouts must be handled manually.
+   *
+   * See `BleManagerCompanionPeripheral` and `BleManagerCompanionPeripheralFailure` events.
+   *
+   * See `BleManager.supportsCompanion`.
+   *
+   * See: https://developer.android.com/develop/connectivity/bluetooth/companion-device-pairing
+   */
+  companionScan(
+    serviceUUIDs: string[],
+    options: CompanionScanOptions = {}
+  ) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.companionScan(serviceUUIDs, options, (error: string | null) => {
+        if (error) {
+          reject(error)
+        } else {
+          fulfill();
         }
       });
     });
