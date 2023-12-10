@@ -2,7 +2,6 @@ package it.innove;
 
 import static android.app.Activity.RESULT_OK;
 import static android.bluetooth.BluetoothProfile.GATT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -10,6 +9,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
+import android.companion.CompanionDeviceManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,6 +19,7 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
@@ -71,7 +72,10 @@ class BleManager extends ReactContextBaseJavaModule {
     private BondRequest bondRequest;
     private BondRequest removeBondRequest;
     private boolean forceLegacy;
-
+    /**
+     * Used for companion scanning, if supported.
+     */
+    private final @Nullable CompanionScanner companionScanner;
     public static ReadableMap moduleOptions;
 
     public ReactApplicationContext getReactContext() {
@@ -103,6 +107,13 @@ class BleManager extends ReactContextBaseJavaModule {
         super(reactContext);
         context = reactContext;
         this.reactContext = reactContext;
+
+        boolean supportsCompanion = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_COMPANION_DEVICE_SETUP);
+        this.companionScanner = supportsCompanion
+                ? new CompanionScanner(reactContext, this)
+                : null;
+
         reactContext.addActivityEventListener(mActivityEventListener);
         Log.d(LOG_TAG, "BleManager created");
     }
@@ -213,6 +224,21 @@ class BleManager extends ReactContextBaseJavaModule {
 
         if (scanManager != null)
             scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
+    }
+
+    @SuppressLint("NewApi") // NOTE: constructor checks the API version.
+    @ReactMethod
+    public void companionScan(ReadableArray serviceUUIDs,  ReadableMap options, Callback callback) {
+        if (this.companionScanner == null) {
+            callback.invoke("not supported");
+        } else {
+            this.companionScanner.scan(serviceUUIDs, options, callback);
+        }
+    }
+
+    @ReactMethod
+    public void supportsCompanion(Callback callback) {
+        callback.invoke(companionScanner != null);
     }
 
     @ReactMethod
@@ -484,7 +510,7 @@ class BleManager extends ReactContextBaseJavaModule {
             callback.invoke("Peripheral not found", null);
     }
 
-    private Peripheral savePeripheral(BluetoothDevice device) {
+    public Peripheral savePeripheral(BluetoothDevice device) {
         String address = device.getAddress();
         synchronized (peripherals) {
             if (!peripherals.containsKey(address)) {
@@ -777,6 +803,48 @@ class BleManager extends ReactContextBaseJavaModule {
         } else {
             callback.invoke("Peripheral not found", null);
         }
+    }
+
+    @ReactMethod
+    public void getAssociatedPeripherals(Callback callback) {
+        Log.d(LOG_TAG, "Get associated peripherals");
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            callback.invoke("Not supported");
+            return;
+        }
+
+        WritableArray peripherals = Arguments.createArray();
+        for (String address : getCompanionDeviceManager().getAssociations()) {
+            peripherals.pushMap(retrieveOrCreatePeripheral(address).asWritableMap());
+        }
+
+        callback.invoke(null, peripherals);
+    }
+
+    @ReactMethod
+    public void removeAssociatedPeripheral(String address, Callback callback) {
+        Log.d(LOG_TAG, "Remove associated peripheral: " + address);
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            callback.invoke("Not supported");
+            return;
+        }
+
+        CompanionDeviceManager manager = getCompanionDeviceManager();
+        for (String association : manager.getAssociations()) {
+            if (association.equals(address)) {
+                manager.disassociate(address);
+                callback.invoke(null);
+                break;
+            }
+        }
+
+        callback.invoke("device not found");
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public CompanionDeviceManager getCompanionDeviceManager() {
+        return (CompanionDeviceManager) reactContext
+                .getCurrentActivity().getSystemService(Context.COMPANION_DEVICE_SERVICE);
     }
 
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
