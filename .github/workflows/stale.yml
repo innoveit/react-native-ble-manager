@@ -22,6 +22,7 @@ jobs:
         repo-token: ${{ secrets.STALE_TOKEN }}
         days-before-stale: 90
         ignore-pr-updates: true
+        days-before-pr-stale: -1
         days-before-pr-close: -1
         stale-issue-message: 'This issue is stale because it has been open 180 days with no activity. Remove stale label or comment or this will be closed in 7 days.'
         stale-issue-label: 'stale'
