@@ -686,7 +686,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     }
     
     @objc func getMaximumWriteValueLengthForWithResponse(_ peripheralUUID: String,
-                                                            callback: @escaping RCTResponseSenderBlock) {
+                                                         callback: @escaping RCTResponseSenderBlock) {
         NSLog("getMaximumWriteValueLengthForWithResponse")
         
         guard let peripheral = peripherals[peripheralUUID] else {
@@ -717,7 +717,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
             }
         }
     }
-
+    
     
     func centralManager(_ central: CBCentralManager,
                         didConnect peripheral: CBPeripheral) {
@@ -1072,40 +1072,42 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                     "code": error._code
                 ])
             }
+        } else {
+            if hasListeners {
+                sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
+                    "peripheral": peripheral.uuidAsString(),
+                    "characteristic": characteristic.uuid.uuidString.lowercased(),
+                    "isNotifying": characteristic.isNotifying
+                ])
+            }
         }
         
         let key = Helper.key(forPeripheral: peripheral, andCharacteristic: characteristic)
         
-        if characteristic.isNotifying {
+        if let error = error {
             if notificationCallbacks[key] != nil {
-                if let error = error {
-                    invokeAndClearDictionary(&notificationCallbacks, withKey: key, usingParameters: [error])
-                } else {
-                    if BleManager.verboseLogging {
-                        NSLog("Notification began on \(characteristic.uuid)")
-                    }
-                    invokeAndClearDictionary(&notificationCallbacks, withKey: key, usingParameters: [])
-                }
+                invokeAndClearDictionary(&notificationCallbacks, withKey: key, usingParameters: [error])
+            }
+            if stopNotificationCallbacks[key] != nil {
+                invokeAndClearDictionary(&stopNotificationCallbacks, withKey: key, usingParameters: [error])
             }
         } else {
-            // Notification has stopped
-            if stopNotificationCallbacks[key] != nil {
-                if error != nil {
-                    invokeAndClearDictionary(&stopNotificationCallbacks, withKey: key, usingParameters: [error as Any])
-                } else {
-                    if BleManager.verboseLogging {
-                        NSLog("Notification ended on \(characteristic.uuid)")
-                    }
+            if characteristic.isNotifying {
+                if BleManager.verboseLogging {
+                    NSLog("Notification began on \(characteristic.uuid)")
+                }
+                if notificationCallbacks[key] != nil {
+                    invokeAndClearDictionary(&notificationCallbacks, withKey: key, usingParameters: [])
+                }
+            } else {
+                // Notification has stopped
+                if BleManager.verboseLogging {
+                    NSLog("Notification ended on \(characteristic.uuid)")
+                }
+                if stopNotificationCallbacks[key] != nil {
                     invokeAndClearDictionary(&stopNotificationCallbacks, withKey: key, usingParameters: [])
                 }
             }
-        }
-        if hasListeners {
-            sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                "peripheral": peripheral.uuidAsString(),
-                "characteristic": characteristic.uuid.uuidString.lowercased(),
-                "isNotifying": characteristic.isNotifying
-            ])
         }
     }
     
