@@ -419,8 +419,10 @@ public class Peripheral extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-        super.onCharacteristicChanged(gatt, characteristic);
-        onCharacteristicChanged(gatt, characteristic, characteristic.getValue());
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            super.onCharacteristicChanged(gatt, characteristic);
+            onCharacteristicChanged(gatt, characteristic, characteristic.getValue());
+        }
     }
 
     @Override
@@ -468,8 +470,10 @@ public class Peripheral extends BluetoothGattCallback {
 
     @Override
     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-        super.onCharacteristicRead(gatt, characteristic, status);
-        onCharacteristicRead(gatt, characteristic, characteristic.getValue(), status);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            super.onCharacteristicRead(gatt, characteristic, status);
+            onCharacteristicRead(gatt, characteristic, characteristic.getValue(), status);
+        }
     }
     @Override
     public void onCharacteristicRead(@NonNull final BluetoothGatt gatt,
