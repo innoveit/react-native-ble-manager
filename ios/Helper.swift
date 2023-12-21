@@ -192,18 +192,14 @@ class Helper {
     // Find a service in a peripheral
     static func findService(fromUUID UUID: CBUUID, peripheral p: CBPeripheral) -> CBService? {
         for service in p.services ?? [] {
-            if compareCBUUID(service.uuid, UUID2: UUID) {
+            if service.uuid.isEqual(UUID) {
                 return service
             }
         }
         
         return nil // Service not found on this peripheral
     }
-    
-    static func compareCBUUID(_ UUID1: CBUUID, UUID2: CBUUID) -> Bool {
-        return UUID1.uuidString.caseInsensitiveCompare(UUID2.uuidString) == .orderedSame
-    }
-    
+        
     // Find a characteristic in service with a specific property
     static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService, prop: CBCharacteristicProperties) -> CBCharacteristic? {
         if BleManager.verboseLogging {
