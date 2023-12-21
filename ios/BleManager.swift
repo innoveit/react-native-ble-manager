@@ -516,9 +516,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                      maxByteSize: Int,
                      callback: @escaping RCTResponseSenderBlock) {
         NSLog("write")
-        
-        // TODO check if the queue is working
-        
+                
         guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.write, callback: callback) else {
             return
         }
