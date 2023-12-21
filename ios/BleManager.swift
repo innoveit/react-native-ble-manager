@@ -721,7 +721,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     
     func centralManager(_ central: CBCentralManager,
                         didConnect peripheral: CBPeripheral) {
-        NSLog("Peripheral Connected: \(peripheral.uuidAsString() ?? "")")
+        NSLog("Peripheral Connected: \(peripheral.uuidAsString() )")
         peripheral.delegate = self
         
         /*
@@ -745,7 +745,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     func centralManager(_ central: CBCentralManager,
                         didFailToConnect peripheral: CBPeripheral,
                         error: Error?) {
-        let errorStr = "Peripheral connection failure: \(peripheral.uuidAsString() ?? "") (\(error?.localizedDescription ?? "")"
+        let errorStr = "Peripheral connection failure: \(peripheral.uuidAsString() ) (\(error?.localizedDescription ?? "")"
         NSLog(errorStr)
         
         invokeAndClearDictionary(&connectCallbacks, withKey: peripheral.uuidAsString(), usingParameters: [errorStr])
@@ -814,7 +814,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         if hasListeners {
             sendEvent(withName: "BleManagerDidUpdateState", body: ["state": stateName])
         }
-        if stateName == "poweredOff" {
+        if stateName == "off" {
             for peripheralUUID in connectedPeripherals {
                 if let peripheral = peripherals[peripheralUUID] {
                     if peripheral.instance.state == .disconnected {
