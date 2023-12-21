@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeEventEmitter, NativeModules } from 'react-native';
 import {
   BleScanCallbackType,
   BleScanMatchCount,
@@ -15,10 +15,11 @@ import {
 
 export * from './types';
 
-var bleManager = NativeModules.BleManager;
+let bleManager = NativeModules.BleManager;
 
-class BleManager {
+class BleManager extends NativeEventEmitter {
   constructor() {
+    super(bleManager);
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
   }
 
