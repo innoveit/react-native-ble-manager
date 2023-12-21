@@ -105,7 +105,7 @@ class Helper {
             if mfgData.count > 1 {
                 let manufactureID = UInt16(mfgData[0]) + UInt16(mfgData[1]) << 8
                 var manInfo: [String: Any] = [:]
-                manInfo[String(format: "%04X", manufactureID)] = mfgData.subdata(in: 2..<mfgData.endIndex).toArray()
+                manInfo[String(format: "%04X", manufactureID)] = Helper.dataToArrayBuffer(mfgData.subdata(in: 2..<mfgData.endIndex))
                 adv["manufacturerData"] = manInfo
             }
             adv.removeValue(forKey: CBAdvertisementDataManufacturerDataKey)
