@@ -111,14 +111,9 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     // Helper method to insert callback in different queues
     func insertCallback(_ callback: @escaping RCTResponseSenderBlock, intoDictionary dictionary: inout Dictionary<String, [RCTResponseSenderBlock]>, withKey key: String) {
         serialQueue.sync {
-            if var peripheralCallbacks = dictionary[key] {
-                peripheralCallbacks.append(callback)
-            } else {
-                var peripheralCallbacks = [RCTResponseSenderBlock]()
-                peripheralCallbacks.append(callback)
-                dictionary[key] = peripheralCallbacks
-            }
-            
+            var peripheralCallbacks = dictionary[key] ?? [RCTResponseSenderBlock]()
+            peripheralCallbacks.append(callback)
+            dictionary[key] = peripheralCallbacks
         }
     }
     
