@@ -248,6 +248,7 @@ Returns a `Promise` object.
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUID` - `String` - the UUID of the service.
 - `characteristicUUID` - `String` - the UUID of the characteristic.
+
 ---
 
 ## read(peripheralId, serviceUUID, characteristicUUID)
