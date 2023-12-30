@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: docs
+        working-directory: ./docs
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -51,10 +51,10 @@ jobs:
         env:
           JEKYLL_ENV: production
       - name: Upload artifact
-        # Automatically uploads an artifact from the './_site' directory by default
+        # Automatically uploads an artifact from the 'docs/_site' directory by default
         uses: actions/upload-pages-artifact@v1
         with:
-          path: "docs/_site/" 
+          path: docs/_site/
 
   # Deployment job
   deploy:
