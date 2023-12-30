@@ -8,7 +8,7 @@ parent: Usage
 
 # Events
 
-### BleManagerStopScan
+## BleManagerStopScan
 
 The scanning for peripherals is ended.
 
@@ -23,8 +23,9 @@ bleManagerEmitter.addListener("BleManagerStopScan", (args) => {
   // Scanning is stopped
 });
 ```
+---
 
-### BleManagerDidUpdateState
+## BleManagerDidUpdateState
 
 The BLE change state.
 
@@ -39,8 +40,9 @@ bleManagerEmitter.addListener("BleManagerDidUpdateState", (args) => {
   // The new state: args.state
 });
 ```
+---
 
-### BleManagerDiscoverPeripheral
+## BleManagerDiscoverPeripheral
 
 The scanning find a new peripheral.
 
@@ -65,8 +67,9 @@ bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", (args) => {
   // The name: args.name
 });
 ```
+---
 
-### BleManagerDidUpdateValueForCharacteristic
+## BleManagerDidUpdateValueForCharacteristic
 
 A characteristic notify a new value.
 
@@ -107,8 +110,9 @@ async function connectAndPrepare(peripheral, service, characteristic) {
   // Actions triggereng BleManagerDidUpdateValueForCharacteristic event
 }
 ```
+---
 
-### BleManagerConnectPeripheral
+## BleManagerConnectPeripheral
 
 A peripheral was connected.
 
@@ -117,7 +121,9 @@ A peripheral was connected.
 - `peripheral` - `String` - the id of the peripheral
 - `status` - `Number` - [Android only] connect [`reasons`](<https://developer.android.com/reference/android/bluetooth/BluetoothGattCallback.html#onConnectionStateChange(android.bluetooth.BluetoothGatt,%20int,%20int)>)
 
-### BleManagerDisconnectPeripheral
+---
+
+## BleManagerDisconnectPeripheral
 
 A peripheral was disconnected.
 
@@ -128,7 +134,9 @@ A peripheral was disconnected.
 - `domain` - `String` - [iOS only] disconnect error domain
 - `code` - `Number` - [iOS only] disconnect error code (<https://developer.apple.com/documentation/corebluetooth/cberror/code>)
 
-### BleManagerPeripheralDidBond
+---
+
+## BleManagerPeripheralDidBond
 
 A bond with a peripheral was established
 
@@ -136,7 +144,9 @@ A bond with a peripheral was established
 
 Object with information about the device
 
-### BleManagerCentralManagerWillRestoreState [iOS only]
+---
+
+## BleManagerCentralManagerWillRestoreState [iOS only]
 
 This is fired when [`centralManager:WillRestoreState:`](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518819-centralmanager) is called (app relaunched in the background to handle a bluetooth event).
 
@@ -148,9 +158,10 @@ _For more on performing long-term bluetooth actions in the background:_
 
 [iOS Bluetooth State Preservation and Restoration](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html#//apple_ref/doc/uid/TP40013257-CH7-SW10)
 
-[iOS Relaunch Conditions](https://developer.apple.com/library/archive/qa/qa1962/_index.html)
+[iOS Relaunch Conditions](https://developer.apple.com/documentation/technotes/tn3115-bluetooth-state-restoration-app-relaunch-rules/)
 
-### BleManagerDidUpdateNotificationStateFor [iOS only]
+---
+## BleManagerDidUpdateNotificationStateFor [iOS only]
 
 The peripheral received a request to start or stop providing notifications for a specified characteristic's value.
 
