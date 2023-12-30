@@ -1,0 +1,20 @@
+<div class="mb-5 pl-5 switch-container">
+  <label class="switch">
+    <input type="checkbox" id="theme-switch" />
+    <span class="slider round">
+      <span class="icon sun">☀️</span>
+      <span class="icon moon">🌙</span>
+    </span>
+  </label>
+</div>
+<script>
+  document
+    .getElementById("theme-switch")
+    .addEventListener("change", function (event) {
+      if (event.target.checked) {
+        jtd.setTheme("light");
+      } else {
+        jtd.setTheme("dark");
+      }
+    });
+</script>

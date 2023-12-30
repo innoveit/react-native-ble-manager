@@ -4,9 +4,10 @@
 
 layout: home
 title: Home
+nav_order: 1
 ---
 
-## A React Native Bluetooth Low Energy library.
+# A React Native Bluetooth Low Energy library.
 
 ## Introduction
 

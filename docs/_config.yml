@@ -7,6 +7,14 @@ url: "https://innoveit.github.io"
 
 theme: just-the-docs
 
+color_scheme: dark
+
 aux_links:
   "Project on GitHub":
     - "//github.com/innoveit/react-native-ble-manager"
+
+nav_external_links:
+  - title: Project on GitHub
+    url: https://github.com/innoveit/react-native-ble-manager
+    hide_icon: false
+    opens_in_new_tab: false

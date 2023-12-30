@@ -1,9 +1,120 @@
-
 .site-title {
     @include mq(md) {
         font-size: 0.9rem !important;
     }
+
     @include mq(lg) {
         font-size: 1rem !important;
     }
+}
+
+.switch-container {
+    display: none;
+
+    @include mq(md) {
+        display: block;
+        width: $nav-width-md;
+    }
+
+    @include mq(lg) {
+        display: block;
+        width: $nav-width;
+    }
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+}
+
+input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+/* Forma rotonda dello slider */
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.slider:before {
+    height: 21px;
+    width: 21px;
+    left: 2px;
+    bottom: 2px;
+}
+
+.slider {
+    .icon {
+        display: none;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #FFF;
+    }
+
+    /* Icona del sole */
+    .sun {
+        left: 4px;
+    }
+
+    /* Icona della luna */
+    .moon {
+        right: 4px;
+    }
+}
+
+
+/* Mostra l'icona appropriata in base allo stato dello switch */
+input:checked+.slider .sun {
+    display: block;
+}
+
+input:not(:checked)+.slider .moon {
+    display: block;
 }
