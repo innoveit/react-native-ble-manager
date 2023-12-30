@@ -1,0 +1,9 @@
+
+.site-title {
+    @include mq(md) {
+        font-size: 0.9rem !important;
+    }
+    @include mq(lg) {
+        font-size: 1rem !important;
+    }
+}
