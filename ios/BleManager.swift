@@ -18,6 +18,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     private var readCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var readRSSICallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var readDescriptorCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
+    private var writeDescriptorCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var retrieveServicesCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var writeCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var writeQueue: Array<Any>
@@ -41,6 +42,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         readCallbacks = [:]
         readRSSICallbacks = [:]
         readDescriptorCallbacks = [:]
+        writeDescriptorCallbacks = [:]
         retrieveServicesCallbacks = [:]
         writeCallbacks = [:]
         writeQueue = []
@@ -430,6 +432,38 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
         
         peripheral?.instance.readValue(for: descriptor)
+    }
+    
+    @objc func writeDescriptor(_ peripheralUUID: String,
+                              serviceUUID: String,
+                              characteristicUUID: String,
+                              descriptorUUID: String,
+                              message: [UInt8],
+                              callback: @escaping RCTResponseSenderBlock) {
+        NSLog("writeDescriptor")
+        
+        guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.read, callback: callback) else {
+            return
+        }
+        
+        let peripheral = context.peripheral
+        let characteristic = context.characteristic
+        
+        guard let descriptor = Helper.findDescriptor(fromUUID: CBUUID(string: descriptorUUID), characteristic: characteristic!) else {
+            let error = "Could not find descriptor with UUID \(descriptorUUID) on characteristic with UUID \(String(describing: characteristic?.uuid.uuidString)) on peripheral with UUID \(peripheralUUID)"
+            NSLog(error)
+            callback([error])
+            return
+        }
+        
+        if let peripheral = peripheral?.instance {
+            let key = Helper.key(forPeripheral: peripheral, andCharacteristic: characteristic!, andDescriptor: descriptor)
+            insertCallback(callback, intoDictionary: &writeDescriptorCallbacks, withKey: key)
+            
+        }
+        
+        let dataMessage = Data(message)
+        peripheral?.instance.writeValue(dataMessage, for: descriptor)
     }
     
     @objc func getDiscoveredPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
@@ -1105,6 +1139,23 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     }
     
     func peripheral(_ peripheral: CBPeripheral,
+                    didWriteValueFor descriptor: CBDescriptor,
+                    error: Error?) {
+        NSLog("didWrite descriptor")
+        
+        let key = Helper.key(forPeripheral: peripheral, andCharacteristic: descriptor.characteristic!, andDescriptor: descriptor)
+        let callbacks = writeDescriptorCallbacks[key]
+        if callbacks != nil {
+            if let error = error {
+                NSLog("\(error)")
+                invokeAndClearDictionary(&writeDescriptorCallbacks, withKey: key, usingParameters: [error.localizedDescription])
+            } else {
+                invokeAndClearDictionary(&writeDescriptorCallbacks, withKey: key, usingParameters: [])
+            }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral,
                     didWriteValueFor characteristic: CBCharacteristic,
                     error: Error?) {
         NSLog("didWrite")
@@ -1120,7 +1171,6 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                 if writeQueue.isEmpty {
                     invokeAndClearDictionary(&writeCallbacks, withKey: key, usingParameters: [])
                 } else {
-                    // Rimuovi e scrivi il messaggio in coda
                     let message = writeQueue.removeFirst() as! Data
                     NSLog("Message to write \(message.hexadecimalString())")
                     peripheral.writeValue(message, for: characteristic, type: .withResponse)
