@@ -32,7 +32,9 @@ npm i --save react-native-ble-manager
 
 The library support the react native autolink feature.
 
-[Read the documentation](https://innoveit.github.io/react-native-ble-manager/)
+## Documentation
+
+Read here [the full documentation](https://innoveit.github.io/react-native-ble-manager/)
 
 
 ## Example
