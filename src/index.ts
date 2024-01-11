@@ -76,6 +76,34 @@ class BleManager extends NativeEventEmitter {
   /**
    * 
    * @param peripheralId 
+   * @param serviceUUID 
+   * @param characteristicUUID 
+   * @param descriptorUUID
+   * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
+   * @returns
+   */
+  writeDescriptor(peripheralId: string, serviceUUID: string, characteristicUUID: string, descriptorUUID: string, data: number[]) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.writeDescriptor(
+        peripheralId,
+        serviceUUID,
+        characteristicUUID,
+        descriptorUUID,
+        data,
+        (error: string | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
+        }
+      );
+    });
+  }
+
+  /**
+   * 
+   * @param peripheralId 
    * @returns a promise resolving with the updated RSSI (`number`) if it succeeds.
    */
   readRSSI(peripheralId: string) {
@@ -363,7 +391,7 @@ class BleManager extends NativeEventEmitter {
    * @param serviceUUIDs 
    * @param seconds amount of seconds to scan. if set to 0 or less, will scan until you call stopScan() or the OS stops the scan (background etc).
    * @param allowDuplicates [iOS only]
-   * @param scanningOptions [Android only] optional map of properties to fine-tune scan behavior on android, see README.
+   * @param scanningOptions optional map of properties to fine-tune scan behavior, see DOCS.
    * @returns 
    */
   scan(

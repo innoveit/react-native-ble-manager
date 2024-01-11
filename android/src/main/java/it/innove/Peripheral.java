@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothStatusCodes;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -67,6 +68,7 @@ public class Peripheral extends BluetoothGattCallback {
     private LinkedList<Callback> retrieveServicesCallbacks = new LinkedList<>();
     private LinkedList<Callback> readCallbacks = new LinkedList<>();
     private LinkedList<Callback> readDescriptorCallbacks = new LinkedList<>();
+    private LinkedList<Callback> writeDescriptorCallbacks = new LinkedList<>();
     private LinkedList<Callback> readRSSICallbacks = new LinkedList<>();
     private LinkedList<Callback> writeCallbacks = new LinkedList<>();
     private LinkedList<Callback> registerNotifyCallbacks = new LinkedList<>();
@@ -383,6 +385,11 @@ public class Peripheral extends BluetoothGattCallback {
                 }
                 readDescriptorCallbacks.clear();
 
+                for (Callback callback : writeDescriptorCallbacks) {
+                    callback.invoke("Device disconnected");
+                }
+                writeDescriptorCallbacks.clear();
+
                 for (Callback connectCallback : connectCallbacks) {
                     connectCallback.invoke("Connection error");
                 }
@@ -553,6 +560,20 @@ public class Peripheral extends BluetoothGattCallback {
                 }
 
                 registerNotifyCallbacks.clear();
+            } else if (!writeDescriptorCallbacks.isEmpty()) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    for (Callback callback : writeDescriptorCallbacks) {
+                        callback.invoke();
+                    }
+                    Log.d(BleManager.LOG_TAG, "onDescriptorWrite success");
+                } else {
+                    for (Callback callback : writeDescriptorCallbacks) {
+                        callback.invoke("Error writing descriptor status=" + status, null);
+                    }
+                    Log.e(BleManager.LOG_TAG, "Error writing descriptor status=" + status);
+                }
+
+                writeDescriptorCallbacks.clear();
             } else {
                 Log.e(BleManager.LOG_TAG, "onDescriptorWrite with no callback");
             }
@@ -678,9 +699,13 @@ public class Peripheral extends BluetoothGattCallback {
         try {
             result = gatt.setCharacteristicNotification(characteristic, notify);
             // Then write to descriptor
-            descriptor.setValue(finalValue);
             registerNotifyCallbacks.addLast(callback);
-            result &= gatt.writeDescriptor(descriptor);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                result &=  BluetoothStatusCodes.SUCCESS == gatt.writeDescriptor(descriptor, finalValue);
+            } else {
+                descriptor.setValue(finalValue);
+                result &= gatt.writeDescriptor(descriptor);
+            }
         } catch (Exception e) {
             Log.d(BleManager.LOG_TAG, "Exception in setNotify", e);
         }
@@ -833,6 +858,49 @@ public class Peripheral extends BluetoothGattCallback {
         });
     }
 
+    public void writeDescriptor(UUID serviceUUID, UUID characteristicUUID, UUID descriptorUUID, byte[] data, Callback callback) {
+        enqueue(() -> {
+            if (!isConnected() || gatt == null) {
+                callback.invoke("Device is not connected", null);
+                completedCommand();
+                return;
+            }
+
+            BluetoothGattService service = gatt.getService(serviceUUID);
+            BluetoothGattCharacteristic characteristic = findCharacteristic(service, characteristicUUID);
+
+            if (characteristic == null) {
+                callback.invoke("Characteristic " + characteristicUUID + " not found.");
+                completedCommand();
+                return;
+            }
+
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(descriptorUUID);
+            if (descriptor == null) {
+                callback.invoke("Read descriptor failed for " + descriptorUUID, null);
+                completedCommand();
+                return;
+            }
+
+            this.writeDescriptorCallbacks.add(callback);
+            boolean success;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                success = BluetoothStatusCodes.SUCCESS == gatt.writeDescriptor(descriptor, data);
+            } else {
+                descriptor.setValue(data);
+                success = gatt.writeDescriptor(descriptor);
+            }
+            if (!success) {
+                for (Callback writeCallback : writeDescriptorCallbacks) {
+                    writeCallback.invoke("writeDescriptor failed for descriptor: " + descriptor.getUuid(), null);
+                }
+                writeDescriptorCallbacks.clear();
+            }
+
+            completedCommand();
+        });
+    }
+
     private byte[] copyOf(byte[] source) {
         if (source == null)
             return new byte[0];
@@ -972,6 +1040,16 @@ public class Peripheral extends BluetoothGattCallback {
 
             // As a last resort, try and find ANY characteristic with this UUID, even if it
             // doesn't have the correct properties
+            return service.getCharacteristic(characteristicUUID);
+        }
+
+        return null;
+    }
+
+    private BluetoothGattCharacteristic findCharacteristic(BluetoothGattService service,
+                                                                   UUID characteristicUUID) {
+
+        if (service != null) {
             return service.getCharacteristic(characteristicUUID);
         }
 
