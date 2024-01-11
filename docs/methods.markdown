@@ -33,6 +33,7 @@ BleManager.start({ showAlert: false }).then(() => {
   console.log("Module initialized");
 });
 ```
+
 ---
 
 ## scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions)
@@ -63,6 +64,7 @@ BleManager.scan([], 5, true).then(() => {
   console.log("Scan started");
 });
 ```
+
 ---
 
 ## stopScan()
@@ -78,6 +80,7 @@ BleManager.stopScan().then(() => {
   console.log("Scan stopped");
 });
 ```
+
 ---
 
 ## connect(peripheralId, options)
@@ -95,7 +98,6 @@ Returns a `Promise` object.
   - `phy` - `Number` - [Android only] corresponding to the preferred phy channel ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
   - `autoconnect` - `Boolean` - [Android only] whether to directly connect to the remote device (false) or to automatically connect as soon as the remote device becomes available (true) ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
 
-
 **Examples**
 
 ```js
@@ -111,6 +113,7 @@ BleManager.connect("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 ```
 
 ---
+
 ## disconnect(peripheralId, force)
 
 Disconnect from a peripheral.
@@ -140,6 +143,7 @@ BleManager.disconnect("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
     console.log(error);
   });
 ```
+
 ---
 
 ## enableBluetooth() [Android only]
@@ -160,6 +164,7 @@ BleManager.enableBluetooth()
     console.log("The user refuse to enable bluetooth");
   });
 ```
+
 ---
 
 ## checkState()
@@ -174,6 +179,7 @@ BleManager.checkState().then((state) =>
   console.log(`current BLE state = '${state}'.`)
 );
 ```
+
 ---
 
 ## startNotification(peripheralId, serviceUUID, characteristicUUID)
@@ -204,6 +210,7 @@ BleManager.startNotification(
     console.log(error);
   });
 ```
+
 ---
 
 ## startNotificationUseBuffer(peripheralId, serviceUUID, characteristicUUID, buffer) [Android only]
@@ -236,6 +243,7 @@ BleManager.startNotification(
     console.log(error);
   });
 ```
+
 ---
 
 ## stopNotification(peripheralId, serviceUUID, characteristicUUID)
@@ -285,6 +293,7 @@ BleManager.read(
     console.log(error);
   });
 ```
+
 ---
 
 ## write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
@@ -346,6 +355,7 @@ BleManager.write(
     console.log(error);
   });
 ```
+
 ---
 
 ## writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime)
@@ -384,6 +394,7 @@ BleManager.writeWithoutResponse(
     console.log(error);
   });
 ```
+
 ---
 
 ## readRSSI(peripheralId)
@@ -408,6 +419,7 @@ BleManager.readRSSI("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
     console.log(error);
   });
 ```
+
 ---
 
 ## readDescriptor(peripheralId, serviceId, characteristicId, descriptorId)
@@ -446,6 +458,41 @@ BleManager.readDescriptor(
     console.log(error);
   });
 ```
+
+---
+
+## writeDescriptor(peripheralId, serviceId, characteristicId, descriptorId, data)
+
+Write a value to the specified descriptor, you need to call `retrieveServices` method before.
+Returns a `Promise` object.
+
+**Arguments**
+
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+- `descriptorUUID` - `String` - the UUID of the descriptor.
+- `data` - `number[]` - the data to write as a plain integer array representing a `ByteArray` structure.
+
+**Examples**
+
+```js
+BleManager.writeDescriptor(
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXX",
+  [1, 2]
+)
+  .then(() => {
+    // Success code    
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
+
 ---
 
 ## requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
@@ -474,6 +521,7 @@ BleManager.requestConnectionPriority("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", 1)
     console.log(error);
   });
 ```
+
 ---
 
 ## requestMTU(peripheralId, mtu) [Android only API 21+]
@@ -499,6 +547,7 @@ BleManager.requestMTU("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", 512)
     console.log(error);
   });
 ```
+
 ---
 
 ## retrieveServices(peripheralId[, serviceUUIDs])
@@ -521,6 +570,7 @@ BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then(
   }
 );
 ```
+
 ---
 
 ## refreshCache(peripheralId) [Android only]
@@ -544,6 +594,7 @@ BleManager.refreshCache("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
     console.error(error);
   });
 ```
+
 ---
 
 ## getConnectedPeripherals(serviceUUIDs)
@@ -563,6 +614,7 @@ BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
   console.log("Connected peripherals: " + peripheralsArray.length);
 });
 ```
+
 ---
 
 ## createBond(peripheralId,peripheralPin) [Android only]
@@ -581,6 +633,7 @@ BleManager.createBond(peripheralId)
     console.log("fail to bond");
   });
 ```
+
 ---
 
 ## removeBond(peripheralId) [Android only]
@@ -599,6 +652,7 @@ BleManager.removeBond(peripheralId)
     console.log("fail to remove the bond");
   });
 ```
+
 ---
 
 ## getBondedPeripherals() [Android only]
@@ -614,6 +668,7 @@ BleManager.getBondedPeripherals([]).then((bondedPeripheralsArray) => {
   console.log("Bonded peripherals: " + bondedPeripheralsArray.length);
 });
 ```
+
 ---
 
 ## getDiscoveredPeripherals()
@@ -629,6 +684,7 @@ BleManager.getDiscoveredPeripherals([]).then((peripheralsArray) => {
   console.log("Discovered peripherals: " + peripheralsArray.length);
 });
 ```
+
 ---
 
 ## removePeripheral(peripheralId) [Android only]
@@ -662,6 +718,7 @@ BleManager.isPeripheralConnected(
   }
 });
 ```
+
 ---
 
 ## setName(name) [Android only]
@@ -682,6 +739,7 @@ BleManager.setName("INNOVEIT_CENTRAL")
     console.log("Name could not be set");
   });
 ```
+
 ---
 
 ## getMaximumWriteValueLengthForWithoutResponse(peripheralId) [iOS only]
@@ -692,10 +750,13 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.getMaximumWriteValueLengthForWithoutResponse("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then((maxValue) => {
+BleManager.getMaximumWriteValueLengthForWithoutResponse(
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+).then((maxValue) => {
   console.log("Maximum length for WriteWithoutResponse: " + maxValue);
 });
 ```
+
 ---
 
 ## getMaximumWriteValueLengthForWitResponse(peripheralId) [iOS only]
@@ -706,7 +767,9 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.getMaximumWriteValueLengthForWitResponse("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then((maxValue) => {
+BleManager.getMaximumWriteValueLengthForWitResponse(
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+).then((maxValue) => {
   console.log("Maximum length for WriteWithResponse: " + maxValue);
 });
 ```
