@@ -1,4 +1,4 @@
-import { NativeEventEmitter, NativeModules } from 'react-native';
+import { NativeEventEmitter, NativeModules } from "react-native";
 import {
   BleScanCallbackType,
   BleScanMatchCount,
@@ -10,10 +10,10 @@ import {
   Peripheral,
   PeripheralInfo,
   ScanOptions,
-  StartOptions
-} from './types';
+  StartOptions,
+} from "./types";
 
-export * from './types';
+export * from "./types";
 
 let bleManager = NativeModules.BleManager;
 
@@ -24,10 +24,10 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
-   * @param serviceUUID 
-   * @param characteristicUUID 
+   *
+   * @param peripheralId
+   * @param serviceUUID
+   * @param characteristicUUID
    * @returns data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
    */
   read(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
@@ -48,14 +48,19 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
-   * @param serviceUUID 
-   * @param characteristicUUID 
+   *
+   * @param peripheralId
+   * @param serviceUUID
+   * @param characteristicUUID
    * @param descriptorUUID
    * @returns data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
    */
-  readDescriptor(peripheralId: string, serviceUUID: string, characteristicUUID: string, descriptorUUID: string) {
+  readDescriptor(
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    descriptorUUID: string
+  ) {
     return new Promise<number[]>((fulfill, reject) => {
       bleManager.readDescriptor(
         peripheralId,
@@ -74,15 +79,21 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
-   * @param serviceUUID 
-   * @param characteristicUUID 
+   *
+   * @param peripheralId
+   * @param serviceUUID
+   * @param characteristicUUID
    * @param descriptorUUID
    * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
    * @returns
    */
-  writeDescriptor(peripheralId: string, serviceUUID: string, characteristicUUID: string, descriptorUUID: string, data: number[]) {
+  writeDescriptor(
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    descriptorUUID: string,
+    data: number[]
+  ) {
     return new Promise<void>((fulfill, reject) => {
       bleManager.writeDescriptor(
         peripheralId,
@@ -102,44 +113,50 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
+   *
+   * @param peripheralId
    * @returns a promise resolving with the updated RSSI (`number`) if it succeeds.
    */
   readRSSI(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.readRSSI(peripheralId, (error: string | null, rssi: number) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill(rssi);
+      bleManager.readRSSI(
+        peripheralId,
+        (error: string | null, rssi: number) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(rssi);
+          }
         }
-      });
+      );
     });
   }
 
   /**
    * [Android only]
-   * @param peripheralId 
+   * @param peripheralId
    * @returns a promise that resolves to a boolean indicating if gatt was successfully refreshed or not.
    */
   refreshCache(peripheralId: string) {
     return new Promise<boolean>((fulfill, reject) => {
-      bleManager.refreshCache(peripheralId, (error: string | null, result: boolean) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill(result);
+      bleManager.refreshCache(
+        peripheralId,
+        (error: string | null, result: boolean) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(result);
+          }
         }
-      });
+      );
     });
   }
 
   /**
-   * 
-   * @param peripheralId 
+   *
+   * @param peripheralId
    * @param serviceUUIDs [iOS only] optional filter of services to retrieve.
-   * @returns 
+   * @returns
    */
   retrieveServices(peripheralId: string, serviceUUIDs: string[] = []) {
     return new Promise<PeripheralInfo>((fulfill, reject) => {
@@ -158,13 +175,13 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
-   * @param serviceUUID 
-   * @param characteristicUUID 
+   *
+   * @param peripheralId
+   * @param serviceUUID
+   * @param characteristicUUID
    * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
    * @param maxByteSize optional, defaults to 20
-   * @returns 
+   * @returns
    */
   write(
     peripheralId: string,
@@ -173,7 +190,6 @@ class BleManager extends NativeEventEmitter {
     data: number[],
     maxByteSize: number = 20
   ) {
-
     return new Promise<void>((fulfill, reject) => {
       bleManager.write(
         peripheralId,
@@ -193,14 +209,14 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
-   * @param serviceUUID 
-   * @param characteristicUUID 
+   *
+   * @param peripheralId
+   * @param serviceUUID
+   * @param characteristicUUID
    * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
    * @param maxByteSize optional, defaults to 20
    * @param queueSleepTime optional, defaults to 10. Only useful if data length is greater than maxByteSize.
-   * @returns 
+   * @returns
    */
   writeWithoutResponse(
     peripheralId: string,
@@ -210,7 +226,6 @@ class BleManager extends NativeEventEmitter {
     maxByteSize: number = 20,
     queueSleepTime: number = 10
   ) {
-
     return new Promise<void>((fulfill, reject) => {
       bleManager.writeWithoutResponse(
         peripheralId,
@@ -247,26 +262,30 @@ class BleManager extends NativeEventEmitter {
 
   /**
    * [Android only]
-   * @param peripheralId 
+   * @param peripheralId
    * @param peripheralPin optional. will be used to auto-bond if possible.
-   * @returns 
+   * @returns
    */
   createBond(peripheralId: string, peripheralPin: string | null = null) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.createBond(peripheralId, peripheralPin, (error: string | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
+      bleManager.createBond(
+        peripheralId,
+        peripheralPin,
+        (error: string | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
         }
-      });
+      );
     });
   }
 
   /**
    * [Android only]
-   * @param peripheralId 
-   * @returns 
+   * @param peripheralId
+   * @returns
    */
   removeBond(peripheralId: string) {
     return new Promise<void>((fulfill, reject) => {
@@ -281,10 +300,10 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param peripheralId 
+   *
+   * @param peripheralId
    * @param force [Android only] defaults to true.
-   * @returns 
+   * @returns
    */
   disconnect(peripheralId: string, force: boolean = true) {
     return new Promise<void>((fulfill, reject) => {
@@ -298,7 +317,11 @@ class BleManager extends NativeEventEmitter {
     });
   }
 
-  startNotification(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
+  startNotification(
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string
+  ) {
     return new Promise<void>((fulfill, reject) => {
       bleManager.startNotification(
         peripheralId,
@@ -317,11 +340,11 @@ class BleManager extends NativeEventEmitter {
 
   /**
    * [Android only]
-   * @param peripheralId 
-   * @param serviceUUID 
-   * @param characteristicUUID 
-   * @param buffer 
-   * @returns 
+   * @param peripheralId
+   * @param serviceUUID
+   * @param characteristicUUID
+   * @param buffer
+   * @returns
    */
   startNotificationUseBuffer(
     peripheralId: string,
@@ -346,7 +369,11 @@ class BleManager extends NativeEventEmitter {
     });
   }
 
-  stopNotification(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
+  stopNotification(
+    peripheralId: string,
+    serviceUUID: string,
+    characteristicUUID: string
+  ) {
     return new Promise<void>((fulfill, reject) => {
       bleManager.stopNotification(
         peripheralId,
@@ -387,12 +414,12 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
-   * @param serviceUUIDs 
+   *
+   * @param serviceUUIDs
    * @param seconds amount of seconds to scan. if set to 0 or less, will scan until you call stopScan() or the OS stops the scan (background etc).
    * @param allowDuplicates [iOS only]
    * @param scanningOptions optional map of properties to fine-tune scan behavior, see DOCS.
-   * @returns 
+   * @returns
    */
   scan(
     serviceUUIDs: string[],
@@ -400,7 +427,6 @@ class BleManager extends NativeEventEmitter {
     allowDuplicates?: boolean,
     scanningOptions: ScanOptions = {}
   ) {
-
     return new Promise<void>((fulfill, reject) => {
       if (allowDuplicates == null) {
         allowDuplicates = false;
@@ -422,7 +448,7 @@ class BleManager extends NativeEventEmitter {
         scanningOptions.scanMode = BleScanMode.LowPower;
       }
 
-      // (ANDROID) Defaults to CALLBACK_TYPE_ALL_MATCHES 
+      // (ANDROID) Defaults to CALLBACK_TYPE_ALL_MATCHES
       // WARN: sometimes, setting a scanSetting instead of leaving it untouched might result in unexpected behaviors.
       // https://github.com/dariuszseweryn/RxAndroidBle/issues/462
       if (scanningOptions.callbackType == null) {
@@ -440,8 +466,10 @@ class BleManager extends NativeEventEmitter {
       if (!scanningOptions.exactAdvertisingName) {
         delete scanningOptions.exactAdvertisingName;
       } else {
-        if (typeof scanningOptions.exactAdvertisingName === 'string') {
-          scanningOptions.exactAdvertisingName = [scanningOptions.exactAdvertisingName];
+        if (typeof scanningOptions.exactAdvertisingName === "string") {
+          scanningOptions.exactAdvertisingName = [
+            scanningOptions.exactAdvertisingName,
+          ];
         }
       }
 
@@ -475,7 +503,7 @@ class BleManager extends NativeEventEmitter {
 
   /**
    * [Android only] triggers an ENABLE_REQUEST intent to the end-user to enable bluetooth.
-   * @returns 
+   * @returns
    */
   enableBluetooth() {
     return new Promise<void>((fulfill, reject) => {
@@ -490,67 +518,73 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * 
+   *
    * @param serviceUUIDs [optional] not used on android, optional on ios.
-   * @returns 
+   * @returns
    */
   getConnectedPeripherals(serviceUUIDs: string[] = []) {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-
-      bleManager.getConnectedPeripherals(serviceUUIDs, (error: string | null, result: Peripheral[] | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          if (result) {
-            fulfill(result);
+      bleManager.getConnectedPeripherals(
+        serviceUUIDs,
+        (error: string | null, result: Peripheral[] | null) => {
+          if (error) {
+            reject(error);
           } else {
-            fulfill([]);
+            if (result) {
+              fulfill(result);
+            } else {
+              fulfill([]);
+            }
           }
         }
-      });
+      );
     });
   }
 
   /**
    * [Android only]
-   * @returns 
+   * @returns
    */
   getBondedPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      bleManager.getBondedPeripherals((error: string | null, result: Peripheral[] | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          if (result) {
-            fulfill(result);
+      bleManager.getBondedPeripherals(
+        (error: string | null, result: Peripheral[] | null) => {
+          if (error) {
+            reject(error);
           } else {
-            fulfill([]);
+            if (result) {
+              fulfill(result);
+            } else {
+              fulfill([]);
+            }
           }
         }
-      });
+      );
     });
   }
 
   getDiscoveredPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      bleManager.getDiscoveredPeripherals((error: string | null, result: Peripheral[] | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          if (result) {
-            fulfill(result);
+      bleManager.getDiscoveredPeripherals(
+        (error: string | null, result: Peripheral[] | null) => {
+          if (error) {
+            reject(error);
           } else {
-            fulfill([]);
+            if (result) {
+              fulfill(result);
+            } else {
+              fulfill([]);
+            }
           }
         }
-      });
+      );
     });
   }
 
   /**
    * [Android only]
-   * @param peripheralId 
-   * @returns 
+   * @param peripheralId
+   * @returns
    */
   removePeripheral(peripheralId: string) {
     return new Promise<void>((fulfill, reject) => {
@@ -565,13 +599,13 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
-   * @param peripheralId 
+   * @param peripheralId
    * @param serviceUUIDs [optional] not used on android, optional on ios.
-   * @returns 
+   * @returns
    */
   isPeripheralConnected(peripheralId: string, serviceUUIDs: string[] = []) {
-    return this.getConnectedPeripherals(serviceUUIDs).then(result => {
-      if (result.find(p => p.id === peripheralId)) {
+    return this.getConnectedPeripherals(serviceUUIDs).then((result) => {
+      if (result.find((p) => p.id === peripheralId)) {
         return true;
       } else {
         return false;
@@ -580,12 +614,32 @@ class BleManager extends NativeEventEmitter {
   }
 
   /**
+   * @param peripheralId
+   * @param serviceUUIDs [optional] not used on android, optional on ios.
+   * @returns
+   */
+  isScanning() {
+    return new Promise<boolean>((fulfill, reject) => {
+      bleManager.isScanning((error: string | null, status: boolean) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(status);
+        }
+      });
+    });
+  }
+
+  /**
    * [Android only, API 21+]
-   * @param peripheralId 
-   * @param connectionPriority 
+   * @param peripheralId
+   * @param connectionPriority
    * @returns a promise that resolves with a boolean indicating of the connection priority was changed successfully, or rejects with an error message.
    */
-  requestConnectionPriority(peripheralId: string, connectionPriority: ConnectionPriority) {
+  requestConnectionPriority(
+    peripheralId: string,
+    connectionPriority: ConnectionPriority
+  ) {
     return new Promise<boolean>((fulfill, reject) => {
       bleManager.requestConnectionPriority(
         peripheralId,
@@ -601,7 +655,6 @@ class BleManager extends NativeEventEmitter {
     });
   }
 
-
   /**
    * [Android only, API 21+]
    * @param peripheralId
@@ -610,19 +663,23 @@ class BleManager extends NativeEventEmitter {
    */
   requestMTU(peripheralId: string, mtu: number) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.requestMTU(peripheralId, mtu, (error: string | null, mtu: number) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill(mtu);
+      bleManager.requestMTU(
+        peripheralId,
+        mtu,
+        (error: string | null, mtu: number) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(mtu);
+          }
         }
-      });
+      );
     });
   }
 
   /**
    * [Android only]
-   * @param name 
+   * @param name
    */
   setName(name: string) {
     bleManager.setName(name);
@@ -630,40 +687,43 @@ class BleManager extends NativeEventEmitter {
 
   /**
    * [iOS only]
-   * @param peripheralId 
-   * @returns 
+   * @param peripheralId
+   * @returns
    */
   getMaximumWriteValueLengthForWithoutResponse(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.getMaximumWriteValueLengthForWithoutResponse(peripheralId, (error: string | null, max: number) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill(max);
+      bleManager.getMaximumWriteValueLengthForWithoutResponse(
+        peripheralId,
+        (error: string | null, max: number) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(max);
+          }
         }
-      });
+      );
     });
   }
 
   /**
    * [iOS only]
-   * @param peripheralId 
-   * @returns 
+   * @param peripheralId
+   * @returns
    */
   getMaximumWriteValueLengthForWithResponse(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.getMaximumWriteValueLengthForWithResponse(peripheralId, (error: string | null, max: number) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill(max);
+      bleManager.getMaximumWriteValueLengthForWithResponse(
+        peripheralId,
+        (error: string | null, max: number) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(max);
+          }
         }
-      });
+      );
     });
   }
-
 }
-
-
 
 export default new BleManager();
