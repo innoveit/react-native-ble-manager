@@ -721,6 +721,25 @@ BleManager.isPeripheralConnected(
 
 ---
 
+## isScanning()
+
+Checks whether the scan is in progress and return `true` or `false`.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.isScanning().then((isScanning) => {
+  if (isScanning) {
+    console.log("Is scanning!");
+  } else {
+    console.log("Is NOT scanning!");
+  }
+});
+```
+
+---
+
 ## setName(name) [Android only]
 
 Create the request to set the name of the bluetooth adapter. (https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#setName(java.lang.String))
