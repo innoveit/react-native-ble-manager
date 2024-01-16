@@ -529,6 +529,14 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
     }
     
+    @objc func isScanning(_ callback: @escaping RCTResponseSenderBlock) {        
+        if let manager = manager {
+            callback([NSNull(), manager.isScanning])
+        } else {
+            callback(["CBCentralManager not found"])
+        }
+    }
+    
     @objc func checkState(_ callback: @escaping RCTResponseSenderBlock) {
         if let manager = manager {
             centralManagerDidUpdateState(manager)
