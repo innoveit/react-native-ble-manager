@@ -759,7 +759,7 @@ BleManager.getMaximumWriteValueLengthForWithoutResponse(
 
 ---
 
-## getMaximumWriteValueLengthForWitResponse(peripheralId) [iOS only]
+## getMaximumWriteValueLengthForWithResponse(peripheralId) [iOS only]
 
 Return the maximum value length for WriteWithResponse.
 Returns a `Promise` object.
@@ -767,7 +767,7 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.getMaximumWriteValueLengthForWitResponse(
+BleManager.getMaximumWriteValueLengthForWithResponse(
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 ).then((maxValue) => {
   console.log("Maximum length for WriteWithResponse: " + maxValue);
