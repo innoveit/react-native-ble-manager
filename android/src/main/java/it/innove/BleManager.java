@@ -547,6 +547,15 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void isScanning(Callback callback) {
+        if (scanManager != null) {
+            callback.invoke(null, scanManager.isScanning());
+        } else {
+            callback.invoke(null, false);
+        }
+    }
+
+    @ReactMethod
     @SuppressLint("MissingPermission")
     public void setName(String name) {
         BluetoothAdapter adapter = getBluetoothAdapter();

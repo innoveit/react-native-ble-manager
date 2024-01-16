@@ -32,6 +32,8 @@ import java.util.List;
 @SuppressLint("MissingPermission")
 public class DefaultScanManager extends ScanManager {
 
+    private boolean isScanning = false;
+
     public DefaultScanManager(ReactApplicationContext reactContext, BleManager bleManager) {
         super(reactContext, bleManager);
     }
@@ -43,6 +45,7 @@ public class DefaultScanManager extends ScanManager {
         scanSessionId.incrementAndGet();
 
         getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
+        isScanning = false;
         callback.invoke();
     }
 
@@ -104,6 +107,7 @@ public class DefaultScanManager extends ScanManager {
         }
 
         getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, scanSettingsBuilder.build(), mScanCallback);
+        isScanning = true;
 
         if (scanSeconds > 0) {
             Thread thread = new Thread() {
@@ -126,6 +130,7 @@ public class DefaultScanManager extends ScanManager {
                             if (scanSessionId.intValue() == currentScanSession) {
                                 if (btAdapter.getState() == BluetoothAdapter.STATE_ON) {
                                     btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
+                                    isScanning = false;
                                 }
 
                                 WritableMap map = Arguments.createMap();
@@ -199,9 +204,14 @@ public class DefaultScanManager extends ScanManager {
 
         @Override
         public void onScanFailed(final int errorCode) {
+            isScanning = false;
             WritableMap map = Arguments.createMap();
             map.putInt("status", errorCode);
             bleManager.sendEvent("BleManagerStopScan", map);
         }
     };
+
+    public boolean isScanning() {
+        return isScanning;
+    }
 }
