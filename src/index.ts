@@ -718,8 +718,6 @@ class BleManager extends NativeEventEmitter {
    *
    * Check if current device supports companion device manager.
    *
-   * If not, companionScan will always reject.
-   *
    * @return Promise resolving to a boolean.
    */
   supportsCompanion() {
@@ -731,25 +729,7 @@ class BleManager extends NativeEventEmitter {
   /**
    * [Android only, API 26+]
    *
-   * Scan for companion devices.
-   *
-   * If companion device manger is not supported on this (android) device,
-   * rejects. Otherwise resolves once the scan has started.
-   *
-   * There is no way to "stop" companion scanning. Once its started, it will
-   * eventually emit `BleManagerCompanionPeripheral` event with either:
-   *   1. peripheral if user selects one
-   *   2. null if user "cancels" (i.e. doesn't select anything)
-   *
-   * Emits `BleManagerCompanionPeripheralFailure` on failure.
-   *
-   * Unlike with `BleManager.scan()`, timeouts must be handled manually.
-   *
-   * See `BleManagerCompanionPeripheral` and `BleManagerCompanionPeripheralFailure` events.
-   *
-   * See `BleManager.supportsCompanion`.
-   *
-   * See: https://developer.android.com/develop/connectivity/bluetooth/companion-device-pairing
+   * Start companion scan.
    */
   companionScan(
     serviceUUIDs: string[],
