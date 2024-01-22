@@ -553,7 +553,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                      maxByteSize: Int,
                      callback: @escaping RCTResponseSenderBlock) {
         NSLog("write")
-                
+        
         guard let context = getContext(peripheralUUID, serviceUUIDString: serviceUUID, characteristicUUIDString: characteristicUUID, prop: CBCharacteristicProperties.write, callback: callback) else {
             return
         }
@@ -1239,6 +1239,24 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     
     @objc func setName(_ name: String,
                        callback: @escaping RCTResponseSenderBlock) {
+        callback(["Not supported"])
+    }
+    
+    @objc func getAssociatedPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
+        callback(["Not supported"])
+    }
+    
+    @objc func removeAssociatedPeripheral(_ peripheralUUID: String,
+                                          callback: @escaping RCTResponseSenderBlock) {
+        callback(["Not supported"])
+    }
+    
+    @objc func supportsCompanion(_ callback: @escaping RCTResponseSenderBlock) {
+        callback(["Not supported"])
+    }
+    
+    @objc public func companionScan(_ serviceUUIDs: [Any],
+                                    callback:RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 }

@@ -7,6 +7,7 @@ import {
   BleState,
   ConnectOptions,
   ConnectionPriority,
+  CompanionScanOptions,
   Peripheral,
   PeripheralInfo,
   ScanOptions,
@@ -674,6 +675,74 @@ class BleManager extends NativeEventEmitter {
           }
         }
       );
+    });
+  }
+
+  /**
+   * [Android only, API 26+]
+   *
+   * @returns
+   */
+  getAssociatedPeripherals() {
+    return new Promise<Peripheral[]>((fulfill, reject) => {
+      bleManager.getAssociatedPeripherals((error: string | null, peripherals: Peripheral[] | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(peripherals || []);
+        }
+      });
+    });
+  }
+
+  /**
+   * [Android only, API 26+]
+   * @param peripheralId Peripheral to remove
+   * @returns Promise that resolves once the peripheral has been removed. Rejects
+   *          if no association is found.
+   */
+  removeAssociatedPeripheral(peripheralId: string) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.removeAssociatedPeripheral(peripheralId, (error: string | null) => {
+        if (error !== null) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
+  /**
+   * [Android only]
+   *
+   * Check if current device supports companion device manager.
+   *
+   * @return Promise resolving to a boolean.
+   */
+  supportsCompanion() {
+    return new Promise<boolean>(fulfill => {
+      bleManager.supportsCompanion((supports: boolean) => fulfill(supports));
+    });
+  }
+
+  /**
+   * [Android only, API 26+]
+   *
+   * Start companion scan.
+   */
+  companionScan(
+    serviceUUIDs: string[],
+    options: CompanionScanOptions = {}
+  ) {
+    return new Promise<void>((fulfill, reject) => {
+      bleManager.companionScan(serviceUUIDs, options, (error: string | null) => {
+        if (error) {
+          reject(error)
+        } else {
+          fulfill();
+        }
+      });
     });
   }
 
