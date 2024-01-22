@@ -833,8 +833,8 @@ class BleManager extends ReactContextBaseJavaModule {
         for (String association : manager.getAssociations()) {
             if (association.equals(address)) {
                 manager.disassociate(address);
-                callback.invoke(null);
-                break;
+                callback.invoke();
+                return;
             }
         }
 
