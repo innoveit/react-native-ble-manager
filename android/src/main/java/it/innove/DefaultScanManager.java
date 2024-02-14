@@ -131,10 +131,21 @@ public class DefaultScanManager extends ScanManager {
                     callback.invoke("manufacturerData and manufacturerDataMask must have the same length");
                     return;
                 }
-                Log.d(BleManager.LOG_TAG, "Filter on manufacturerId: " + manufacturerId);
-                Log.d(BleManager.LOG_TAG, "Filter on manufacturerData: " + Arrays.toString(manufacturerDataBytes));
-                Log.d(BleManager.LOG_TAG, "Filter on manufacturerDataMask: " + Arrays.toString(manufacturerDataMaskBytes));
-                ScanFilter filter = new ScanFilter.Builder().setManufacturerData(manufacturerId, manufacturerDataBytes, manufacturerDataMaskBytes).build();
+                Log.d(
+                    BleManager.LOG_TAG,
+                    String.format(
+                        "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
+                        manufacturerId,
+                        Arrays.toString(manufacturerDataBytes),
+                        Arrays.toString(manufacturerDataMaskBytes)
+                    )
+                );
+                ScanFilter filter = new ScanFilter.Builder()
+                    .setManufacturerData(
+                        manufacturerId,
+                        manufacturerDataBytes,
+                        manufacturerDataMaskBytes
+                    ).build();
                 filters.add(filter);
             }
         }
