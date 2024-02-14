@@ -138,6 +138,18 @@ export interface ScanOptions {
    * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
    */
   exactAdvertisingName?: string|string[];
+  /**
+   * Android only. Filters scan results by manufacturer id and data.
+   * `manufacturerId` usually matches the company id, can be given as a hex, e.g. 0xe4f7.
+   * `manufacturerData` and `manufacturerDataMask` must have the same length. For any bit in the mask, set it to 1 if
+   * it needs to match the one in manufacturer data, otherwise set it to 0.
+   * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])
+   */
+  manufacturerData?: {
+    manufacturerId: number;
+    manufacturerData?: number[];
+    manufacturerDataMask?: number[];
+  }
 }
 
 /**
