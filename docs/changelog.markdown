@@ -9,6 +9,14 @@ nav_order: 100
 
 To read all the details go to the [Github Releases section](https://github.com/innoveit/react-native-ble-manager/releases).
 
+## Release v11.3.X
+
+- [Android only] Added scan filter for manufacturer data.
+
+## Release v11.2.X
+
+- Added `isScanning` method.
+
 ## Release v11.1.X
 
 - Added `writeDescriptor` method.
