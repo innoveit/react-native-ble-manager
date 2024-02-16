@@ -55,6 +55,11 @@ Returns a `Promise` object.
   - `phy` - `Number` - [Android only] corresponding to [`setPhy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int)>)
   - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean)>)
   - `exactAdvertisingName` - `string[]` - In Android corresponds to the `ScanFilter` [deviceName](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)>). In iOS the filter is done manually before sending the peripheral.
+  - `manufacturerData` - `object` - [Android only] corresponding to [`setManufacturerData`](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])>). Filter by manufacturer id or data.
+    - `manufacturerId` - `number` - Manufacturer / company id to filter for.
+    - `manufacturerData` - `number[]` - Additional manufacturer data filter.
+    - `manufacturerDataMask` - `number[]` - Mask for manufacturer data, must have the same length as `manufacturerData`.
+      For any bit in the mask, set it to 1 if it needs to match the one in manufacturer data, otherwise set it to 0.
 
 **Examples**
 
