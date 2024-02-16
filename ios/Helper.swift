@@ -109,7 +109,7 @@ class Helper {
                 adv["manufacturerData"] = manInfo
             }
             adv.removeValue(forKey: CBAdvertisementDataManufacturerDataKey)
-            adv["manufacturerRawData"] = mfgData.toArray()
+            adv["manufacturerRawData"] = Helper.dataToArrayBuffer(mfgData)
             
         }
         

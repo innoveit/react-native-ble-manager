@@ -40,6 +40,7 @@ export interface AdvertisingData {
   localName?: string;
   rawData?: CustomAdvertisingData;
   manufacturerData?: Record<string, CustomAdvertisingData>;
+  manufacturerRawData?: Record<string, CustomAdvertisingData>;
   serviceData?: Record<string, CustomAdvertisingData>;
   serviceUUIDs?: string[];
   txPowerLevel?: number;

@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 
@@ -80,10 +81,21 @@ public class DefaultPeripheral extends Peripheral {
 
                 WritableMap manufacturerData = Arguments.createMap();
                 SparseArray<byte[]> manufacturerRawData = advertisingData.getManufacturerSpecificData();
+                byte[] manufacturerRawBytes = new byte[0];
                 if (manufacturerRawData != null && manufacturerRawData.size() > 0) {
-                    manufacturerData.putMap(String.format("%04x", manufacturerRawData.keyAt(0)), byteArrayToWritableMap(manufacturerRawData.valueAt(0)));
+                    int key = manufacturerRawData.keyAt(0);
+                    byte[] data = manufacturerRawData.valueAt(0);
+                    manufacturerData.putMap(String.format("%04x", key), byteArrayToWritableMap(data));
+
+                    ByteBuffer keyBuffer = ByteBuffer.allocate(Integer.SIZE / Byte.SIZE);
+                    keyBuffer.putInt(key);
+                    byte[] keyBytes = keyBuffer.array();
+                    manufacturerRawBytes = new byte[keyBytes.length + data.length];
+                    System.arraycopy(keyBytes, 0, manufacturerRawBytes, 0, keyBytes.length);
+                    System.arraycopy(data, 0, manufacturerRawBytes, keyBytes.length, data.length);
                 }
                 advertising.putMap("manufacturerData", manufacturerData);
+                advertising.putMap("manufacturerRawData", byteArrayToWritableMap(manufacturerRawBytes));
 
                 advertising.putInt("txPowerLevel", advertisingData.getTxPowerLevel());
             }
