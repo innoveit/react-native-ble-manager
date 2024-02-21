@@ -1069,7 +1069,7 @@ public class Peripheral extends BluetoothGattCallback {
                 if (!gatt.writeCharacteristic(characteristic)) {
                     // write without response, caller will handle the callback
                     for (Callback writeCallback : writeCallbacks) {
-                        writeCallback.invoke("Write failed", writeCallback);
+                        writeCallback.invoke("Write failed", null);
                     }
                     writeCallbacks.clear();
                     completedCommand();
