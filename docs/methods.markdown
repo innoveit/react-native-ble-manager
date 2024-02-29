@@ -153,7 +153,7 @@ BleManager.disconnect("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 ## enableBluetooth() [Android only]
 
-Create the request to the user to activate the bluetooth.
+Create the ACTION_REQUEST_ENABLE to ask the user to activate the bluetooth.
 Returns a `Promise` object.
 
 **Examples**
