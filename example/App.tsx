@@ -1,16 +1,25 @@
 import React from 'react';
-import { NativeRouter, Route, Routes } from 'react-router-native';
-import ScanDevices from './screens/ScanDevices'; // Your main App component
-import PeripheralDetails from './screens/PeripheralDetails'; // The component to show peripheral details
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import ScanDevicesScreen from './components/ScanDevicesScreen';
+import PeripheralDetailsScreen from './components/PeripheralDetailsScreen';
+
+const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
-    <NativeRouter>
-      <Routes>
-        <Route path="/" element={<ScanDevices />} />
-        <Route path="/details" element={<PeripheralDetails />} />
-      </Routes>
-    </NativeRouter>
+    <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen
+                    name="ScanDevices"
+                    component={ScanDevicesScreen}
+                />
+                <Stack.Screen
+                    name="PeripheralDetails"
+                    component={PeripheralDetailsScreen}
+                />
+            </Stack.Navigator>
+        </NavigationContainer>
   );
 }
 

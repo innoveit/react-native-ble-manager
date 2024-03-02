@@ -19,11 +19,7 @@ import {
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {useNavigate} from 'react-router-native';
-
-const SECONDS_TO_SCAN_FOR = 3;
-const SERVICE_UUIDS: string[] = [];
-const ALLOW_DUPLICATES = true;
+import { useNavigation } from '@react-navigation/native';
 
 import BleManager, {
   BleDisconnectPeripheralEvent,
@@ -33,6 +29,11 @@ import BleManager, {
   BleScanMode,
   Peripheral,
 } from 'react-native-ble-manager';
+
+const SECONDS_TO_SCAN_FOR = 3;
+const SERVICE_UUIDS: string[] = [];
+const ALLOW_DUPLICATES = true;
+
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
@@ -44,13 +45,14 @@ declare module 'react-native-ble-manager' {
   }
 }
 
-const ScanDevices = () => {
+const ScanDevicesScreen = () => {
+  const navigation = useNavigation();
+
   const [isScanning, setIsScanning] = useState(false);
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>(),
   );
 
-  const navigate = useNavigate();
   //console.debug('peripherals map updated', [...peripherals.entries()]);
 
   const startScan = () => {
@@ -203,6 +205,14 @@ const ScanDevices = () => {
           peripheralData,
         );
 
+        setPeripherals(map => {
+          let p = map.get(peripheral.id);
+          if (p) {
+            return new Map(map.set(p.id, p));
+          }
+          return map;
+        });
+
         const rssi = await BleManager.readRSSI(peripheral.id);
         console.debug(
           `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`,
@@ -242,9 +252,11 @@ const ScanDevices = () => {
           }
           return map;
         });
+        
+        navigation.navigate('PeripheralDetails', {peripheralData: peripheralData});
       }
     
-      navigate('/details', {state: {peripheral: peripheral}});
+      
     
     } catch (error) {
       console.error(
@@ -489,4 +501,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ScanDevices;
+export default ScanDevicesScreen;
