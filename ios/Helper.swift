@@ -268,7 +268,7 @@ class Peripheral:Hashable {
     }
     
     func servicesInfo() -> Dictionary<String, Any> {
-        var servicesInfo: [String: Any] = [:]
+        var servicesInfo: [String: Any] = advertisingInfo()
         
         var serviceList = [[String: Any]]()
         var characteristicList = [[String: Any]]()
