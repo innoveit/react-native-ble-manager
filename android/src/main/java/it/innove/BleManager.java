@@ -155,7 +155,7 @@ class BleManager extends ReactContextBaseJavaModule {
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.UPSIDE_DOWN_CAKE){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE){
             // Google in 2023 decides that flag RECEIVER_NOT_EXPORTED or RECEIVER_EXPORTED should be explicit set SDK 32(UPSIDE_DOWN_CAKE) on registering receivers.
             // Also the export flags are available on Android 8 and higher, should be used with caution so that don't break compability with that devices.
             context.registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
