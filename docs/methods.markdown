@@ -575,7 +575,9 @@ BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then(
   }
 );
 ```
-
+*** Important ***
+- Never call retrieveServices simultaneously, could lead to crashes or undefined behaviour.
+  
 ---
 
 ## refreshCache(peripheralId) [Android only]
