@@ -576,7 +576,7 @@ BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then(
 );
 ```
 
-Important! never call retrieveServices method simultaneously, could lead to crashes or undefined behavior.
+> Important! never call retrieveServices method simultaneously, could lead to crashes or undefined behavior.
   
 ---
 
