@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.authors		= { "Innove" => "https://github.com/innoveit" }
   s.homepage    	= "https://github.com/innoveit/react-native-ble-manager"
   s.license     	= "Apache-2.0"
-  s.platform    	= :ios, "9.0"
+  s.platform    	= :ios, "10.0"
   s.source      	= { :git => "https://github.com/innoveit/react-native-ble-manager.git" }
   s.source_files = "ios/**/*.{h,c,cc,cpp,m,mm,swift}"
 

@@ -99,4 +99,9 @@ public class LegacyScanManager extends ScanManager {
         }
         callback.invoke();
     }
+
+    @Override
+    public boolean isScanning() {
+        return false;
+    }
 }

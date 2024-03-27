@@ -43,6 +43,14 @@ RCT_EXTERN_METHOD(readDescriptor:
                   descriptorUUID:(NSString*)descriptorUUID
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
+RCT_EXTERN_METHOD(writeDescriptor:
+                  (NSString *)peripheralUUID
+                  serviceUUID:(NSString*)serviceUUID
+                  characteristicUUID:(NSString*)characteristicUUID
+                  descriptorUUID:(NSString*)descriptorUUID
+                  message:(NSArray*)message
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
 RCT_EXTERN_METHOD(getDiscoveredPeripherals:
                   (nonnull RCTResponseSenderBlock)callback)
 
@@ -89,6 +97,8 @@ RCT_EXTERN_METHOD(getConnectedPeripherals:(NSArray *)serviceUUIDStrings
 RCT_EXTERN_METHOD(isPeripheralConnected:
                   (NSString *)peripheralUUID
                   callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(isScanning:(nonnull RCTResponseSenderBlock)callback)
 
 RCT_EXTERN_METHOD(getMaximumWriteValueLengthForWithoutResponse:
                   (NSString *)peripheralUUID

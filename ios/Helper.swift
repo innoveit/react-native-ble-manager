@@ -105,11 +105,11 @@ class Helper {
             if mfgData.count > 1 {
                 let manufactureID = UInt16(mfgData[0]) + UInt16(mfgData[1]) << 8
                 var manInfo: [String: Any] = [:]
-                manInfo[String(format: "%04X", manufactureID)] = Helper.dataToArrayBuffer(mfgData.subdata(in: 2..<mfgData.endIndex))
+                manInfo[String(format: "%04x", manufactureID)] = Helper.dataToArrayBuffer(mfgData.subdata(in: 2..<mfgData.endIndex))
                 adv["manufacturerData"] = manInfo
             }
             adv.removeValue(forKey: CBAdvertisementDataManufacturerDataKey)
-            adv["manufacturerRawData"] = mfgData.toArray()
+            adv["manufacturerRawData"] = Helper.dataToArrayBuffer(mfgData)
             
         }
         
@@ -268,7 +268,7 @@ class Peripheral:Hashable {
     }
     
     func servicesInfo() -> Dictionary<String, Any> {
-        var servicesInfo: [String: Any] = [:]
+        var servicesInfo: [String: Any] = advertisingInfo()
         
         var serviceList = [[String: Any]]()
         var characteristicList = [[String: Any]]()

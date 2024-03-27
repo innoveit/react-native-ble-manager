@@ -153,10 +153,18 @@ class BleManager extends ReactContextBaseJavaModule {
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        context.registerReceiver(mReceiver, filter);
         IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        context.registerReceiver(mReceiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE){
+            // Google in 2023 decides that flag RECEIVER_NOT_EXPORTED or RECEIVER_EXPORTED should be explicit set SDK 32(UPSIDE_DOWN_CAKE) on registering receivers.
+            // Also the export flags are available on Android 8 and higher, should be used with caution so that don't break compability with that devices.
+            context.registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            context.registerReceiver(mReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);        
+        }else {
+            context.registerReceiver(mReceiver, filter);
+            context.registerReceiver(mReceiver, intentFilter);
+        }
+        
         callback.invoke();
         Log.d(LOG_TAG, "BleManager initialized");
     }
@@ -434,6 +442,27 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void writeDescriptor(String deviceUUID, String serviceUUID, String characteristicUUID, String descriptorUUID, ReadableArray message, Callback callback) {
+        Log.d(LOG_TAG, "Write descriptor from: " + deviceUUID);
+        if (serviceUUID == null || characteristicUUID == null || descriptorUUID == null) {
+            callback.invoke("ServiceUUID, CharacteristicUUID and descriptorUUID required.", null);
+            return;
+        }
+
+        Peripheral peripheral = peripherals.get(deviceUUID);
+        if (peripheral == null) {
+            callback.invoke("Peripheral not found", null);
+        } else {
+            byte[] decoded = new byte[message.size()];
+            for (int i = 0; i < message.size(); i++) {
+                decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
+            }
+            Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+            peripheral.writeDescriptor(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), UUIDHelper.uuidFromString(descriptorUUID), decoded, callback);
+        }
+    }
+
+    @ReactMethod
     public void retrieveServices(String deviceUUID, ReadableArray services, Callback callback) {
         Log.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
@@ -523,6 +552,15 @@ class BleManager extends ReactContextBaseJavaModule {
         Log.d(LOG_TAG, "state:" + state);
         sendEvent("BleManagerDidUpdateState", map);
         callback.invoke(state);
+    }
+
+    @ReactMethod
+    public void isScanning(Callback callback) {
+        if (scanManager != null) {
+            callback.invoke(null, scanManager.isScanning());
+        } else {
+            callback.invoke(null, false);
+        }
     }
 
     @ReactMethod
