@@ -139,5 +139,15 @@ RCT_EXTERN_METHOD(refreshCache:(NSString *)peripheralUUID
 RCT_EXTERN_METHOD(setName:(NSString *)name
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
+RCT_EXTERN_METHOD(getAssociatedPeripherals:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(removeAssociatedPeripheral:(NSString *)peripheralUUID
+                  callback:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(supportsCompanion:(nonnull RCTResponseSenderBlock)callback)
+
+RCT_EXTERN_METHOD(companionScan:
+                  (NSArray *)serviceUUIDs
+                  callback:(nonnull RCTResponseSenderBlock)callback)
 
 @end
