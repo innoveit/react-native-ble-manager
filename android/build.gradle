@@ -25,7 +25,7 @@ android {
 	  namespace "it.innove"
 	}
 	
-	compileSdk safeExtGet("compileSdk", 33)
+	compileSdk safeExtGet("compileSdk", 34)
 
 	compileOptions {
 		sourceCompatibility JavaVersion.VERSION_1_9
@@ -34,7 +34,7 @@ android {
 
 	defaultConfig {
 		minSdkVersion safeExtGet("minSdkVersion", 21)
-		targetSdk safeExtGet("targetSdk", 33)
+		targetSdk safeExtGet("targetSdk", 34)
 	}
 	lintOptions {
 		abortOnError false

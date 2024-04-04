@@ -3,6 +3,7 @@ package it.innove;
 import static android.app.Activity.RESULT_OK;
 import static android.bluetooth.BluetoothProfile.GATT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import static android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -153,10 +154,18 @@ class BleManager extends ReactContextBaseJavaModule {
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        context.registerReceiver(mReceiver, filter);
         IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_PAIRING_REQUEST);
         intentFilter.setPriority(IntentFilter.SYSTEM_HIGH_PRIORITY);
-        context.registerReceiver(mReceiver, intentFilter);
+        if (Build.VERSION.SDK_INT >= UPSIDE_DOWN_CAKE){
+            // Google in 2023 decides that flag RECEIVER_NOT_EXPORTED or RECEIVER_EXPORTED should be explicit set SDK 34(UPSIDE_DOWN_CAKE) on registering receivers.
+            // Also the export flags are available on Android 8 and higher, should be used with caution so that don't break compability with that devices.
+            context.registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            context.registerReceiver(mReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            context.registerReceiver(mReceiver, filter);
+            context.registerReceiver(mReceiver, intentFilter);
+        }
+
         callback.invoke();
         Log.d(LOG_TAG, "BleManager initialized");
     }
@@ -181,9 +190,9 @@ class BleManager extends ReactContextBaseJavaModule {
                     }catch(Exception e){
                         callback.invoke("Current activity not available");
                     }
-                    
+
                 }
-                
+
         } else
             callback.invoke();
     }
