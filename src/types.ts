@@ -151,6 +151,20 @@ export interface ScanOptions {
     manufacturerData?: number[];
     manufacturerDataMask?: number[];
   }
+  /**
+   * When using compaion mode, only associate single peripheral.
+   *
+   * See: https://developer.android.com/reference/android/companion/AssociationRequest.Builder#setSingleDevice(boolean)
+   */
+  single?: boolean;
+  companion?: boolean;
+}
+
+export interface CompanionScanOptions {
+  /**
+   * Scan only for a single peripheral.
+   */
+  single?: boolean;
 }
 
 /**
@@ -358,3 +372,20 @@ export interface BleManagerDidUpdateNotificationStateForEvent {
    */
   readonly code: number;
 }
+
+/**
+ * [Android only]
+ *
+ * Associate callback received a failure or failed to start the intent to
+ * pick the device to associate.
+ */
+export type BleManagerCompanionFailure = { error: string; };
+
+/**
+ * [Android only]
+ *
+ * User picked a device to associate with.
+ *
+ * Null if the request was cancelled by the user.
+ */
+export type BleManagerCompanionPeripheral = Peripheral | null;
