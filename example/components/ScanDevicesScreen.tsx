@@ -2,7 +2,7 @@
  * Sample BLE React Native App
  */
 
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -18,7 +18,7 @@ import {
   Pressable,
 } from 'react-native';
 
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { useNavigation } from '@react-navigation/native';
 
 import BleManager, {
@@ -79,6 +79,27 @@ const ScanDevicesScreen = () => {
       }
     }
   };
+
+  const startCompanionScan = () => {
+    setPeripherals(new Map<Peripheral['id'], Peripheral>());
+    try {
+      console.debug('[startCompanionScan] starting companion scan...');
+      BleManager.companionScan(SERVICE_UUIDS, { single: false })
+        .then((peripheral) => {
+          console.debug('[startCompanionScan] scan promise returned successfully.', peripheral);
+          if (peripheral != null) {
+            setPeripherals(map => {
+              return new Map(map.set(peripheral.id, peripheral));
+            });
+          }
+        })
+        .catch((err: any) => {
+          console.debug('[startCompanionScan] ble scan cancel', err);
+        });
+    } catch (error) {
+      console.error('[startCompanionScan] ble scan error thrown', error);
+    }
+  }
 
   const handleStopScan = () => {
     setIsScanning(false);
@@ -151,8 +172,7 @@ const ScanDevicesScreen = () => {
         connectedPeripherals,
       );
 
-      for (var i = 0; i < connectedPeripherals.length; i++) {
-        var peripheral = connectedPeripherals[i];
+      for (let peripheral of connectedPeripherals) {
         setPeripherals(map => {
           let p = map.get(peripheral.id);
           if (p) {
@@ -169,6 +189,27 @@ const ScanDevicesScreen = () => {
       );
     }
   };
+
+  const getAssociatedPeripherals = async () => {
+    try {
+      const associatedPeripherals = await BleManager.getAssociatedPeripherals();
+      console.debug(
+        '[getAssociatedPeripherals] associatedPeripherals',
+        associatedPeripherals,
+      );
+
+      for (let peripheral of associatedPeripherals) {
+        setPeripherals(map => {
+          return new Map(map.set(peripheral.id, peripheral));
+        });
+      }
+    } catch (error) {
+      console.error(
+        '[getAssociatedPeripherals] unable to retrieve associated peripherals.',
+        error,
+      );
+    }
+  }
 
   const connectPeripheral = async (peripheral: Peripheral) => {
     try {
@@ -252,12 +293,11 @@ const ScanDevicesScreen = () => {
           }
           return map;
         });
-        
-        navigation.navigate('PeripheralDetails', {peripheralData: peripheralData});
+
+        navigation.navigate('PeripheralDetails', {
+          peripheralData: peripheralData,
+        });
       }
-    
-      
-    
     } catch (error) {
       console.error(
         `[connectPeripheral][${peripheral.id}] connectPeripheral error`,
@@ -272,7 +312,7 @@ const ScanDevicesScreen = () => {
 
   useEffect(() => {
     try {
-      BleManager.start({showAlert: false})
+      BleManager.start({ showAlert: false })
         .then(() => console.debug('BleManager started.'))
         .catch((error: any) =>
           console.error('BeManager could not be started.', error),
@@ -356,13 +396,13 @@ const ScanDevicesScreen = () => {
     }
   };
 
-  const renderItem = ({item}: {item: Peripheral}) => {
+  const renderItem = ({ item }: { item: Peripheral }) => {
     const backgroundColor = item.connected ? '#069400' : Colors.white;
     return (
       <TouchableHighlight
         underlayColor="#0082FC"
         onPress={() => togglePeripheralConnection(item)}>
-        <View style={[styles.row, {backgroundColor}]}>
+        <View style={[styles.row, { backgroundColor }]}>
           <Text style={styles.peripheralName}>
             {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
             {item.name} - {item?.advertising?.localName}
@@ -391,6 +431,18 @@ const ScanDevicesScreen = () => {
           </Text>
         </Pressable>
 
+        <Pressable style={styles.scanButton} onPress={startCompanionScan}>
+          <Text style={styles.scanButtonText}>
+            {'Scan Companion [Android]'}
+          </Text>
+        </Pressable>
+
+        <Pressable style={styles.scanButton} onPress={getAssociatedPeripherals}>
+          <Text style={styles.scanButtonText}>
+            {'Get Associated Peripherals [Android]'}
+          </Text>
+        </Pressable>
+
         {Array.from(peripherals.values()).length === 0 && (
           <View style={styles.row}>
             <Text style={styles.noPeripherals}>
@@ -401,7 +453,7 @@ const ScanDevicesScreen = () => {
 
         <FlatList
           data={Array.from(peripherals.values())}
-          contentContainerStyle={{rowGap: 12}}
+          contentContainerStyle={{ rowGap: 12 }}
           renderItem={renderItem}
           keyExtractor={item => item.id}
         />

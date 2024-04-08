@@ -1,6 +1,13 @@
 {
-    "compilerOptions": {
-      "jsx": "react",
-    },
-    "extends": "@tsconfig/react-native/tsconfig.json",
-  }
+  "compilerOptions": {
+     "target": "es2016",
+     "module": "commonjs",
+     "esModuleInterop": true,
+     "forceConsistentCasingInFileNames": true,
+     "strict": true,
+     "skipLibCheck": true,
+     "baseUrl": "./src",
+     "types": ["jest"],     
+  },
+  "extends": "expo/tsconfig.base"
+}

@@ -92,19 +92,12 @@ BleManager.stopScan().then(() => {
 
 Scan for companion devices.
 
-If companion device manger is not supported on this (android) device,
-rejects. Otherwise resolves once the scan has started.
+If companion device manger is not supported on this (android) device rejects.
 
-There is no way to "stop" companion scanning. Once its started, it will
-eventually emit `BleManagerCompanionPeripheral` event with either:
- 1. peripheral if user selects one
- 2. null if user "cancels" (i.e. doesn't select anything)
+The promise it will eventually resolve with either:
 
-Emits `BleManagerCompanionPeripheralFailure` on failure.
-
-Unlike with `BleManager.scan()`, timeouts must be handled manually.
-
-See `BleManagerCompanionPeripheral` and `BleManagerCompanionPeripheralFailure` events.
+1.  peripheral if user selects one
+2.  null if user "cancels" (i.e. doesn't select anything)
 
 See `BleManager.supportsCompanion`.
 
@@ -113,24 +106,16 @@ See: https://developer.android.com/develop/connectivity/bluetooth/companion-devi
 **Arguments**
 
 - `serviceUUIDs` - `String[]` - List of service UUIDs to use as a filter
-- `options` - `JSON` -  Additional options
+- `options` - `JSON` - Additional options
 
   - `single` - `String?` - Scan only for single peripheral. See Android's `AssocationRequest.Builder.setSingleDevice`.
 
 **Examples**
 
 ```js
-const emitter = new NativeEventEmitter(NativeModules.BleManager);
-
-emitter.addListener('BleManagerCompanionPeripheral', peripheral => {
-  if (peripheral === null) {
-    // User didn't select any peripheral.
-  } else {
-    // User selected a peripheral.
-  }
+BleManager.compationScan().then(peripheral => {
+  console.log('Associated peripheral', peripheral);
 });
-
-BleManager.compationScan();
 ```
 
 ---
@@ -543,7 +528,7 @@ BleManager.writeDescriptor(
   [1, 2]
 )
   .then(() => {
-    // Success code    
+    // Success code
   })
   .catch((error) => {
     // Failure code

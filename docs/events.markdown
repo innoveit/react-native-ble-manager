@@ -174,16 +174,3 @@ The peripheral received a request to start or stop providing notifications for a
 - `code` - `Number` - [iOS only] error code
 
 ---
-
-## BleManagerCompanionPeripheral [Android only]
-
-Associate callback received a failure or failed to start the intent to
-pick the device to associate.
-
----
-
-## BleManagerCompanionFailure [Android only]
-
-User picked a device to associate with.
-
-Null if the request was cancelled by the user.

@@ -38,6 +38,8 @@ public class CompanionScanner {
     public static final String LOG_TAG = "CompationScanManager";
     private static final int SELECT_DEVICE_REQUEST_CODE = 540;
 
+    private static Callback scanCallback = null;
+
     private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
@@ -53,11 +55,15 @@ public class CompanionScanner {
                 ScanResult result = intent.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE);
                 Peripheral peripheral = bleManager.savePeripheral(result.getDevice());
 
-                bleManager.sendEvent("BleManagerCompanionPeripheral", peripheral.asWritableMap());
+                if (scanCallback != null) {
+                    scanCallback.invoke(null, peripheral.asWritableMap());
+                }
             } else {
                 // No device, user cancelled?
                 Log.d(LOG_TAG, "Non-ok activity result");
-                bleManager.sendEvent("BleManagerCompanionPeripheral", null);
+                if (scanCallback != null) {
+                    scanCallback.invoke(null, null);
+                }
             }
         }
     };
@@ -86,14 +92,17 @@ public class CompanionScanner {
         }
 
         AssociationRequest pairingRequest = builder.build();
+        if (scanCallback != null) {
+            scanCallback.invoke("New scan called", null);
+        }
+        scanCallback = callback;
 
         bleManager.getCompanionDeviceManager().associate(pairingRequest, new CompanionDeviceManager.Callback() {
             @Override
             public void onFailure(@Nullable CharSequence charSequence) {
                 Log.d(LOG_TAG, "companion failure: " + charSequence);
-                WritableMap map = Arguments.createMap();
-                map.putString("error", charSequence.toString());
-                bleManager.sendEvent("BleManagerCompanionFailure", map);
+                scanCallback.invoke("Companion association failed: " + charSequence.toString());
+                scanCallback = null;
             }
 
             @Override
@@ -106,13 +115,11 @@ public class CompanionScanner {
                 } catch (IntentSender.SendIntentException e) {
                     Log.e(LOG_TAG, "Failed to send intent: " + e.toString());
                     String msg = "Failed to send intent: " + e.toString();
-                    WritableMap map = Arguments.createMap();
-                    map.putString("error", msg);
-                    bleManager.sendEvent("BleManagerCompanionFailure", map);
+                    scanCallback.invoke(msg, null);
+                    scanCallback = null;
                 }
             }
         }, null);
 
-        callback.invoke();
     }
 }

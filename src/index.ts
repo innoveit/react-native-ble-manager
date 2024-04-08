@@ -735,12 +735,12 @@ class BleManager extends NativeEventEmitter {
     serviceUUIDs: string[],
     options: CompanionScanOptions = {}
   ) {
-    return new Promise<void>((fulfill, reject) => {
-      bleManager.companionScan(serviceUUIDs, options, (error: string | null) => {
+    return new Promise<Peripheral | null>((fulfill, reject) => {
+      bleManager.companionScan(serviceUUIDs, options, (error: string | null, peripheral: Peripheral | null) => {
         if (error) {
           reject(error)
         } else {
-          fulfill();
+          fulfill(peripheral);
         }
       });
     });
