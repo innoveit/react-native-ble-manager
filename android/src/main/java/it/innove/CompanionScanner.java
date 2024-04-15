@@ -97,7 +97,8 @@ public class CompanionScanner {
         }
         scanCallback = callback;
 
-        bleManager.getCompanionDeviceManager().associate(pairingRequest, new CompanionDeviceManager.Callback() {
+        CompanionDeviceManager companionDeviceManager = (CompanionDeviceManager) bleManager.getCompanionDeviceManager();
+        companionDeviceManager.associate(pairingRequest, new CompanionDeviceManager.Callback() {
             @Override
             public void onFailure(@Nullable CharSequence charSequence) {
                 Log.d(LOG_TAG, "companion failure: " + charSequence);
