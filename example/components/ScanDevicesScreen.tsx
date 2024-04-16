@@ -85,7 +85,7 @@ const ScanDevicesScreen = () => {
     try {
       console.debug('[startCompanionScan] starting companion scan...');
       BleManager.companionScan(SERVICE_UUIDS, { single: false })
-        .then((peripheral) => {
+        .then((peripheral: Peripheral|null) => {
           console.debug('[startCompanionScan] scan promise returned successfully.', peripheral);
           if (peripheral != null) {
             setPeripherals(map => {
@@ -101,6 +101,15 @@ const ScanDevicesScreen = () => {
     }
   }
 
+  const enableBluetooth = async () => {
+    try {
+      console.debug('[enableBluetooth]');
+      await BleManager.enableBluetooth();
+    } catch (error) {
+      console.error('[enableBluetooth] thrown', error);
+    }
+  }
+  
   const handleStopScan = () => {
     setIsScanning(false);
     console.debug('[handleStopScan] scan is stopped.');
@@ -419,29 +428,46 @@ const ScanDevicesScreen = () => {
     <>
       <StatusBar />
       <SafeAreaView style={styles.body}>
-        <Pressable style={styles.scanButton} onPress={startScan}>
-          <Text style={styles.scanButtonText}>
-            {isScanning ? 'Scanning...' : 'Scan Bluetooth'}
-          </Text>
-        </Pressable>
+        <View style={styles.buttonGroup}>
+          <Pressable style={styles.scanButton} onPress={startScan}>
+            <Text style={styles.scanButtonText}>
+              {isScanning ? 'Scanning...' : 'Scan Bluetooth'}
+            </Text>
+          </Pressable>
 
-        <Pressable style={styles.scanButton} onPress={retrieveConnected}>
-          <Text style={styles.scanButtonText}>
-            {'Retrieve connected peripherals'}
-          </Text>
-        </Pressable>
+          <Pressable style={styles.scanButton} onPress={retrieveConnected}>
+            <Text style={styles.scanButtonText} lineBreakMode='middle'>
+              {'Retrieve connected peripherals'}
+            </Text>
+          </Pressable>
+        </View>
 
-        <Pressable style={styles.scanButton} onPress={startCompanionScan}>
-          <Text style={styles.scanButtonText}>
-            {'Scan Companion [Android]'}
-          </Text>
-        </Pressable>
+        {Platform.OS === 'android' &&
+          (
+            <>
+              <View style={styles.buttonGroup}>
+                <Pressable style={styles.scanButton} onPress={startCompanionScan}>
+                  <Text style={styles.scanButtonText}>
+                    {'Scan Companion'}
+                  </Text>
+                </Pressable>
 
-        <Pressable style={styles.scanButton} onPress={getAssociatedPeripherals}>
-          <Text style={styles.scanButtonText}>
-            {'Get Associated Peripherals [Android]'}
-          </Text>
-        </Pressable>
+                <Pressable style={styles.scanButton} onPress={getAssociatedPeripherals}>
+                  <Text style={styles.scanButtonText}>
+                    {'Get Associated Peripherals'}
+                  </Text>
+                </Pressable>
+              </View>
+
+              <View style={styles.buttonGroup}>
+                <Pressable style={styles.scanButton} onPress={enableBluetooth}>
+                  <Text style={styles.scanButtonText}>
+                    {'Enable Bluetooh'}
+                  </Text>
+                </Pressable>                
+              </View>
+            </>
+          )}
 
         {Array.from(peripherals.values()).length === 0 && (
           <View style={styles.row}>
@@ -450,6 +476,7 @@ const ScanDevicesScreen = () => {
             </Text>
           </View>
         )}
+
 
         <FlatList
           data={Array.from(peripherals.values())}
@@ -480,17 +507,23 @@ const styles = StyleSheet.create({
     bottom: 0,
     color: Colors.black,
   },
+  buttonGroup: {
+    flexDirection: 'row',
+    width: '100%'
+  },
   scanButton: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
+    paddingHorizontal: 16,
     backgroundColor: '#0a398a',
     margin: 10,
     borderRadius: 12,
+    flex: 1,
     ...boxShadow,
   },
   scanButtonText: {
-    fontSize: 20,
+    fontSize: 16,
     letterSpacing: 0.25,
     color: Colors.white,
   },

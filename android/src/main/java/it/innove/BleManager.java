@@ -44,7 +44,7 @@ import java.util.Set;
 
 class BleManager extends ReactContextBaseJavaModule {
 
-    public static final String LOG_TAG = "ReactNativeBleManager";
+    public static final String LOG_TAG = "RNBleManager";
     private static final int ENABLE_REQUEST = 539;
 
     private static class BondRequest {
@@ -823,7 +823,7 @@ class BleManager extends ReactContextBaseJavaModule {
         }
 
         WritableArray peripherals = Arguments.createArray();
-        for (String address : getCompanionDeviceManager().getAssociations()) {
+        for (String address : ((CompanionDeviceManager) getCompanionDeviceManager()).getAssociations()) {
             peripherals.pushMap(retrieveOrCreatePeripheral(address).asWritableMap());
         }
 
@@ -838,7 +838,7 @@ class BleManager extends ReactContextBaseJavaModule {
             return;
         }
 
-        CompanionDeviceManager manager = getCompanionDeviceManager();
+        CompanionDeviceManager manager = (CompanionDeviceManager) getCompanionDeviceManager();
         for (String association : manager.getAssociations()) {
             if (association.equals(address)) {
                 manager.disassociate(address);
@@ -851,8 +851,8 @@ class BleManager extends ReactContextBaseJavaModule {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public CompanionDeviceManager getCompanionDeviceManager() {
-        return (CompanionDeviceManager) reactContext
+    public Object getCompanionDeviceManager() {
+        return reactContext
                 .getCurrentActivity().getSystemService(Context.COMPANION_DEVICE_SERVICE);
     }
 
