@@ -5,6 +5,7 @@ import static android.app.Activity.RESULT_OK;
 import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
 import android.companion.AssociationRequest;
@@ -35,7 +36,7 @@ public class CompanionScanner {
 
     private final BleManager bleManager;
     private final ReactContext reactContext;
-    public static final String LOG_TAG = "CompationScanManager";
+    public static final String LOG_TAG = BleManager.LOG_TAG + "_Companion";
     private static final int SELECT_DEVICE_REQUEST_CODE = 540;
 
     private static Callback scanCallback = null;
@@ -52,17 +53,29 @@ public class CompanionScanner {
                 // Have device?
                 Log.d(LOG_TAG, "Ok activity result");
 
-                ScanResult result = intent.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE);
-                Peripheral peripheral = bleManager.savePeripheral(result.getDevice());
-
-                if (scanCallback != null) {
-                    scanCallback.invoke(null, peripheral.asWritableMap());
+                Object result = intent.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE);
+                if (result != null) {
+                    Peripheral peripheral = null;
+                    if (result instanceof BluetoothDevice) {
+                        peripheral = bleManager.savePeripheral((BluetoothDevice) result);
+                    } else if (result instanceof ScanResult) {
+                        peripheral = bleManager.savePeripheral(((ScanResult) result).getDevice());
+                    }
+                    if (peripheral != null && scanCallback != null) {
+                        scanCallback.invoke(null, peripheral.asWritableMap());
+                        scanCallback = null;
+                    }
+                } else {
+                    scanCallback.invoke(null, null);
+                    scanCallback = null;
                 }
+
             } else {
                 // No device, user cancelled?
                 Log.d(LOG_TAG, "Non-ok activity result");
                 if (scanCallback != null) {
                     scanCallback.invoke(null, null);
+                    scanCallback = null;
                 }
             }
         }
@@ -76,6 +89,11 @@ public class CompanionScanner {
 
     public void scan(ReadableArray serviceUUIDs, ReadableMap options, Callback callback) {
         Log.d(LOG_TAG, "companion scan start");
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            callback.invoke("Companion not supported");
+            return;
+        }
 
         AssociationRequest.Builder builder = new AssociationRequest.Builder()
                 .setSingleDevice(options.hasKey("single") && options.getBoolean("single")) ;

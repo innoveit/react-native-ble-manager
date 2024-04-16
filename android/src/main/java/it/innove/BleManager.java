@@ -44,7 +44,7 @@ import java.util.Set;
 
 class BleManager extends ReactContextBaseJavaModule {
 
-    public static final String LOG_TAG = "ReactNativeBleManager";
+    public static final String LOG_TAG = "RNBleManager";
     private static final int ENABLE_REQUEST = 539;
 
     private static class BondRequest {
