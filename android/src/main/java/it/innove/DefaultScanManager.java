@@ -255,7 +255,13 @@ public class DefaultScanManager extends ScanManager {
         }
     };
 
+    @Override
     public boolean isScanning() {
         return isScanning;
+    }
+
+    @Override
+    public void setScanning(boolean scanning) {
+        isScanning = scanning;
     }
 }

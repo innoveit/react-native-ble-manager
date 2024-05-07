@@ -104,4 +104,9 @@ public class LegacyScanManager extends ScanManager {
     public boolean isScanning() {
         return false;
     }
+
+    @Override
+    public void setScanning(boolean value) {
+
+    }
 }
