@@ -39,4 +39,6 @@ public abstract class ScanManager {
     public abstract void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback);
 
     public abstract boolean isScanning();
+
+    public abstract void setScanning(boolean value);
 }

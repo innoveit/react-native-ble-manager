@@ -563,11 +563,17 @@ class BleManager extends ReactContextBaseJavaModule {
                     break;
                 case BluetoothAdapter.STATE_TURNING_OFF:
                     state = "turning_off";
+                    if (scanManager != null) {
+                        scanManager.setScanning(false);
+                    }
                     break;
                 case BluetoothAdapter.STATE_OFF:
                 default:
                     // should not happen as per https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#getState()
                     state = "off";
+                    if (scanManager != null) {
+                        scanManager.setScanning(false);
+                    }
                     break;
             }
         }
