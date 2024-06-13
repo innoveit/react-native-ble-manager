@@ -28,6 +28,7 @@ import BleManager, {
   BleScanMatchMode,
   BleScanMode,
   Peripheral,
+  PeripheralInfo,
 } from 'react-native-ble-manager';
 
 const SECONDS_TO_SCAN_FOR = 3;
@@ -177,7 +178,7 @@ const ScanDevicesScreen = () => {
       }
 
       console.debug(
-        '[retrieveConnected] connectedPeripherals',
+        '[retrieveConnected]', connectedPeripherals.length, 'connectedPeripherals',
         connectedPeripherals,
       );
 
@@ -198,6 +199,32 @@ const ScanDevicesScreen = () => {
       );
     }
   };
+
+  const retrieveServices = async () => {
+    const peripheralInfos: PeripheralInfo[] = [];
+    for (let [peripheralId, peripheral] of peripherals) {
+      if (peripheral.connected) {
+        const newPeripheralInfo = await BleManager.retrieveServices(peripheralId);
+        peripheralInfos.push(newPeripheralInfo);
+      }
+    }
+    return peripheralInfos;
+  };
+
+  const readCharacteristics = async () => {
+    let services = await retrieveServices();
+
+    for (let peripheralInfo of services) {
+      peripheralInfo.characteristics?.forEach(async c => {
+        try {
+          const value = await BleManager.read(peripheralInfo.id, c.service, c.characteristic);
+          console.log("[readCharacteristics]", "peripheralId", peripheralInfo.id, "service", c.service, "char", c.characteristic, "\n\tvalue", value);
+        } catch (error) {
+          console.error("[readCharacteristics]", "Error reading characteristic", error);
+        }
+      });
+    }
+  }
 
   const getAssociatedPeripherals = async () => {
     try {
@@ -439,6 +466,10 @@ const ScanDevicesScreen = () => {
             <Text style={styles.scanButtonText} lineBreakMode='middle'>
               {'Retrieve connected peripherals'}
             </Text>
+          </Pressable>
+
+          <Pressable style={styles.scanButton} onPress={readCharacteristics}>
+            <Text style={styles.scanButtonText}>Read characteristics</Text>
           </Pressable>
         </View>
 
