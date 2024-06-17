@@ -165,13 +165,13 @@ class Helper {
     
     static func key(forPeripheral peripheral: CBPeripheral,
                     andCharacteristic characteristic: CBCharacteristic) -> String {
-        return "\(String(describing: peripheral.uuidAsString))|\(characteristic.uuid)"
+        return "\(String(describing: peripheral.uuidAsString()))|\(characteristic.uuid)"
     }
     
     static func key(forPeripheral peripheral: CBPeripheral,
                     andCharacteristic characteristic: CBCharacteristic,
                     andDescriptor descriptor: CBDescriptor) -> String {
-        return "\(String(describing: peripheral.uuidAsString))|\(characteristic.uuid)|\(descriptor.uuid)"
+        return "\(String(describing: peripheral.uuidAsString()))|\(characteristic.uuid)|\(descriptor.uuid)"
     }
     
     static func findDescriptor(fromUUID UUID: CBUUID, characteristic: CBCharacteristic) -> CBDescriptor? {
