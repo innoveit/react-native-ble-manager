@@ -332,11 +332,11 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                 } else {
                     let error = "Could not find peripheral \(peripheralUUID)."
                     NSLog(error)
-                    callback([error, NSNull()])
+                    callback([error.localizedDescription, NSNull()])
                 }
             } else {
                 let error = "Wrong UUID format \(peripheralUUID)"
-                callback([error, NSNull()])
+                callback([error.localizedDescription, NSNull()])
             }
         }
     }
@@ -1025,7 +1025,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         
         if let error = error {
             NSLog("Error reading descriptor value for \(descriptor.uuid) on characteristic \(descriptor.characteristic!.uuid) :\(error)")
-            invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [error, NSNull()])
+            invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [error.localizedDescription, NSNull()])
             return
         }
         
@@ -1073,7 +1073,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         
         if let error = error {
             NSLog("Error \(characteristic.uuid) :\(error)")
-            invokeAndClearDictionary(&readCallbacks, withKey: key, usingParameters: [error, NSNull()])
+            invokeAndClearDictionary(&readCallbacks, withKey: key, usingParameters: [error.localizedDescription, NSNull()])
             return
         }
         
