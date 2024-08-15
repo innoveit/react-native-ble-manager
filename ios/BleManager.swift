@@ -332,11 +332,11 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                 } else {
                     let error = "Could not find peripheral \(peripheralUUID)."
                     NSLog(error)
-                    callback([error.localizedDescription, NSNull()])
+                    callback([error, NSNull()])
                 }
             } else {
                 let error = "Wrong UUID format \(peripheralUUID)"
-                callback([error.localizedDescription, NSNull()])
+                callback([error, NSNull()])
             }
         }
     }
