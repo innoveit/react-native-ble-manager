@@ -684,8 +684,8 @@ Rejects if no association is found.
 
 Start the bonding (pairing) process with the remote device. If you pass peripheralPin(optional), bonding will be auto(without manual entering pin)
 Returns a `Promise` object that will resolves if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
-
-**Examples**
+> In Android, Ensure to make one bond request at a time.
+**Examples***
 
 ```js
 BleManager.createBond(peripheralId)
