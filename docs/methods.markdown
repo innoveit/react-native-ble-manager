@@ -644,6 +644,8 @@ BleManager.refreshCache("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 Return the connected peripherals.
 Returns a `Promise` object.
+> In Android, Peripherals "advertising" property can be not set!
+> Will be available if peripheral was found through scan before connect. This matches to current Android Bluetooth design specification.
 
 **Arguments**
 
