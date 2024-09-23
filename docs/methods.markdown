@@ -644,6 +644,8 @@ BleManager.refreshCache("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 Return the connected peripherals.
 Returns a `Promise` object.
+> In Android, Peripherals "advertising" property can be not set!
+> Will be available if peripheral was found through scan before connect. This matches to current Android Bluetooth design specification.
 
 **Arguments**
 
@@ -682,8 +684,8 @@ Rejects if no association is found.
 
 Start the bonding (pairing) process with the remote device. If you pass peripheralPin(optional), bonding will be auto(without manual entering pin)
 Returns a `Promise` object that will resolves if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
-
-**Examples**
+> In Android, Ensure to make one bond request at a time.
+**Examples***
 
 ```js
 BleManager.createBond(peripheralId)
