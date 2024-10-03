@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      # Prefix all commit messages with "npm: "
+      prefix: "npm"
+  - package-ecosystem: "npm"
+    directory: "/example"
+    schedule:
+      interval: "monthly"
+    labels: [ ]
+    ignore:
+      - dependency-name: "*"
+  - package-ecosystem: "bundler"
+    directory: "/docs"
+    schedule:
+      interval: "monthly"
+    labels: [ ]
+    ignore:
+      - dependency-name: "*"
