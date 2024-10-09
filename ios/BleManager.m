@@ -1,5 +1,4 @@
-#import "React/RCTBridgeModule.h"
-#import "React/RCTEventDispatcher.h"
+#import BleManager.h
 
 @interface RCT_EXTERN_MODULE(BleManager, NSObject)
 
@@ -106,9 +105,6 @@ RCT_EXTERN_METHOD(getMaximumWriteValueLengthForWithoutResponse:
 RCT_EXTERN_METHOD(getMaximumWriteValueLengthForWithResponse:
                   (NSString *)deviceUUID
                   callback:(nonnull RCTResponseSenderBlock)callback)
-
-// Not supported
-
 
 RCT_EXTERN_METHOD(enableBluetooth:(nonnull RCTResponseSenderBlock)callback)
 

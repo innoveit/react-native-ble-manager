@@ -15,8 +15,13 @@ import {
 } from "./types";
 export * from "./types";
 
+// @ts-ignore
+const isTurboModuleEnabled = global?.__turboModuleProxy != null;
+if (isTurboModuleEnabled){
+  console.info('Ble manager is using Turbo');
+}
+let bleManager= (isTurboModuleEnabled) ? require("./NativeBleManager").default : NativeModules.BleManager;
 
-let bleManager=require("./NativeBleManager").default
 class BleManager extends NativeEventEmitter {
   constructor() {
     super(bleManager);

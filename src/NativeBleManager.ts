@@ -1,14 +1,15 @@
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import { TurboModuleRegistry } from 'react-native';
+import {UnsafeObject} from "react-native/Libraries/Types/CodegenTypes";
 
 export interface Spec extends TurboModule {
-    start(options: Record<string, any>, callback: (response: any) => void): void;
+    start(options: UnsafeObject, callback: (response: any) => void): void;
 
     scan(
         serviceUUIDStrings: string[],
         timeoutSeconds: number,
         allowDuplicates: boolean,
-        scanningOptions: Record<string, any>,
+        scanningOptions: UnsafeObject,
         callback: (response: any) => void
     ): void;
 
@@ -16,7 +17,7 @@ export interface Spec extends TurboModule {
 
     connect(
         peripheralUUID: string,
-        options: Record<string, any>,
+        options: UnsafeObject,
         callback: (response: any) => void
     ): void;
 
