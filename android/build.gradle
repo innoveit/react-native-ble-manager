@@ -24,7 +24,7 @@ android {
 	if (agpVersion.tokenize('.')[0].toInteger() >= 7) {
 	  namespace "it.innove"
 	}
-	
+
 	compileSdk safeExtGet("compileSdk", 34)
 
 	compileOptions {
@@ -54,6 +54,14 @@ repositories {
 
 
 dependencies {
-	implementation "com.facebook.react:react-native:+"
+	implementation "com.facebook.react:react-native:"
 //	implementation "org.jetbrains.trove4j: trove4j: 20160824"
 }
+
+ if (isNewArchitectureEnabled()) {
+     react {
+         jsRootDir = file("../src/")
+         libraryName = "blemanager"
+         codegenJavaPackageName = "it.innove.BleManager"
+     }
+ }

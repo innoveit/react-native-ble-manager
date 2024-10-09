@@ -1,4 +1,3 @@
-#import <Foundation/Foundation.h>
 #import "React/RCTBridgeModule.h"
 #import "React/RCTEventDispatcher.h"
 
@@ -23,7 +22,7 @@ RCT_EXTERN_METHOD(connect:
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
 RCT_EXTERN_METHOD(disconnect:
-                  (NSString *)peripheralUUID 
+                  (NSString *)peripheralUUID
                   force:(BOOL)force
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
@@ -109,7 +108,7 @@ RCT_EXTERN_METHOD(getMaximumWriteValueLengthForWithResponse:
                   callback:(nonnull RCTResponseSenderBlock)callback)
 
 // Not supported
-                  
+
 
 RCT_EXTERN_METHOD(enableBluetooth:(nonnull RCTResponseSenderBlock)callback)
 

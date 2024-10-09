@@ -13,11 +13,10 @@ import {
   ScanOptions,
   StartOptions,
 } from "./types";
-
 export * from "./types";
 
-let bleManager = NativeModules.BleManager;
 
+let bleManager=require("./NativeBleManager").default
 class BleManager extends NativeEventEmitter {
   constructor() {
     super(bleManager);

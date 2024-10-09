@@ -6,6 +6,7 @@ import PeripheralDetailsScreen from './components/PeripheralDetailsScreen';
 
 const Stack = createNativeStackNavigator();
 
+
 const App = () => {
   return (
     <NavigationContainer>
