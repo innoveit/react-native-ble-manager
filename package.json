@@ -53,15 +53,7 @@
   "devDependencies": {
     "react-native": "0.73.6",
     "rimraf": "4.1.2",
-    "typescript": "4.9.5"
-  },
-  "codegenConfig": {
-    "libraries": [
-      {
-        "name": "RNBleManagerSpec",
-        "type": "modules",
-        "jsSrcsDir": "src"
-      }
-    ]
+    "typescript": "4.9.5",
+    "@react-native-community/cli": "15.0.0"
   }
 }

@@ -1,6 +1,5 @@
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import { TurboModuleRegistry } from 'react-native';
-import {BleState, ConnectOptions, Peripheral, PeripheralInfo, ScanOptions, StartOptions} from "./types";
 
 /**
  * This represents the Turbo Module version of react-native-ble-manager.
@@ -10,35 +9,34 @@ import {BleState, ConnectOptions, Peripheral, PeripheralInfo, ScanOptions, Start
  *  - Knowing that also every type needs to match the current Objective C++ and Java callbacks types and callbacks type definitions and be aware of the current differences between implementation in both platforms.
  */
 export interface Spec extends TurboModule {
-    start(options: StartOptions, callback: (error: string|null) => void): void;
+    start(options: StartOptions, callback: (error: CallbackError) => void): void;
 
     scan(
         serviceUUIDStrings: string[],
         timeoutSeconds: number,
         allowDuplicates: boolean,
         scanningOptions: ScanOptions,
-        callback: (error: string|null) => void
+        callback: (error: CallbackError) => void
     ): void;
 
-
-    stopScan(callback: (error: string|null) => void): void;
+    stopScan(callback: (error: CallbackError) => void): void;
 
     connect(
         peripheralUUID: string,
         options: ConnectOptions,
-        callback: (error: string|null) => void
+        callback: (error: CallbackError) => void
     ): void;
 
     disconnect(
         peripheralUUID: string,
         force: boolean,
-        callback: (error: string|null) => void
+        callback: (error: CallbackError) => void
     ): void;
 
     retrieveServices(
         peripheralUUID: string,
         services: string[],
-        callback: (error: string|null, peripheral: PeripheralInfo) => void
+        callback: (error: CallbackError, peripheral: PeripheralInfo) => void
     ): void;
 
     readRSSI(
@@ -186,3 +184,131 @@ export interface Spec extends TurboModule {
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec | null;
+
+
+/** Turbo Module Type Definitions */
+// These types are more loose than types.ts for simplicity and for codegen support.
+// No interfaces or generics are currently supported.
+export type BleScanCallbackType = number;
+export type BleScanMatchCount = number;
+export type BleScanMatchMode = number;
+export type BleScanMode = number;
+export type BleScanPhyMode = number;
+export type CallbackError = string | null;
+export type BleState = string;
+
+export type StartOptions = {
+    showAlert: boolean;
+    restoreIdentifierKey: null | string;
+    queueIdentifierKey: null | string;
+    forceLegacy: null | boolean;
+};
+
+export type ConnectOptions = {
+    autoconnect: null | boolean;
+    phy: null | number;
+};
+
+export type Peripheral = {
+    id: string;
+    rssi: number;
+    name: null | string;
+    advertising: {
+        isConnectable: null | boolean;
+        localName: null | string;
+        rawData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        };
+        manufacturerData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        }[];
+        manufacturerRawData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        };
+        serviceData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        }[];
+        serviceUUIDs: null | string[];
+        txPowerLevel: null | number;
+    };
+};
+
+export type PeripheralInfo = {
+    id: string;
+    rssi: number;
+    name: null | string;
+    advertising: {
+        isConnectable: null | boolean;
+        localName: null | string;
+        rawData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        };
+        manufacturerData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        }[];
+        manufacturerRawData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        };
+        serviceData: null | {
+            CDVType: number[];
+            bytes: number[];
+            data: string;
+        }[];
+        serviceUUIDs: null | string[];
+        txPowerLevel: null | number;
+    };
+    serviceUUIDs: null | string[];
+    characteristics: null | {
+        properties: {
+            Broadcast: null | string;
+            Read: null | string;
+            WriteWithoutResponse: null | string;
+            Write: null | string;
+            Notify: null | string;
+            Indicate: null | string;
+            AuthenticatedSignedWrites: null | string;
+            ExtendedProperties: null | string;
+            NotifyEncryptionRequired: null | string;
+            IndicateEncryptionRequired: null | string;
+        };
+        characteristic: string;
+        service: string;
+        descriptors: null | {
+            value: string;
+            uuid: string;
+        }[];
+    }[];
+    services: null | { uuid: string; }[];
+};
+
+export type ScanOptions = {
+    numberOfMatches: null | number;
+    matchMode: null | number;
+    callbackType: null | number;
+    scanMode: null | number;
+    reportDelay: null | number;
+    phy: null | number;
+    legacy: null | boolean;
+    exactAdvertisingName: null | string | string[];
+    manufacturerData: null | {
+        manufacturerId: number;
+        manufacturerData: null | number[];
+        manufacturerDataMask: null | number[];
+    };
+    single: null | boolean;
+    companion: null | boolean;
+};
