@@ -2,6 +2,13 @@ import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import { TurboModuleRegistry } from 'react-native';
 import {BleState, ConnectOptions, Peripheral, PeripheralInfo, ScanOptions, StartOptions} from "./types";
 
+/**
+ * This represents the Turbo Module version of react-native-ble-manager.
+ * This adds the codegen definition to react-native generate the c++ bindings on compile time.
+ * That should work only on 0.75 and higher.
+ * Don't remove it! and please modify with caution! Knowing that can create wrong bindings into jsi and break at compile or execution time.
+ *  - Knowing that also every type needs to match the current Objective C++ and Java callbacks types and callbacks type definitions and be aware of the current differences between implementation in both platforms.
+ */
 export interface Spec extends TurboModule {
     start(options: StartOptions, callback: (error: string|null) => void): void;
 
