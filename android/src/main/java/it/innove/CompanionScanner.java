@@ -49,37 +49,36 @@ public class CompanionScanner {
                 super.onActivityResult(activity, requestCode, resultCode, intent);
                 return;
             }
+
+            // The user either selected a device or cancelled the activity and we're
+            // either going to pass a peripheral or null back to the scanCallback.
+            Peripheral peripheral = null;
+
             if (resultCode == RESULT_OK) {
                 // Have device?
                 Log.d(LOG_TAG, "Ok activity result");
 
                 Object result = intent.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE);
                 if (result != null) {
-                    Peripheral peripheral = null;
                     if (result instanceof BluetoothDevice) {
                         peripheral = bleManager.savePeripheral((BluetoothDevice) result);
                     } else if (result instanceof ScanResult) {
                         peripheral = bleManager.savePeripheral(((ScanResult) result).getDevice());
+                    } else {
+                        Log.wtf(LOG_TAG, "Unexpected AssociationInfo device!");
                     }
-                    if (peripheral != null && scanCallback != null) {
-                        scanCallback.invoke(null, peripheral.asWritableMap());
-                        scanCallback = null;
-                        bleManager.sendEvent("BleManagerCompanionPeripheral", peripheral.asWritableMap());
-                    }
-                } else {
-                    scanCallback.invoke(null, null);
-                    scanCallback = null;
-                    bleManager.sendEvent("BleManagerCompanionPeripheral", null);
                 }
-
             } else {
                 // No device, user cancelled?
                 Log.d(LOG_TAG, "Non-ok activity result");
-                if (scanCallback != null) {
-                    scanCallback.invoke(null, null);
-                    scanCallback = null;
-                }
             }
+
+
+            if (scanCallback != null) {
+                scanCallback.invoke(null, peripheral != null ? peripheral.asWritableMap() : null);
+                scanCallback = null;
+            }
+            bleManager.sendEvent("BleManagerCompanionPeripheral", peripheral != null ? peripheral.asWritableMap() : null);
         }
     };
 
@@ -122,8 +121,18 @@ public class CompanionScanner {
             @Override
             public void onFailure(@Nullable CharSequence charSequence) {
                 Log.d(LOG_TAG, "companion failure: " + charSequence);
-                scanCallback.invoke("Companion association failed: " + charSequence.toString());
-                scanCallback = null;
+                String msg = charSequence != null
+                    ? "Companion association failed: " + charSequence.toString()
+                    : "Companion association failed" ;
+
+                // onFailure might be called after user cancels the assocation
+                // activity / dialog, and we've already called the callback
+                // with a null value.
+                if (scanCallback != null) {
+                    scanCallback.invoke(msg);
+                    scanCallback = null;
+                }
+
                 WritableMap map = Arguments.createMap();
                 map.putString("error", charSequence.toString());
                 bleManager.sendEvent("BleManagerCompanionFailure", map);
@@ -139,8 +148,15 @@ public class CompanionScanner {
                 } catch (IntentSender.SendIntentException e) {
                     Log.e(LOG_TAG, "Failed to send intent: " + e.toString());
                     String msg = "Failed to send intent: " + e.toString();
-                    scanCallback.invoke(msg, null);
-                    scanCallback = null;
+
+                    if (scanCallback != null) {
+                        scanCallback.invoke(msg);
+                        scanCallback = null;
+                    }
+
+                    WritableMap map = Arguments.createMap();
+                    map.putString("error", msg);
+                    bleManager.sendEvent("BleManagerCompanionFailure", map);
                 }
             }
         }, null);
