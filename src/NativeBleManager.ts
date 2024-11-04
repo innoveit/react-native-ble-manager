@@ -1,5 +1,6 @@
 import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
 import { TurboModuleRegistry } from 'react-native';
+import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes';
 
 /**
  * This represents the Turbo Module version of react-native-ble-manager.
@@ -181,6 +182,8 @@ export interface Spec extends TurboModule {
         serviceUUIDs: string[],
         callback: (error: string | null, peripheral: Peripheral | null) => void
     ): void;
+
+    readonly onValueChanged: EventEmitter<number>
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec | null;
