@@ -1,74 +1,132 @@
 buildscript {
-	// The Android Gradle plugin is only required when opening the android folder stand-alone.
-	// This avoids unnecessary downloads and potential conflicts when the library is included as a
-	// module dependency in an application project.
-	if (project == rootProject) {
-		repositories {
-			google()
-			jcenter()
-		}
 
-		dependencies {
-			classpath("com.android.tools.build:gradle:7.3.1")
-		}
-	}
+    if (project == rootProject) {
+        def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["kotlinVersion"]
+
+        repositories {
+            google()
+            mavenCentral()
+        }
+
+        dependencies {
+            classpath "com.android.tools.build:gradle:7.2.1"
+            // noinspection DifferentKotlinGradleVersion
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        }
+    }
+
+}
+
+def reactNativeArchitectures() {
+    def value = rootProject.getProperties().get("reactNativeArchitectures")
+    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
 def isNewArchitectureEnabled() {
-    return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+    return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
 }
+
 apply plugin: 'com.android.library'
+apply plugin: "kotlin-android"
+
 if (isNewArchitectureEnabled()) {
     apply plugin: 'com.facebook.react'
 }
 
 def safeExtGet(prop, fallback) {
-	rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
+def getExtOrDefault(name) {
+    return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["BleManager_" + name]
+}
+
+static def supportsNamespace() {
+    def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+    def major = parsed[0].toInteger()
+    def minor = parsed[1].toInteger()
+
+    // Namespace support was added in 7.3.0
+    return (major == 7 && minor >= 3) || major >= 8
 }
 
 android {
-	def agpVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
-	if (agpVersion.tokenize('.')[0].toInteger() >= 7) {
-	  namespace "it.innove"
-	}
+    if (supportsNamespace()) {
+        namespace "it.innove"
 
-	compileSdk safeExtGet("compileSdk", 34)
+        sourceSets {
+            main {
+                manifest.srcFile "src/main/AndroidManifestNew.xml"
+            }
+        }
+    }
 
-	compileOptions {
-		sourceCompatibility JavaVersion.VERSION_1_9
-		targetCompatibility JavaVersion.VERSION_1_9
-	}
+    compileSdk safeExtGet("compileSdk", 34)
 
-	defaultConfig {
-		minSdkVersion safeExtGet("minSdkVersion", 21)
-		targetSdk safeExtGet("targetSdk", 34)
-	}
-	lintOptions {
-		abortOnError false
-	}
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_9
+        targetCompatibility JavaVersion.VERSION_1_9
+    }
+
+    defaultConfig {
+        minSdkVersion safeExtGet("minSdkVersion", 21)
+        targetSdk safeExtGet("targetSdk", 34)
+        buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    lintOptions {
+        disable "GradleCompatible"
+    }
+
+    // To support legacy module in the future
+    /*
+    sourceSets {
+        main {
+            if (isNewArchitectureEnabled()) {
+                java.srcDirs += [
+                        "src/newarch",
+                        // Codegen specs
+                        "generated/java",
+                        "generated/jni"
+                ]
+            } else {
+                java.srcDirs += ["src/oldarch"]
+            }
+        }
+    }
+    */
 }
+
 
 repositories {
-	mavenCentral()
-	google()
-	jcenter()
-	maven {
-		// All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-		//url "$rootDir/../node_modules/react-native/android"
-		url "$rootDir/../example/node_modules/react-native/android"
-	}
+    mavenCentral()
+    google()
 }
 
+def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-	implementation "com.facebook.react:react-native:"
-//	implementation "org.jetbrains.trove4j: trove4j: 20160824"
+    // For < 0.71, this will be from the local maven repo
+    // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
+    //noinspection GradleDynamicVersion
+    implementation "com.facebook.react:react-native:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
- if (isNewArchitectureEnabled()) {
-     react {
-         jsRootDir = file("../src/")
-         libraryName = "blemanager"
-         codegenJavaPackageName = "it.innove.BleManager"
-     }
- }
+if (isNewArchitectureEnabled()) {
+    react {
+        jsRootDir = file("../src/")
+        libraryName = "BleManager"
+        codegenJavaPackageName = "it.innove"
+    }
+}
