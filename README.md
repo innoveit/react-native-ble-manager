@@ -69,3 +69,9 @@ npm run build
 ```
 
 > if you are modifying the typescript files of the library (in `src/`) on the fly, you can run `npm run watch` instead. If you are modifying files from the native counterparts, you'll need to rebuild the whole app for your target environnement (`npm run android/ios`).
+
+
+## Generate Android code from specs
+- in the example folder generate the android project from expo: `npx expo prebuild --platform android`
+- in the example/android folder run: `./gradlew generateCodegenArtifactsFromSchema` (you can add --info to have debug messages)
+- if you have problems with the gradle cache `cd android && ./gradlew --stop && rm -rf ~/.gradle/caches`

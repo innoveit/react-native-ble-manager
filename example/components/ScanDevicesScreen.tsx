@@ -86,7 +86,7 @@ const ScanDevicesScreen = () => {
     try {
       console.debug('[startCompanionScan] starting companion scan...');
       BleManager.companionScan(SERVICE_UUIDS, { single: false })
-        .then((peripheral: Peripheral|null) => {
+        .then((peripheral: Peripheral | null) => {
           console.debug('[startCompanionScan] scan promise returned successfully.', peripheral);
           if (peripheral != null) {
             setPeripherals(map => {
@@ -110,7 +110,7 @@ const ScanDevicesScreen = () => {
       console.error('[enableBluetooth] thrown', error);
     }
   }
-  
+
   const handleStopScan = () => {
     setIsScanning(false);
     console.debug('[handleStopScan] scan is stopped.');
@@ -495,7 +495,7 @@ const ScanDevicesScreen = () => {
                   <Text style={styles.scanButtonText}>
                     {'Enable Bluetooh'}
                   </Text>
-                </Pressable>                
+                </Pressable>
               </View>
             </>
           )}
