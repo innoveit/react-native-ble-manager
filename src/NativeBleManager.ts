@@ -1,6 +1,4 @@
-import type { TurboModule } from 'react-native/Libraries/TurboModule/RCTExport';
-import { TurboModuleRegistry } from 'react-native';
-import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes';
+import { TurboModule, TurboModuleRegistry } from 'react-native';
 
 /**
  * This represents the Turbo Module version of react-native-ble-manager.
@@ -10,7 +8,10 @@ import type {EventEmitter} from 'react-native/Libraries/Types/CodegenTypes';
  *  - Knowing that also every type needs to match the current Objective C++ and Java callbacks types and callbacks type definitions and be aware of the current differences between implementation in both platforms.
  */
 export interface Spec extends TurboModule {
-    start(options: StartOptions, callback: (error: CallbackError) => void): void;
+    start(
+        options: StartOptions,
+        callback: (error: CallbackError) => void
+    ): void;
 
     scan(
         serviceUUIDStrings: string[],
@@ -62,7 +63,9 @@ export interface Spec extends TurboModule {
         callback: (error: string | null) => void
     ): void;
 
-    getDiscoveredPeripherals(callback: (error: string | null, result: Peripheral[] | null) => void): void;
+    getDiscoveredPeripherals(
+        callback: (error: string | null, result: Peripheral[] | null) => void
+    ): void;
 
     checkState(callback: (state: BleState) => void): void;
 
@@ -130,7 +133,9 @@ export interface Spec extends TurboModule {
 
     enableBluetooth(callback: (error: string | null) => void): void;
 
-    getBondedPeripherals(callback: (error: string | null, result: Peripheral[] | null) => void): void;
+    getBondedPeripherals(
+        callback: (error: string | null, result: Peripheral[] | null) => void
+    ): void;
 
     createBond(
         peripheralUUID: string,
@@ -165,11 +170,14 @@ export interface Spec extends TurboModule {
         callback: (error: string | null, result: boolean) => void
     ): void;
 
-    setName(
-        name: string
-    ): void;
+    setName(name: string): void;
 
-    getAssociatedPeripherals(callback: (error: string | null, peripherals: Peripheral[] | null) => void): void;
+    getAssociatedPeripherals(
+        callback: (
+            error: string | null,
+            peripherals: Peripheral[] | null
+        ) => void
+    ): void;
 
     removeAssociatedPeripheral(
         peripheralUUID: string,
@@ -180,14 +188,16 @@ export interface Spec extends TurboModule {
 
     companionScan(
         serviceUUIDs: string[],
+        option: CompanionScanOptions,
         callback: (error: string | null, peripheral: Peripheral | null) => void
     ): void;
 
-    readonly onValueChanged: EventEmitter<number>
+    addListener(eventName: string): void;
+
+    removeListeners(count: number): void;
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec | null;
-
 
 /** Turbo Module Type Definitions */
 // These types are more loose than types.ts for simplicity and for codegen support.
@@ -212,6 +222,10 @@ export type ConnectOptions = {
     phy: null | number;
 };
 
+export type CompanionScanOptions = {
+    single: null | boolean;
+};
+
 export type Peripheral = {
     id: string;
     rssi: number;
@@ -224,21 +238,25 @@ export type Peripheral = {
             bytes: number[];
             data: string;
         };
-        manufacturerData: null | {
-            CDVType: number[];
-            bytes: number[];
-            data: string;
-        }[];
+        manufacturerData:
+            | null
+            | {
+                  CDVType: number[];
+                  bytes: number[];
+                  data: string;
+              }[];
         manufacturerRawData: null | {
             CDVType: number[];
             bytes: number[];
             data: string;
         };
-        serviceData: null | {
-            CDVType: number[];
-            bytes: number[];
-            data: string;
-        }[];
+        serviceData:
+            | null
+            | {
+                  CDVType: number[];
+                  bytes: number[];
+                  data: string;
+              }[];
         serviceUUIDs: null | string[];
         txPowerLevel: null | number;
     };
@@ -256,46 +274,54 @@ export type PeripheralInfo = {
             bytes: number[];
             data: string;
         };
-        manufacturerData: null | {
-            CDVType: number[];
-            bytes: number[];
-            data: string;
-        }[];
+        manufacturerData:
+            | null
+            | {
+                  CDVType: number[];
+                  bytes: number[];
+                  data: string;
+              }[];
         manufacturerRawData: null | {
             CDVType: number[];
             bytes: number[];
             data: string;
         };
-        serviceData: null | {
-            CDVType: number[];
-            bytes: number[];
-            data: string;
-        }[];
+        serviceData:
+            | null
+            | {
+                  CDVType: number[];
+                  bytes: number[];
+                  data: string;
+              }[];
         serviceUUIDs: null | string[];
         txPowerLevel: null | number;
     };
     serviceUUIDs: null | string[];
-    characteristics: null | {
-        properties: {
-            Broadcast: null | string;
-            Read: null | string;
-            WriteWithoutResponse: null | string;
-            Write: null | string;
-            Notify: null | string;
-            Indicate: null | string;
-            AuthenticatedSignedWrites: null | string;
-            ExtendedProperties: null | string;
-            NotifyEncryptionRequired: null | string;
-            IndicateEncryptionRequired: null | string;
-        };
-        characteristic: string;
-        service: string;
-        descriptors: null | {
-            value: string;
-            uuid: string;
-        }[];
-    }[];
-    services: null | { uuid: string; }[];
+    characteristics:
+        | null
+        | {
+              properties: {
+                  Broadcast: null | string;
+                  Read: null | string;
+                  WriteWithoutResponse: null | string;
+                  Write: null | string;
+                  Notify: null | string;
+                  Indicate: null | string;
+                  AuthenticatedSignedWrites: null | string;
+                  ExtendedProperties: null | string;
+                  NotifyEncryptionRequired: null | string;
+                  IndicateEncryptionRequired: null | string;
+              };
+              characteristic: string;
+              service: string;
+              descriptors:
+                  | null
+                  | {
+                        value: string;
+                        uuid: string;
+                    }[];
+          }[];
+    services: null | { uuid: string }[];
 };
 
 export type ScanOptions = {
