@@ -1,127 +1,110 @@
 {
-  "name": "react-native-ble-manager",
-  "version": "11.5.6",
-  "description": "A BLE module for react native.",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/innoveit/react-native-ble-manager.git"
-  },
-  "bugs": {
-    "url": "https://github.com/innoveit/react-native-ble-manager/issues"
-  },
-  "keywords": [
-    "react-native",
-    "android",
-    "ios",
-    "ble",
-    "bluetooth",
-    "low energy"
-  ],
-  "license": "Apache-2.0",
-  "author": {
-    "name": "Innove",
-    "url": "https://github.com/innoveit"
-  },
-  "main": "dist/cjs/index.js",
-  "types": "dist/esm/index.d.ts",
-  "module": "dist/esm/index.js",
-  "react-native": "src/index.ts",
-  "files": [
-    "/dist",
-    "/src",
-    "/android",
-    "/ios",
-    "*.podspec",
-    "react-native.config.json",
-    "!ios/build",
-    "!android/build",
-    "!android/gradle",
-    "!android/gradlew",
-    "!android/gradlew.bat",
-    "!android/local.properties",
-    "!**/__tests__",
-    "!**/__fixtures__",
-    "!**/__mocks__",
-    "!**/.*"
-  ],
-  "scripts": {
-    "version": "git add -A",
-    "clean": "rimraf dist",
-    "type:check": "tsc -p tsconfig.json --noEmit",
-    "prepare": "npm run build",
-    "prebuild": "npm run clean",
-    "build:cjs": "tsc --module commonjs --outDir dist/cjs",
-    "build:esm": "tsc --outDir dist/esm",
-    "build": "npm run build:esm && npm run build:cjs",
-    "watch": "npm run build --watch",
-    "preversion": "npm run build",
-    "postversion": "git push --follow-tags"
-  },
-  "resolutions": {
-    "@types/react": "^18.2.44"
-  },
-  "peerDependencies": {
-    "react": "*",
-    "react-native": "*"    
-  },
-  "devDependencies": {
-    "@commitlint/config-conventional": "^17.0.2",    
-    "@react-native/eslint-config": "^0.73.1",
-    "@release-it/conventional-changelog": "^5.0.0",
-    "@types/jest": "^29.5.5",
-    "@types/react": "^18.2.44",
-    "commitlint": "^17.0.2",
-    "del-cli": "^5.1.0",
-    "eslint": "^8.51.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.1",
-    "jest": "^29.7.0",
-    "prettier": "^3.0.3",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
-    "@react-native/gradle-plugin": "^0.75.1",
-    "turbo": "^1.10.7",
-    "typescript": "^5.2.2",
-    "metro": "~0.80.8",
-    "@expo/metro-config": "0.18.11"
-  },
-  "eslintConfig": {
-    "root": true,
-    "extends": [
-      "@react-native",
-      "prettier"
+    "name": "react-native-ble-manager",
+    "version": "11.5.6",
+    "description": "A BLE module for react native.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/innoveit/react-native-ble-manager.git"
+    },
+    "bugs": {
+        "url": "https://github.com/innoveit/react-native-ble-manager/issues"
+    },
+    "keywords": [
+        "react-native",
+        "android",
+        "ios",
+        "ble",
+        "bluetooth",
+        "low energy"
     ],
-    "rules": {
-      "react/react-in-jsx-scope": "off",
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 4,
-          "trailingComma": "es5",
-          "useTabs": false
+    "license": "Apache-2.0",
+    "author": {
+        "name": "Innove",
+        "url": "https://github.com/innoveit"
+    },
+    "main": "dist/cjs/index.js",
+    "types": "dist/esm/index.d.ts",
+    "module": "dist/esm/index.js",
+    "react-native": "src/index.ts",
+    "files": [
+        "/dist",
+        "/src",
+        "/android",
+        "/ios",
+        "*.podspec",
+        "react-native.config.json",
+        "!ios/build",
+        "!android/build",
+        "!android/gradle",
+        "!android/gradlew",
+        "!android/gradlew.bat",
+        "!android/local.properties",
+        "!**/__tests__",
+        "!**/__fixtures__",
+        "!**/__mocks__",
+        "!**/.*"
+    ],
+    "scripts": {
+        "version": "git add -A",
+        "clean": "rimraf dist",
+        "type:check": "tsc -p tsconfig.json --noEmit",
+        "prepare": "npm run build",
+        "prebuild": "npm run clean",
+        "build:cjs": "tsc --module commonjs --outDir dist/cjs",
+        "build:esm": "tsc --outDir dist/esm",
+        "build": "npm run build:esm && npm run build:cjs",
+        "watch": "npm run build --watch",
+        "preversion": "npm run build",
+        "postversion": "git push --follow-tags"
+    },
+    "resolutions": {
+        "@types/react": "^18.2.44"
+    },
+    "peerDependencies": {
+        "react": "*",
+        "react-native": "*"
+    },
+    "devDependencies": {
+        "@commitlint/config-conventional": "^17.0.2",
+        "@react-native/eslint-config": "^0.73.1",
+        "@release-it/conventional-changelog": "^5.0.0",
+        "@types/jest": "^29.5.5",
+        "@types/react": "^18.2.44",
+        "commitlint": "^17.0.2",
+        "del-cli": "^5.1.0",
+        "eslint": "^8.51.0",
+        "eslint-config-prettier": "^9.0.0",
+        "eslint-plugin-prettier": "^5.0.1",
+        "jest": "^29.7.0",
+        "prettier": "^3.0.3",
+        "react": "18.2.0",
+        "react-native": "0.74.5",
+        "@react-native/gradle-plugin": "^0.75.1",
+        "turbo": "^1.10.7",
+        "typescript": "^5.2.2",
+        "metro": "~0.80.8",
+        "@expo/metro-config": "0.18.11"
+    },
+    "eslintConfig": {
+        "root": true,
+        "extends": [
+            "@react-native",
+            "prettier"
+        ],
+        "rules": {
+            "react/react-in-jsx-scope": "off"
         }
-      ]
+    },
+    "eslintIgnore": [
+        "node_modules/",
+        "lib/"
+    ],    
+    "codegenConfig": {
+        "name": "BleManagerSpec",
+        "type": "modules",
+        "jsSrcsDir": "src",
+        "android": {
+            "javaPackageName": "it.innove"
+        }
     }
-  },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
-  "prettier": {
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 4,
-    "trailingComma": "es5",
-    "useTabs": false
-  },
-  "codegenConfig": {
-    "name": "BleManagerSpec",
-    "type": "modules",
-    "jsSrcsDir": "src",
-    "android": {
-      "javaPackageName": "it.innove"
-    }
-  }
 }
