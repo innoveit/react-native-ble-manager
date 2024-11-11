@@ -1,18 +1,8 @@
 #import "BleManager.h"
 
-#ifdef RCT_NEW_ARCH_ENABLED
-
 @implementation BleManager
- RCT_EXPORT_MODULE()
- - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-    (const facebook::react::ObjCTurboModule::InitParams &)params
- {
-    return std::make_shared<facebook::react::<RNBleManagerJsi>>(params);
- }
-#endif
 
-#ifndef RCT_NEW_ARCH_ENABLED
-@interface RCT_EXTERN_MODULE(BleManager, NSObject)
+RCT_EXPORT_MODULE()
 
 RCT_EXTERN_METHOD(start:
                   (NSDictionary *)options
@@ -156,5 +146,15 @@ RCT_EXTERN_METHOD(supportsCompanion:(nonnull RCTResponseSenderBlock)callback)
 RCT_EXTERN_METHOD(companionScan:
                   (NSArray *)serviceUUIDs
                   callback:(nonnull RCTResponseSenderBlock)callback)
+
+#ifdef RCT_NEW_ARCH_ENABLED
+
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+(const facebook::react::ObjCTurboModule::InitParams &)params
+{
+return std::make_shared<facebook::react::NativeBleManagerSpecJSI>(params);
+}
+
+#endif
+
 @end
-#endif;
