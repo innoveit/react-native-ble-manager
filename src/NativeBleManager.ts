@@ -191,7 +191,7 @@ export interface Spec extends TurboModule {
   removeListeners(count: number): void;
 }
 
-export default TurboModuleRegistry.get<Spec>('BleManager') as Spec | null;
+export default TurboModuleRegistry.get<Spec>('BleManager') as Spec;
 
 /** Turbo Module Type Definitions */
 // These types are more loose than types.ts for simplicity and for codegen support.
@@ -206,132 +206,128 @@ export type BleState = string;
 
 export type StartOptions = {
   showAlert: boolean;
-  restoreIdentifierKey: null | string;
-  queueIdentifierKey: null | string;
-  forceLegacy: null | boolean;
+  restoreIdentifierKey?: string;
+  queueIdentifierKey?: string;
+  forceLegacy?: boolean;
 };
 
 export type ConnectOptions = {
-  autoconnect: null | boolean;
-  phy: null | number;
+  autoconnect?: boolean;
+  phy?: number;
 };
 
 export type CompanionScanOptions = {
-  single: null | boolean;
+  single?: boolean;
 };
 
 export type Peripheral = {
   id: string;
   rssi: number;
-  name: null | string;
+  name: string | null;
   advertising: {
-    isConnectable: null | boolean;
-    localName: null | string;
-    rawData: null | {
+    isConnectable?: boolean;
+    localName?: string | null;
+    rawData?: {
       CDVType: number[];
       bytes: number[];
       data: string;
     };
-    manufacturerData:
-      | null
+    manufacturerData?:
       | {
           CDVType: number[];
           bytes: number[];
           data: string;
-        }[];
-    manufacturerRawData: null | {
+        }[]
+      | null;
+    manufacturerRawData?: {
       CDVType: number[];
       bytes: number[];
       data: string;
-    };
-    serviceData:
-      | null
+    } | null;
+    serviceData?:
       | {
           CDVType: number[];
           bytes: number[];
           data: string;
-        }[];
-    serviceUUIDs: null | string[];
-    txPowerLevel: null | number;
+        }[]
+      | null;
+    serviceUUIDs?: string[];
+    txPowerLevel?: number;
   };
 };
 
 export type PeripheralInfo = {
   id: string;
   rssi: number;
-  name: null | string;
+  name: string | null;
   advertising: {
-    isConnectable: null | boolean;
-    localName: null | string;
-    rawData: null | {
+    isConnectable?: boolean;
+    localName?: string | null;
+    rawData?: {
       CDVType: number[];
       bytes: number[];
       data: string;
-    };
-    manufacturerData:
-      | null
+    } | null;
+    manufacturerData?:
       | {
           CDVType: number[];
           bytes: number[];
           data: string;
-        }[];
-    manufacturerRawData: null | {
+        }[]
+      | null;
+    manufacturerRawData?: {
       CDVType: number[];
       bytes: number[];
       data: string;
-    };
-    serviceData:
-      | null
+    } | null;
+    serviceData?:
       | {
           CDVType: number[];
           bytes: number[];
           data: string;
-        }[];
-    serviceUUIDs: null | string[];
-    txPowerLevel: null | number;
+        }[]
+      | null;
+    serviceUUIDs?: string[];
+    txPowerLevel?: number;
   };
-  serviceUUIDs: null | string[];
-  characteristics:
-    | null
-    | {
-        properties: {
-          Broadcast: null | string;
-          Read: null | string;
-          WriteWithoutResponse: null | string;
-          Write: null | string;
-          Notify: null | string;
-          Indicate: null | string;
-          AuthenticatedSignedWrites: null | string;
-          ExtendedProperties: null | string;
-          NotifyEncryptionRequired: null | string;
-          IndicateEncryptionRequired: null | string;
-        };
-        characteristic: string;
-        service: string;
-        descriptors:
-          | null
-          | {
-              value: string;
-              uuid: string;
-            }[];
-      }[];
-  services: null | { uuid: string }[];
+  serviceUUIDs?: string[];
+  characteristics?: {
+    properties: {
+      Broadcast?: string;
+      Read?: string;
+      WriteWithoutResponse?: string;
+      Write?: string;
+      Notify?: string;
+      Indicate?: string;
+      AuthenticatedSignedWrites?: string;
+      ExtendedProperties?: string;
+      NotifyEncryptionRequired?: string;
+      IndicateEncryptionRequired?: string;
+    };
+    characteristic: string;
+    service: string;
+    descriptors?: {
+      value: string;
+      uuid: string;
+    }[];
+  }[];
+  services?: { uuid: string }[];
 };
 
 export type ScanOptions = {
-  numberOfMatches: null | number;
-  matchMode: null | number;
-  callbackType: null | number;
-  scanMode: null | number;
-  reportDelay: null | number;
-  phy: null | number;
-  legacy: null | boolean;
-  exactAdvertisingName: null | string | string[];
-  manufacturerData: null | {
+  numberOfMatches?: number;
+  matchMode?: number;
+  callbackType?: number;
+  scanMode?: number;
+  reportDelay?: number;
+  phy?: number;
+  legacy?: boolean;
+  exactAdvertisingName?: string | null;
+  manufacturerData?: {
     manufacturerId: number;
-    manufacturerData: null | number[];
-    manufacturerDataMask: null | number[];
+    manufacturerData?: number[];
+    manufacturerDataMask?: number[];
   };
-  single: null | boolean;
-  companion: null | boolean;
+  single?: boolean;
+  companion?: boolean;
 };
