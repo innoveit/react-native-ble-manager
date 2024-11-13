@@ -1,17 +1,5 @@
 {
   "name": "example",
   "icon": "./icon.png",
-  "plugins": [
-    [
-      "expo-build-properties",
-      {
-        "ios": {
-          "newArchEnabled": true
-        },
-        "android": {
-          "newArchEnabled": true
-        }
-      }
-    ]
-  ]
+  "newArchEnabled": true  
 }
