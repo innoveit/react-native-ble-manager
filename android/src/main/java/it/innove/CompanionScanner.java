@@ -64,12 +64,12 @@ public class CompanionScanner {
                     if (peripheral != null && scanCallback != null) {
                         scanCallback.invoke(null, peripheral.asWritableMap());
                         scanCallback = null;
-                        bleManager.sendEvent("BleManagerCompanionPeripheral", peripheral.asWritableMap());
+                        bleManager.emitOnCompanionPeripheral(peripheral.asWritableMap());
                     }
                 } else {
                     scanCallback.invoke(null, null);
                     scanCallback = null;
-                    bleManager.sendEvent("BleManagerCompanionPeripheral", null);
+                    bleManager.emitOnCompanionPeripheral(null);
                 }
 
             } else {
@@ -126,7 +126,7 @@ public class CompanionScanner {
                 scanCallback = null;
                 WritableMap map = Arguments.createMap();
                 map.putString("error", charSequence.toString());
-                bleManager.sendEvent("BleManagerCompanionFailure", map);
+                bleManager.emitOnCompanionFailure(map);
             }
 
             @Override

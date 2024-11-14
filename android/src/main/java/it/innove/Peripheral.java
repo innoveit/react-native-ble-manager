@@ -60,7 +60,7 @@ public class Peripheral extends BluetoothGattCallback {
     protected volatile int advertisingRSSI;
     private volatile boolean connected = false;
     private volatile boolean connecting = false;
-    private ReactContext reactContext;
+    private BleManager bleManager;
 
     private BluetoothGatt gatt;
 
@@ -81,34 +81,38 @@ public class Peripheral extends BluetoothGattCallback {
 
     private List<byte[]> writeQueue = new ArrayList<>();
 
-    public Peripheral(BluetoothDevice device, int advertisingRSSI, byte[] scanRecord, ReactContext reactContext) {
+    public Peripheral(BluetoothDevice device, int advertisingRSSI, byte[] scanRecord, BleManager bleManager) {
         this.device = device;
         this.bufferedCharacteristics = new ConcurrentHashMap<String, NotifyBufferContainer>();
         this.advertisingRSSI = advertisingRSSI;
         this.advertisingDataBytes = scanRecord;
-        this.reactContext = reactContext;
+        this.bleManager = bleManager;
     }
 
-    public Peripheral(BluetoothDevice device, ReactContext reactContext) {
+    public Peripheral(BluetoothDevice device, BleManager bleManager) {
         this.device = device;
         this.bufferedCharacteristics = new ConcurrentHashMap<String, NotifyBufferContainer>();
-        this.reactContext = reactContext;
+        this.bleManager = bleManager;
     }
 
-    private void sendEvent(String eventName, @Nullable WritableMap params) {
-        synchronized (reactContext) {
-            reactContext.getJSModule(RCTNativeAppEventEmitter.class).emit(eventName, params);
-        }
-    }
-
-    private void sendConnectionEvent(BluetoothDevice device, String eventName, int status) {
+    private void sendConnectionEvent(BluetoothDevice device, int status) {
         WritableMap map = Arguments.createMap();
         map.putString("peripheral", device.getAddress());
         if (status != -1) {
             map.putInt("status", status);
         }
-        sendEvent(eventName, map);
-        Log.d(BleManager.LOG_TAG, "Peripheral event (" + eventName + "):" + device.getAddress());
+        bleManager.emitOnConnectPeripheral(map);
+        Log.d(BleManager.LOG_TAG, "Peripheral connected:" + device.getAddress());
+    }
+
+    private void sendDisconnectionEvent(BluetoothDevice device, int status) {
+        WritableMap map = Arguments.createMap();
+        map.putString("peripheral", device.getAddress());
+        if (status != -1) {
+            map.putInt("status", status);
+        }
+        bleManager.emitOnConnectPeripheral(map);
+        Log.d(BleManager.LOG_TAG, "Peripheral disconnected:" + device.getAddress());
     }
 
     public void connect(final Callback callback, Activity activity, ReadableMap options) {
@@ -172,11 +176,11 @@ public class Peripheral extends BluetoothGattCallback {
                     if (force) {
                         gatt.close();
                         gatt = null;
-                        sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_SUCCESS);
+                        sendDisconnectionEvent(device, BluetoothGatt.GATT_SUCCESS);
                     }
                     Log.d(BleManager.LOG_TAG, "Disconnect");
                 } catch (Exception e) {
-                    sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_FAILURE);
+                    sendDisconnectionEvent(device, BluetoothGatt.GATT_FAILURE);
                     Log.d(BleManager.LOG_TAG, "Error on disconnect", e);
                 }
             } else
@@ -335,7 +339,7 @@ public class Peripheral extends BluetoothGattCallback {
 
                 mainHandler.post(discoverServicesRunnable);
 
-                sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
+                sendConnectionEvent(device, status);
 
                 Log.d(BleManager.LOG_TAG, "Connected to: " + device.getAddress());
                 for (Callback connectCallback : connectCallbacks) {
@@ -406,8 +410,7 @@ public class Peripheral extends BluetoothGattCallback {
                 gatt.disconnect();
                 gatt.close();
                 gatt = null;
-                sendConnectionEvent(device, "BleManagerDisconnectPeripheral", BluetoothGatt.GATT_SUCCESS);
-
+                sendDisconnectionEvent(device, BluetoothGatt.GATT_SUCCESS);
             }
 
         });
@@ -464,7 +467,7 @@ public class Peripheral extends BluetoothGattCallback {
                 map.putString("characteristic", charString);
                 map.putString("service", service);
                 map.putArray("value", BleManager.bytesToWritableArray(dataValue));
-                sendEvent("BleManagerDidUpdateValueForCharacteristic", map);
+                bleManager.emitOnDidUpdateNotificationStateFor(map);
 
                 // Check if rest exists. If so it needs to be added to the clean buffer
                 dataValue = rest;

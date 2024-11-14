@@ -27,13 +27,11 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.modules.core.RCTNativeAppEventEmitter;
 
 import java.lang.reflect.Method;
 import java.util.Iterator;
@@ -100,6 +98,116 @@ class BleManager extends NativeBleManagerSpec {
 
     };
 
+    private class MyBroadcastReceiver extends BroadcastReceiver {
+        private final BleManager bleManager;
+
+        public MyBroadcastReceiver(BleManager bleManager) {
+            this.bleManager = bleManager;
+        }
+
+        @SuppressLint("MissingPermission")
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(LOG_TAG, "onReceive");
+            final String action = intent.getAction();
+
+            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                String stringState = "";
+
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        stringState = "off";
+                        clearPeripherals();
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        stringState = "turning_off";
+                        disconnectPeripherals();
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        stringState = "on";
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        stringState = "turning_on";
+                        break;
+                    default:
+                        // should not happen as per https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
+                        stringState = "off";
+                        break;
+                }
+
+                WritableMap map = Arguments.createMap();
+                map.putString("state", stringState);
+                Log.d(LOG_TAG, "state: " + stringState);
+                emitOnDidUpdateState(map);
+
+            } else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
+                final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
+                final int prevState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE,
+                        BluetoothDevice.ERROR);
+                BluetoothDevice device;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice.class);
+                } else {
+                    device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                }
+
+                String bondStateStr = "UNKNOWN";
+                switch (bondState) {
+                    case BluetoothDevice.BOND_BONDED:
+                        bondStateStr = "BOND_BONDED";
+                        break;
+                    case BluetoothDevice.BOND_BONDING:
+                        bondStateStr = "BOND_BONDING";
+                        break;
+                    case BluetoothDevice.BOND_NONE:
+                        bondStateStr = "BOND_NONE";
+                        break;
+                }
+                Log.d(LOG_TAG, "bond state: " + bondStateStr);
+
+                if (bondRequest != null && bondRequest.uuid.equals(device.getAddress())) {
+                    if (bondState == BluetoothDevice.BOND_BONDED) {
+                        bondRequest.callback.invoke();
+                        bondRequest = null;
+                    } else if (bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.ERROR) {
+                        bondRequest.callback.invoke("Bond request has been denied");
+                        bondRequest = null;
+                    }
+                }
+
+                if (bondState == BluetoothDevice.BOND_BONDED) {
+                    Peripheral peripheral;
+                    if (!forceLegacy) {
+                        peripheral = new DefaultPeripheral(device, bleManager);
+                    } else {
+                        peripheral = new Peripheral(device, bleManager);
+                    }
+                    WritableMap map = peripheral.asWritableMap();
+                    emitOnPeripheralDidBond(map);
+                }
+
+                if (removeBondRequest != null && removeBondRequest.uuid.equals(device.getAddress())
+                        && bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED) {
+                    removeBondRequest.callback.invoke();
+                    removeBondRequest = null;
+                }
+            } else if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
+                BluetoothDevice bluetoothDevice;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice.class);
+                } else {
+                    bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                }
+                if (bondRequest != null && bondRequest.uuid.equals(bluetoothDevice.getAddress()) && bondRequest.pin != null) {
+                    bluetoothDevice.setPin(bondRequest.pin.getBytes());
+                    bluetoothDevice.createBond();
+                }
+            }
+
+        }
+    }
+
     // key is the MAC Address
     private final Map<String, Peripheral> peripherals = new LinkedHashMap<>();
     // scan session id
@@ -140,10 +248,6 @@ class BleManager extends NativeBleManagerSpec {
         return bluetoothManager;
     }
 
-    public void sendEvent(String eventName, @Nullable WritableMap params) {
-        getReactApplicationContext().getJSModule(RCTNativeAppEventEmitter.class).emit(eventName, params);
-    }
-
     @ReactMethod
     public void start(ReadableMap options, Callback callback) {
         Log.d(LOG_TAG, "start");
@@ -158,11 +262,7 @@ class BleManager extends NativeBleManagerSpec {
             forceLegacy = options.getBoolean("forceLegacy");
         }
 
-        if (!forceLegacy) {
-            scanManager = new DefaultScanManager(reactContext, this);
-        } else {
-            scanManager = new LegacyScanManager(reactContext, this);
-        }
+        scanManager = new DefaultScanManager(reactContext, this);
 
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
@@ -266,7 +366,7 @@ class BleManager extends NativeBleManagerSpec {
             scanManager.stopScan(callback);
             WritableMap map = Arguments.createMap();
             map.putInt("status", 0);
-            sendEvent("BleManagerStopScan", map);
+            emitOnStopScan(map);
         }
     }
 
@@ -525,9 +625,9 @@ class BleManager extends NativeBleManagerSpec {
             if (!peripherals.containsKey(address)) {
                 Peripheral peripheral;
                 if (!forceLegacy) {
-                    peripheral = new DefaultPeripheral(device, reactContext);
+                    peripheral = new DefaultPeripheral(device, this);
                 } else {
-                    peripheral = new Peripheral(device, reactContext);
+                    peripheral = new Peripheral(device, this);
                 }
                 peripherals.put(device.getAddress(), peripheral);
             }
@@ -583,7 +683,7 @@ class BleManager extends NativeBleManagerSpec {
         WritableMap map = Arguments.createMap();
         map.putString("state", state);
         Log.d(LOG_TAG, "state:" + state);
-        sendEvent("BleManagerDidUpdateState", map);
+        emitOnDidUpdateState(map);
         callback.invoke(state);
     }
 
@@ -613,108 +713,7 @@ class BleManager extends NativeBleManagerSpec {
         adapter.setName(name);
     }
 
-    @SuppressLint("MissingPermission")
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(LOG_TAG, "onReceive");
-            final String action = intent.getAction();
-
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                String stringState = "";
-
-                switch (state) {
-                    case BluetoothAdapter.STATE_OFF:
-                        stringState = "off";
-                        clearPeripherals();
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_OFF:
-                        stringState = "turning_off";
-                        disconnectPeripherals();
-                        break;
-                    case BluetoothAdapter.STATE_ON:
-                        stringState = "on";
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_ON:
-                        stringState = "turning_on";
-                        break;
-                    default:
-                        // should not happen as per https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
-                        stringState = "off";
-                        break;
-                }
-
-                WritableMap map = Arguments.createMap();
-                map.putString("state", stringState);
-                Log.d(LOG_TAG, "state: " + stringState);
-                sendEvent("BleManagerDidUpdateState", map);
-
-            } else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
-                final int bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
-                final int prevState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE,
-                        BluetoothDevice.ERROR);
-                BluetoothDevice device;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice.class);
-                } else {
-                    device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                }
-
-                String bondStateStr = "UNKNOWN";
-                switch (bondState) {
-                    case BluetoothDevice.BOND_BONDED:
-                        bondStateStr = "BOND_BONDED";
-                        break;
-                    case BluetoothDevice.BOND_BONDING:
-                        bondStateStr = "BOND_BONDING";
-                        break;
-                    case BluetoothDevice.BOND_NONE:
-                        bondStateStr = "BOND_NONE";
-                        break;
-                }
-                Log.d(LOG_TAG, "bond state: " + bondStateStr);
-
-                if (bondRequest != null && bondRequest.uuid.equals(device.getAddress())) {
-                    if (bondState == BluetoothDevice.BOND_BONDED) {
-                        bondRequest.callback.invoke();
-                        bondRequest = null;
-                    } else if (bondState == BluetoothDevice.BOND_NONE || bondState == BluetoothDevice.ERROR) {
-                        bondRequest.callback.invoke("Bond request has been denied");
-                        bondRequest = null;
-                    }
-                }
-
-                if (bondState == BluetoothDevice.BOND_BONDED) {
-                    Peripheral peripheral;
-                    if (!forceLegacy) {
-                        peripheral = new DefaultPeripheral(device, reactContext);
-                    } else {
-                        peripheral = new Peripheral(device, reactContext);
-                    }
-                    WritableMap map = peripheral.asWritableMap();
-                    sendEvent("BleManagerPeripheralDidBond", map);
-                }
-
-                if (removeBondRequest != null && removeBondRequest.uuid.equals(device.getAddress())
-                        && bondState == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED) {
-                    removeBondRequest.callback.invoke();
-                    removeBondRequest = null;
-                }
-            } else if (action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
-                BluetoothDevice bluetoothDevice;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice.class);
-                } else {
-                    bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                }
-                if (bondRequest != null && bondRequest.uuid.equals(bluetoothDevice.getAddress()) && bondRequest.pin != null) {
-                    bluetoothDevice.setPin(bondRequest.pin.getBytes());
-                    bluetoothDevice.createBond();
-                }
-            }
-
-        }
+    private final BroadcastReceiver mReceiver = new MyBroadcastReceiver(this) {
     };
 
     private void clearPeripherals() {
@@ -791,9 +790,9 @@ class BleManager extends NativeBleManagerSpec {
         for (BluetoothDevice device : deviceSet) {
             Peripheral peripheral;
             if (!forceLegacy) {
-                peripheral = new DefaultPeripheral(device, reactContext);
+                peripheral = new DefaultPeripheral(device, this);
             } else {
-                peripheral = new Peripheral(device, reactContext);
+                peripheral = new Peripheral(device, this);
             }
             WritableMap jsonBundle = peripheral.asWritableMap();
             map.pushMap(jsonBundle);
@@ -912,9 +911,9 @@ class BleManager extends NativeBleManagerSpec {
                 if (BluetoothAdapter.checkBluetoothAddress(peripheralUUID)) {
                     BluetoothDevice device = bluetoothAdapter.getRemoteDevice(peripheralUUID);
                     if (!forceLegacy) {
-                        peripheral = new DefaultPeripheral(device, reactContext);
+                        peripheral = new DefaultPeripheral(device, this);
                     } else {
-                        peripheral = new Peripheral(device, reactContext);
+                        peripheral = new Peripheral(device, this);
                     }
                     peripherals.put(peripheralUUID, peripheral);
                 }

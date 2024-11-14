@@ -158,6 +158,7 @@ const ScanDevicesScreen = () => {
   const togglePeripheralConnection = async (peripheral: Peripheral) => {
     if (peripheral && peripheral.connected) {
       try {
+        console.log('Disconnect peripheral');
         await BleManager.disconnect(peripheral.id);
       } catch (error) {
         console.error(
@@ -381,23 +382,13 @@ const ScanDevicesScreen = () => {
     }
 
     const listeners = [
-      bleManagerEmitter.addListener(
-        'BleManagerDiscoverPeripheral',
-        handleDiscoverPeripheral
-      ),
-      bleManagerEmitter.addListener('BleManagerStopScan', handleStopScan),
-      bleManagerEmitter.addListener(
-        'BleManagerDisconnectPeripheral',
-        handleDisconnectedPeripheral
-      ),
-      bleManagerEmitter.addListener(
-        'BleManagerDidUpdateValueForCharacteristic',
+      BleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
+      BleManager.onStopScan(handleStopScan),
+      BleManager.onConnectPeripheral(handleConnectPeripheral),
+      BleManager.onDidUpdateValueForCharacteristic(
         handleUpdateValueForCharacteristic
       ),
-      bleManagerEmitter.addListener(
-        'BleManagerConnectPeripheral',
-        handleConnectPeripheral
-      ),
+      BleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
     ];
 
     handleAndroidPermissions();
