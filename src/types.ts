@@ -374,6 +374,13 @@ export interface BleManagerDidUpdateNotificationStateForEvent {
 }
 
 /**
+ * [iOS only]
+ */
+export interface BleManagerCentralManagerWillRestoreState {
+  peripherals: Peripheral[];
+}
+
+/**
  * [Android only]
  *
  * Associate callback received a failure or failed to start the intent to

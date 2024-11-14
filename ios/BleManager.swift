@@ -749,8 +749,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
                     data.append(p.advertisingInfo())
                     peripheral.delegate = self
                 }
-
-                NotificationCenter.default.post(name: Notification.Name("BleManagerCentralManagerWillRestoreState"), object: nil, userInfo: ["peripherals": data])
+                self.sendEvent(withName:"BleManagerCentralManagerWillRestoreState", body: ["peripherals": data])
             }
         }
     }
