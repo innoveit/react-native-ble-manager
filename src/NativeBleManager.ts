@@ -1,4 +1,6 @@
 import { TurboModule, TurboModuleRegistry } from 'react-native';
+// @ts-ignore Ignore since it comes from codegen types.
+import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 
 /**
  * This represents the Turbo Module version of react-native-ble-manager.
@@ -189,6 +191,32 @@ export interface Spec extends TurboModule {
   addListener(eventName: string): void;
 
   removeListeners(count: number): void;
+
+  /**
+   * Supported events.
+   */
+
+  readonly BleManagerStopScan: EventEmitter<EventStopScan>;
+
+  readonly BleManagerDidUpdateState: EventEmitter<EventDidUpdateState>;
+
+  readonly BleManagerDiscoverPeripheral: EventEmitter<EventDiscoverPeripheral>;
+
+  readonly BleManagerDidUpdateValueForCharacteristic: EventEmitter<EventDidUpdateValueForCharacteristic>;
+
+  readonly BleManagerConnectPeripheral: EventEmitter<EventConnectPeripheral>;
+
+  readonly BleManagerDisconnectPeripheral: EventEmitter<EventDisconnectPeripheral>;
+
+  readonly BleManagerPeripheralDidBond: EventEmitter<EventPeripheralDidBond>;
+
+  readonly BleManagerCentralManagerWillRestoreState: EventEmitter<EventCentralManagerWillRestoreState>;
+
+  readonly BleManagerDidUpdateNotificationStateFor: EventEmitter<EventDidUpdateNotificationStateFor>;
+
+  readonly BleManagerCompanionPeripheral: EventEmitter<EventCompanionPeripheral>;
+
+  readonly BleManagerCompanionFailure: EventEmitter<EventCompanionFailure>;
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec;
@@ -330,4 +358,101 @@ export type ScanOptions = {
   };
   single?: boolean;
   companion?: boolean;
+};
+
+export type EventStopScan = {
+  status: number;
+};
+
+export type EventDidUpdateState = {
+  state: string;
+};
+
+export type EventDiscoverPeripheral = {
+  id: string;
+  name: string;
+  rssi: number;
+  advertising: {
+    isConnectable: boolean;
+    serviceUUIDs: string[];
+    manufacturerData: number[];
+    serviceData: number[];
+    txPowerLevel: number;
+    rawData?: number | null;
+  };
+};
+
+export type EventDidUpdateValueForCharacteristic = {
+  value: number[];
+  peripheral: string;
+  characteristic: string;
+  service: string;
+};
+
+export type EventConnectPeripheral = {
+  peripheral: string;
+  status?: number | null;
+};
+
+export type EventDisconnectPeripheral = {
+  peripheral: string;
+  status?: number | null;
+  domain?: string | null;
+  code?: number | null;
+};
+
+export type EventPeripheralDidBond = {
+  id: string;
+  name: string;
+  rssi: number;
+  advertising: {
+    isConnectable: boolean;
+    serviceUUIDs: string[];
+    manufacturerData: number[];
+    serviceData: number[];
+    txPowerLevel: number;
+    rawData?: number | null;
+  };
+};
+
+export type EventCentralManagerWillRestoreState = {
+  peripherals: {
+    id: string;
+    name: string;
+    rssi: number;
+    advertising: {
+      isConnectable: boolean;
+      serviceUUIDs: string[];
+      manufacturerData: number[];
+      serviceData: number[];
+      txPowerLevel: number;
+      rawData?: number | null;
+    };
+  }[];
+};
+
+export type EventDidUpdateNotificationStateFor = {
+  peripheral: string;
+  characteristic: string;
+  isNotifying: boolean;
+  domain?: string | null;
+  code?: number | null;
+};
+
+export type EventCompanionPeripheral = {
+  id: string;
+  name: string;
+  rssi: number;
+  advertising: {
+    isConnectable: boolean;
+    serviceUUIDs: string[];
+    manufacturerData: number[];
+    serviceData: number[];
+    txPowerLevel: number;
+    rawData?: number | null;
+  };
+};
+
+export type EventCompanionFailure = {
+  error: string;
 };

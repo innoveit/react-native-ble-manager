@@ -1242,8 +1242,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-ble-manager (11.5.5):
+  - react-native-ble-manager (12.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - React-nativeconfig (0.76.0)
   - React-NativeModulesApple (0.76.0):
     - glog
@@ -1552,7 +1571,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
-  - react-native-ble-manager (from `../../node_modules/react-native-ble-manager`)
+  - react-native-ble-manager (from `../node_modules/react-native-ble-manager`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -1659,7 +1678,7 @@ EXTERNAL SOURCES:
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-ble-manager:
-    :path: "../../node_modules/react-native-ble-manager"
+    :path: "../node_modules/react-native-ble-manager"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -1753,7 +1772,7 @@ SPEC CHECKSUMS:
   React-logger: d1a89c7d9b3c847eb63eb85724c54b06cae2c939
   React-Mapbuffer: b0b4ace5b62b269f3838df26ba2d8b4f39f90783
   React-microtasksnativemodule: 0b7db04c18f6bb01ef5b1f9007c3229abecc35dd
-  react-native-ble-manager: 26188ccddc07e62e06009b20c86a822d10baf994
+  react-native-ble-manager: 47bc64c5a523f619f1c3c2e841f76da4c89aa6fa
   React-nativeconfig: 72c10ff34863148ef90df9c9c8eacba99d2faaaa
   React-NativeModulesApple: 5ec49182fa000b2215ee1bed03e2867f8323ccf5
   React-perflogger: 073c7a8a436b3fe724f1df34e9d1f3db1d25fe74
@@ -1779,7 +1798,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: b11553b58430aa51b1558ffa93073257dadb00ef
   React-timing: 8458b1f6741bfa16c78aa0a39fde969c6b843e23
   React-utils: d9624101245ebaab39c9f1bd786132da0b4f27ff
-  ReactCodegen: dbfef1fef26f42c900bb1884fa149d49d501d64d
+  ReactCodegen: b17288eba944b6c169c73e62ccba2974f52a93c8
   ReactCommon: 429ca28cd813c31359c73ffac6dc24f93347d522
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: f8ec45ce98bba1bc93dd28f2ee37215180e6d2b6

@@ -12,8 +12,18 @@ node node_modules/react-native/scripts/generate-codegen-artifacts.js \
 
 ## Testing the app with new arch
 
+### Install js deps
 ```bash
-cd ios;
-RCT_NEW_ARCH_ENABLED=1; # set up new arch flag to install all libraries in turbo modules mode. 
-pod install; # install the libraries.
+  npm install;
+```
+
+## IOS
+
+### Install pods
+
+Keep in mind to close xcode before messing up with pods.
+```bash
+    cd ios;
+    RCT_NEW_ARCH_ENABLED=1; # set up new arch flag to install all libraries in turbo modules mode. 
+    bundle exec pod install; # install the libraries.
 ```

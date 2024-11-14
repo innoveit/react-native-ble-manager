@@ -5,10 +5,7 @@ module.exports = {
   dependency: {
     platforms: {
       android: {
-        sourceDir: './android',
-      },
-      ios: {
-        podspecPath: './react-native-ble-manager.podspec',
+        cmakeListsPath: 'build/generated/source/codegen/jni/CMakeLists.txt',
       },
     },
   },

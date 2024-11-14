@@ -1,18 +1,17 @@
-#import "React/RCTBridgeModule.h"
-#import "React/RCTEventEmitter.h"
 #import <CoreBluetooth/CoreBluetooth.h>
+#import "React/RCTEventEmitter.h"
+#import "React/RCTEventDispatcher.h"
+
+/**
+This strategy assumes that all apps are new arch by default as described on docs of 0.76 release.
+And enables old bridge just if user sets RCT_NEW_ARCH_ENABLED=0 on env.
+*/
 
 #ifdef RCT_NEW_ARCH_ENABLED
 #import "RNBleManagerSpec.h"
-#endif
 
-#ifdef RCT_NEW_ARCH_ENABLED
+#else
+#import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_MODULE(BleManager, NSObject)
-NS_ASSUME_NONNULL_BEGIN
-@interface BleManager() <RNBleManagerSpec.h>
-NS_ASSUME_NONNULL_END
-
-@end
 #endif
 
