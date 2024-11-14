@@ -1,4 +1,8 @@
-import { NativeEventEmitter, NativeModules } from 'react-native';
+import {
+  EventSubscription,
+  NativeEventEmitter,
+  NativeModules,
+} from 'react-native';
 import {
   BleScanCallbackType,
   BleScanMatchCount,
@@ -822,6 +826,54 @@ class BleManager extends NativeEventEmitter {
         }
       );
     });
+  }
+
+  onDiscoverPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onDiscoverPeripheral(callback);
+  }
+
+  onStopScan(callback: any): EventSubscription {
+    return BleManagerModule.onStopScan(callback);
+  }
+
+  onDidUpdateState(callback: any): EventSubscription {
+    return BleManagerModule.onStateChange(callback);
+  }
+
+  onCentralManagerDidUpdateState(callback: any): EventSubscription {
+    return BleManagerModule.onCentralManagerDidUpdateState(callback);
+  }
+
+  onConnectPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onConnectPeripheral(callback);
+  }
+
+  onDisconnectPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onDisconnectPeripheral(callback);
+  }
+
+  onDidUpdateValueForCharacteristic(callback: any): EventSubscription {
+    return BleManagerModule.onDidUpdateValueForCharacteristic(callback);
+  }
+
+  onPeripheralDidBond(callback: any): EventSubscription {
+    return BleManagerModule.onPeripheralDidBond(callback);
+  }
+
+  onCentralManagerWillRestoreState(callback: any): EventSubscription {
+    return BleManagerModule.onCentralManagerWillRestoreState(callback);
+  }
+
+  onDidUpdateNotificationStateFor(callback: any): EventSubscription {
+    return BleManagerModule.onDidUpdateNotificationStateFor(callback);
+  }
+
+  onCompanionPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onCompanionPeripheral(callback);
+  }
+
+  onCompanionAvailability(callback: any): EventSubscription {
+    return BleManagerModule.onCompanionAvailability(callback);
   }
 }
 

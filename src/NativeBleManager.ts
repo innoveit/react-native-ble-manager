@@ -188,35 +188,20 @@ export interface Spec extends TurboModule {
     callback: (error: string | null, peripheral: Peripheral | null) => void
   ): void;
 
-  addListener(eventName: string): void;
-
-  removeListeners(count: number): void;
-
   /**
    * Supported events.
    */
-
-  readonly BleManagerStopScan: EventEmitter<EventStopScan>;
-
-  readonly BleManagerDidUpdateState: EventEmitter<EventDidUpdateState>;
-
-  readonly BleManagerDiscoverPeripheral: EventEmitter<EventDiscoverPeripheral>;
-
-  readonly BleManagerDidUpdateValueForCharacteristic: EventEmitter<EventDidUpdateValueForCharacteristic>;
-
-  readonly BleManagerConnectPeripheral: EventEmitter<EventConnectPeripheral>;
-
-  readonly BleManagerDisconnectPeripheral: EventEmitter<EventDisconnectPeripheral>;
-
-  readonly BleManagerPeripheralDidBond: EventEmitter<EventPeripheralDidBond>;
-
-  readonly BleManagerCentralManagerWillRestoreState: EventEmitter<EventCentralManagerWillRestoreState>;
-
-  readonly BleManagerDidUpdateNotificationStateFor: EventEmitter<EventDidUpdateNotificationStateFor>;
-
-  readonly BleManagerCompanionPeripheral: EventEmitter<EventCompanionPeripheral>;
-
-  readonly BleManagerCompanionFailure: EventEmitter<EventCompanionFailure>;
+  readonly onDiscoverPeripheral: EventEmitter<Peripheral>;
+  readonly onStopScan: EventEmitter<EventStopScan>;
+  readonly onDidUpdateState: EventEmitter<EventDidUpdateState>;
+  readonly onDidUpdateValueForCharacteristic: EventEmitter<EventDidUpdateValueForCharacteristic>;
+  readonly onConnectPeripheral: EventEmitter<EventConnectPeripheral>;
+  readonly onDisconnectPeripheral: EventEmitter<EventDisconnectPeripheral>;
+  readonly onPeripheralDidBond: EventEmitter<EventPeripheralDidBond>;
+  readonly onCentralManagerWillRestoreState: EventEmitter<EventCentralManagerWillRestoreState>;
+  readonly onDidUpdateNotificationStateFor: EventEmitter<EventDidUpdateNotificationStateFor>;
+  readonly onCompanionPeripheral: EventEmitter<EventCompanionPeripheral>;
+  readonly onCompanionFailure: EventEmitter<EventCompanionFailure>;
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec;

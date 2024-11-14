@@ -75,3 +75,6 @@ npm run build
 - in the example folder generate the android project from expo: `npx expo prebuild --platform android`
 - in the example/android folder run: `./gradlew generateCodegenArtifactsFromSchema` (you can add --info to have debug messages)
 - if you have problems with the gradle cache `cd android && ./gradlew --stop && rm -rf ~/.gradle/caches`
+
+## Generate iOS code from specs
+- in the example folder generate the ios project from expo: `npx expo prebuild --platform ios`
