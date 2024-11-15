@@ -4,12 +4,12 @@ package = JSON.parse(File.read(File.join(__dir__, 'package.json')))
 folly_compiler_flags = '-DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -Wno-comma -Wno-shorten-64-to-32'
 
 Pod::Spec.new do |s|
-  s.name		= "react-native-ble-manager"
-  s.summary		= "A BLE module for react native."
+  s.name		= package['name']
+  s.summary		= package['description']
   s.version		= package['version']
-  s.authors		= { "Innove" => "https://github.com/innoveit" }
-  s.homepage    	= "https://github.com/innoveit/react-native-ble-manager"
-  s.license     	= "Apache-2.0"
+  s.authors		= package["author"]
+  s.homepage    	= package["homepage"]
+  s.license     	= package["license"]
   s.platform    	= :ios, "11.0"
   s.source      	= { :git => "https://github.com/innoveit/react-native-ble-manager.git" }
   s.source_files = "ios/**/*.{h,c,cc,cpp,m,mm,swift}"
