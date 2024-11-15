@@ -2,7 +2,7 @@ import Foundation
 import CoreBluetooth
 
 @objc(BleManager)
-class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegate {
+class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     static var shared:BleManager?
     static var sharedManager:CBCentralManager?
@@ -62,11 +62,13 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         NotificationCenter.default.addObserver(self, selector: #selector(bridgeReloading), name: NSNotification.Name(rawValue: "RCTBridgeWillReloadNotification"), object: nil)
     }
 
+    /*
     @objc override static func requiresMainQueueSetup() -> Bool { return true }
 
     @objc override func supportedEvents() -> [String]! {
         return ["BleManagerDidUpdateValueForCharacteristic", "BleManagerStopScan", "BleManagerDiscoverPeripheral", "BleManagerConnectPeripheral", "BleManagerDisconnectPeripheral", "BleManagerDidUpdateState", "BleManagerCentralManagerWillRestoreState", "BleManagerDidUpdateNotificationStateFor"]
     }
+     
 
     @objc override func startObserving() {
         hasListeners = true
@@ -75,6 +77,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     @objc override func stopObserving() {
         hasListeners = false
     }
+     */
 
     @objc func bridgeReloading() {
         if let manager = manager {
@@ -94,6 +97,10 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
 
         peripherals = [:]
+    }
+    
+    func sendEvent(withName name: String, body:Dictionary<String, Any>) {
+        
     }
 
     // Helper method to find a peripheral by UUID
@@ -881,7 +888,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
         }
 
         if (hasListeners) {
-            sendEvent(withName: "BleManagerDiscoverPeripheral", body: cp?.advertisingInfo())
+            sendEvent(withName: "BleManagerDiscoverPeripheral", body: (cp?.advertisingInfo())!)
         }
     }
 
@@ -1230,7 +1237,7 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     }
 
     @objc func requestConnectionPriority(_ peripheralUUID: String,
-                                         mtu: Int,
+                                         connectionPriority: Int,
                                          callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }

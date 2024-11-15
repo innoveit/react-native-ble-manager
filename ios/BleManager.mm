@@ -1,7 +1,5 @@
 #import "BleManager.h"
 
-#ifdef RCT_NEW_ARCH_ENABLED
-
 @interface RCT_EXTERN_MODULE(BleManager, NativeBleManagerSpecBase <NativeBleManagerSpec>)
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
@@ -9,12 +7,6 @@
 {
     return std::make_shared<facebook::react::NativeBleManagerSpecJSI>(params);
 }
-
-@end
-
-#else
-
-@interface RCT_EXTERN_MODULE(BleManager, NSObject)
 
 RCT_EXTERN_METHOD(start:
 (NSDictionary *)options
@@ -158,7 +150,5 @@ RCT_EXTERN_METHOD(supportsCompanion:(nonnull RCTResponseSenderBlock)callback)
 RCT_EXTERN_METHOD(companionScan:
 (NSArray *)serviceUUIDs
 callback:(nonnull RCTResponseSenderBlock)callback)
+
 @end
-
-#endif
-
