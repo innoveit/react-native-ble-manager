@@ -35,6 +35,9 @@ const BleManagerModule = isTurboModuleEnabled
 
 class BleManager extends NativeEventEmitter {
   constructor() {
+    if (!BleManagerModule) {
+      throw new Error('BleManagerModule not found');
+    }
     super(BleManagerModule);
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
   }

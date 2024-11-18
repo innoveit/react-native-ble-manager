@@ -10,8 +10,6 @@ import {
   View,
   Text,
   StatusBar,
-  NativeModules,
-  NativeEventEmitter,
   Platform,
   PermissionsAndroid,
   FlatList,
@@ -32,9 +30,6 @@ import BleManager, {
 const SECONDS_TO_SCAN_FOR = 3;
 const SERVICE_UUIDS: string[] = [];
 const ALLOW_DUPLICATES = true;
-
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 declare module 'react-native-ble-manager' {
   // enrich local contract with custom state properties needed by App.tsx
@@ -381,7 +376,7 @@ const ScanDevicesScreen = () => {
       return;
     }
 
-    const listeners = [
+    const listeners: any[] = [
       BleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
       BleManager.onStopScan(handleStopScan),
       BleManager.onConnectPeripheral(handleConnectPeripheral),
