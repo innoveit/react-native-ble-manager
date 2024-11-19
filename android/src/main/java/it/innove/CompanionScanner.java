@@ -88,7 +88,7 @@ public class CompanionScanner {
                 scanCallback.invoke(null, peripheral != null ? peripheral.asWritableMap() : null);
                 scanCallback = null;
             }
-            bleManager.sendEvent("BleManagerCompanionPeripheral", peripheral != null ? peripheral.asWritableMap() : null);
+            bleManager.emitOnCompanionPeripheral(peripheral != null ? peripheral.asWritableMap() : null);
         }
     };
 
@@ -166,7 +166,7 @@ public class CompanionScanner {
 
                     WritableMap map = Arguments.createMap();
                     map.putString("error", msg);
-                    bleManager.sendEvent("BleManagerCompanionFailure", map);
+                    bleManager.emitOnCompanionFailure(map);
                 }
             }
         }, null);
