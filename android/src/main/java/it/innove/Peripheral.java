@@ -111,7 +111,7 @@ public class Peripheral extends BluetoothGattCallback {
         if (status != -1) {
             map.putInt("status", status);
         }
-        bleManager.emitOnConnectPeripheral(map);
+        bleManager.emitOnDisconnectPeripheral(map);
         Log.d(BleManager.LOG_TAG, "Peripheral disconnected:" + device.getAddress());
     }
 
