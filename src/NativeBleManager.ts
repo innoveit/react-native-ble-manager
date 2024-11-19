@@ -10,7 +10,7 @@ import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
  *  - Knowing that also every type needs to match the current Objective C++ and Java callbacks types and callbacks type definitions and be aware of the current differences between implementation in both platforms.
  */
 export interface Spec extends TurboModule {
-  start(options: StartOptions, callback: (error: CallbackError) => void): void;
+  start(options: Object, callback: (error: CallbackError) => void): void;
 
   scan(
     serviceUUIDStrings: string[],
@@ -24,7 +24,7 @@ export interface Spec extends TurboModule {
 
   connect(
     peripheralUUID: string,
-    options: ConnectOptions,
+    options: Object,
     callback: (error: CallbackError) => void
   ): void;
 
@@ -184,7 +184,7 @@ export interface Spec extends TurboModule {
 
   companionScan(
     serviceUUIDs: string[],
-    option: CompanionScanOptions,
+    option: Object,
     callback: (error: string | null, peripheral: Peripheral | null) => void
   ): void;
 
@@ -216,22 +216,6 @@ export type BleScanMode = number;
 export type BleScanPhyMode = number;
 export type CallbackError = string | null;
 export type BleState = string;
-
-export type StartOptions = {
-  showAlert: boolean;
-  restoreIdentifierKey?: string;
-  queueIdentifierKey?: string;
-  forceLegacy?: boolean;
-};
-
-export type ConnectOptions = {
-  autoconnect?: boolean;
-  phy?: number;
-};
-
-export type CompanionScanOptions = {
-  single?: boolean;
-};
 
 export type Peripheral = {
   id: string;
