@@ -1,17 +1,42 @@
 #import <CoreBluetooth/CoreBluetooth.h>
-#import "React/RCTEventEmitter.h"
-#import "React/RCTEventDispatcher.h"
-
-/**
-This strategy assumes that all apps are new arch by default as described on docs of 0.76 release.
-And enables old bridge just if user sets RCT_NEW_ARCH_ENABLED=0 on env.
-*/
+#import <Foundation/Foundation.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
-#import "BleManagerSpec/BleManagerSpec.h"
+
+#import <BleManagerSpec/BleManagerSpec.h>
+
+@interface BleManager : NativeBleManagerSpecBase <NativeBleManagerSpec>
+- (void)emitOnDiscoverPeripheral:(NSDictionary *)value;
+- (void)emitOnStopScan:(NSDictionary *)value;
+- (void)emitOnDidUpdateState:(NSDictionary *)value;
+- (void)emitOnDidUpdateValueForCharacteristic:(NSDictionary *)value;
+- (void)emitOnConnectPeripheral:(NSDictionary *)value;
+- (void)emitOnDisconnectPeripheral:(NSDictionary *)value;
+- (void)emitOnPeripheralDidBond:(NSDictionary *)value;
+- (void)emitOnCentralManagerWillRestoreState:(NSDictionary *)value;
+- (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
+- (void)emitOnCompanionPeripheral:(NSDictionary *)value;
+- (void)emitOnCompanionFailure:(NSDictionary *)value;
+@end
 
 #else
-#import <React/RCTBridgeModule.h>
+
+@interface BleManager : NSObject
+- (void)emitOnDiscoverPeripheral:(NSDictionary *)value;
+- (void)emitOnStopScan:(NSDictionary *)value;
+- (void)emitOnDidUpdateState:(NSDictionary *)value;
+- (void)emitOnDidUpdateValueForCharacteristic:(NSDictionary *)value;
+- (void)emitOnConnectPeripheral:(NSDictionary *)value;
+- (void)emitOnDisconnectPeripheral:(NSDictionary *)value;
+- (void)emitOnPeripheralDidBond:(NSDictionary *)value;
+- (void)emitOnCentralManagerWillRestoreState:(NSDictionary *)value;
+- (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
+- (void)emitOnCompanionPeripheral:(NSDictionary *)value;
+- (void)emitOnCompanionFailure:(NSDictionary *)value;
+@end
 
 #endif
 
+@interface SpecChecker : NSObject
++ (BOOL)isSpecAvailable;
+@end

@@ -16,7 +16,7 @@ export interface Spec extends TurboModule {
     serviceUUIDStrings: string[],
     timeoutSeconds: number,
     allowDuplicates: boolean,
-    scanningOptions: ScanOptions,
+    scanningOptions: Object,
     callback: (error: CallbackError) => void
   ): void;
 
@@ -309,24 +309,6 @@ export type PeripheralInfo = {
     }[];
   }[];
   services?: { uuid: string }[];
-};
-
-export type ScanOptions = {
-  numberOfMatches?: number;
-  matchMode?: number;
-  callbackType?: number;
-  scanMode?: number;
-  reportDelay?: number;
-  phy?: number;
-  legacy?: boolean;
-  exactAdvertisingName?: string | null;
-  manufacturerData?: {
-    manufacturerId: number;
-    manufacturerData?: number[];
-    manufacturerDataMask?: number[];
-  };
-  single?: boolean;
-  companion?: boolean;
 };
 
 export type EventStopScan = {

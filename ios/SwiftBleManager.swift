@@ -1,14 +1,12 @@
 import Foundation
 import CoreBluetooth
 
-@objc(BleManager)
-class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
-    static var shared:BleManager?
+@objc public class SwiftBleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+    static var shared:SwiftBleManager?
     static var sharedManager:CBCentralManager?
 
-    private var hasListeners:Bool = false
-
+    private weak var bleManager: BleManager?
     private var manager: CBCentralManager?
     private var scanTimer: Timer?
 
@@ -35,7 +33,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     static var verboseLogging = false
 
-    private override init() {
+    @objc public init(bleManager:BleManager) {
         peripherals = [:]
         connectCallbacks = [:]
         readCallbacks = [:]
@@ -51,33 +49,18 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         characteristicsLatches = [:]
         exactAdvertisingName = []
         connectedPeripherals = []
+        self.bleManager = bleManager
 
         super.init()
 
         NSLog("BleManager created");
 
-        BleManager.shared = self
+        SwiftBleManager.shared = self
 
 
         NotificationCenter.default.addObserver(self, selector: #selector(bridgeReloading), name: NSNotification.Name(rawValue: "RCTBridgeWillReloadNotification"), object: nil)
     }
-
-    /*
-    @objc override static func requiresMainQueueSetup() -> Bool { return true }
-
-    @objc override func supportedEvents() -> [String]! {
-        return ["BleManagerDidUpdateValueForCharacteristic", "BleManagerStopScan", "BleManagerDiscoverPeripheral", "BleManagerConnectPeripheral", "BleManagerDisconnectPeripheral", "BleManagerDidUpdateState", "BleManagerCentralManagerWillRestoreState", "BleManagerDidUpdateNotificationStateFor"]
-    }
-     
-
-    @objc override func startObserving() {
-        hasListeners = true
-    }
-
-    @objc override func stopObserving() {
-        hasListeners = false
-    }
-     */
+    
 
     @objc func bridgeReloading() {
         if let manager = manager {
@@ -98,11 +81,8 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
         peripherals = [:]
     }
-    
-    func sendEvent(withName name: String, body:Dictionary<String, Any>) {
+     
         
-    }
-
     // Helper method to find a peripheral by UUID
     func findPeripheral(byUUID uuid: String) -> Peripheral? {
         var foundPeripheral: Peripheral? = nil
@@ -194,7 +174,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     @objc public func start(_ options: NSDictionary,
                             callback: RCTResponseSenderBlock) {
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("BleManager initialized")
         }
         var initOptions = [String: Any]()
@@ -204,7 +184,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
 
         if let verboseLogging = options["verboseLogging"] as? Bool {
-            BleManager.verboseLogging = verboseLogging
+            SwiftBleManager.verboseLogging = verboseLogging
         }
 
         var queue: DispatchQueue
@@ -217,16 +197,16 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         if let restoreIdentifierKey = options["restoreIdentifierKey"] as? String {
             initOptions[CBCentralManagerOptionRestoreIdentifierKey] = restoreIdentifierKey
 
-            if let sharedManager = BleManager.sharedManager {
+            if let sharedManager = SwiftBleManager.sharedManager {
                 manager = sharedManager
                 manager?.delegate = self
             } else {
                 manager = CBCentralManager(delegate: self, queue: queue, options: initOptions)
-                BleManager.sharedManager = manager
+                SwiftBleManager.sharedManager = manager
             }
         } else {
             manager = CBCentralManager(delegate: self, queue: queue, options: initOptions)
-            BleManager.sharedManager = manager
+            SwiftBleManager.sharedManager = manager
         }
 
         callback([])
@@ -288,9 +268,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         NSLog("Stop scan");
         scanTimer = nil;
         manager?.stopScan()
-        if hasListeners {
-            sendEvent(withName: "BleManagerStopScan", body: ["status": 10])
-        }
+        bleManager?.emit(onStopScan: ["status": 10])
     }
 
 
@@ -302,15 +280,13 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
         manager?.stopScan()
 
-        if hasListeners {
-            sendEvent(withName: "BleManagerStopScan", body: ["status": 0])
-        }
+        bleManager?.emit(onStopScan: ["status": 0])
 
         callback([])
     }
 
 
-    @objc func connect(_ peripheralUUID: String,
+    @objc public func connect(_ peripheralUUID: String,
                        options: NSDictionary,
                        callback: @escaping RCTResponseSenderBlock) {
 
@@ -347,7 +323,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func disconnect(_ peripheralUUID: String,
+    @objc public func disconnect(_ peripheralUUID: String,
                           force: Bool,
                           callback: @escaping RCTResponseSenderBlock) {
         if let peripheral = peripherals[peripheralUUID] {
@@ -376,7 +352,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func retrieveServices(_ peripheralUUID: String,
+    @objc public func retrieveServices(_ peripheralUUID: String,
                                 services: [String],
                                 callback: @escaping RCTResponseSenderBlock) {
         NSLog("retrieveServices \(services)")
@@ -401,7 +377,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func readRSSI(_ peripheralUUID: String,
+    @objc public func readRSSI(_ peripheralUUID: String,
                         callback: @escaping RCTResponseSenderBlock) {
         NSLog("readRSSI")
 
@@ -413,7 +389,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func readDescriptor(_ peripheralUUID: String,
+    @objc public func readDescriptor(_ peripheralUUID: String,
                               serviceUUID: String,
                               characteristicUUID: String,
                               descriptorUUID: String,
@@ -443,7 +419,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         peripheral?.instance.readValue(for: descriptor)
     }
 
-    @objc func writeDescriptor(_ peripheralUUID: String,
+    @objc public func writeDescriptor(_ peripheralUUID: String,
                               serviceUUID: String,
                               characteristicUUID: String,
                               descriptorUUID: String,
@@ -475,7 +451,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         peripheral?.instance.writeValue(dataMessage, for: descriptor)
     }
 
-    @objc func getDiscoveredPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
+    @objc public func getDiscoveredPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
         NSLog("Get discovered peripherals")
         var discoveredPeripherals: [[String: Any]] = []
 
@@ -488,7 +464,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         callback([NSNull(), discoveredPeripherals])
     }
 
-    @objc func getConnectedPeripherals(_ serviceUUIDStrings: [String],
+    @objc public func getConnectedPeripherals(_ serviceUUIDStrings: [String],
                                        callback: @escaping RCTResponseSenderBlock) {
         NSLog("Get connected peripherals")
         var serviceUUIDs: [CBUUID] = []
@@ -528,7 +504,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         callback([NSNull(), foundedPeripherals])
     }
 
-    @objc func isPeripheralConnected(_ peripheralUUID: String,
+    @objc public func isPeripheralConnected(_ peripheralUUID: String,
                                      callback: @escaping RCTResponseSenderBlock) {
 
         if let peripheral = peripherals[peripheralUUID] {
@@ -538,7 +514,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func isScanning(_ callback: @escaping RCTResponseSenderBlock) {
+    @objc public func isScanning(_ callback: @escaping RCTResponseSenderBlock) {
         if let manager = manager {
             callback([NSNull(), manager.isScanning])
         } else {
@@ -546,7 +522,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func checkState(_ callback: @escaping RCTResponseSenderBlock) {
+    @objc public func checkState(_ callback: @escaping RCTResponseSenderBlock) {
         if let manager = manager {
             centralManagerDidUpdateState(manager)
 
@@ -555,7 +531,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func write(_ peripheralUUID: String,
+    @objc public func write(_ peripheralUUID: String,
                      serviceUUID: String,
                      characteristicUUID: String,
                      message: [UInt8],
@@ -573,7 +549,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             let key = Helper.key(forPeripheral:peripheral.instance, andCharacteristic: characteristic)
             insertCallback(callback, intoDictionary: &writeCallbacks, withKey: key)
 
-            if BleManager.verboseLogging {
+            if SwiftBleManager.verboseLogging {
                 NSLog("Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())")
             }
 
@@ -592,7 +568,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                     writeQueue.append(splitMessage)
                 }
 
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Queued splitted message: \(writeQueue.count)")
                 }
 
@@ -605,7 +581,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func writeWithoutResponse(_ peripheralUUID: String,
+    @objc public func writeWithoutResponse(_ peripheralUUID: String,
                                     serviceUUID: String,
                                     characteristicUUID: String,
                                     message: [UInt8],
@@ -620,7 +596,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
         let dataMessage = Data(message)
 
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())")
         }
 
@@ -650,7 +626,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func read(_ peripheralUUID: String,
+    @objc public func read(_ peripheralUUID: String,
                     serviceUUID: String,
                     characteristicUUID: String,
                     callback: @escaping RCTResponseSenderBlock) {
@@ -669,7 +645,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         peripheral?.instance.readValue(for: characteristic!)  // callback sends value
     }
 
-    @objc func startNotification(_ peripheralUUID: String,
+    @objc public func startNotification(_ peripheralUUID: String,
                                  serviceUUID: String,
                                  characteristicUUID: String,
                                  callback: @escaping RCTResponseSenderBlock) {
@@ -688,7 +664,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         peripheral.instance.setNotifyValue(true, for: characteristic)
     }
 
-    @objc func stopNotification(_ peripheralUUID: String,
+    @objc public func stopNotification(_ peripheralUUID: String,
                                 serviceUUID: String,
                                 characteristicUUID: String,
                                 callback: @escaping RCTResponseSenderBlock) {
@@ -712,7 +688,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func getMaximumWriteValueLengthForWithoutResponse(_ peripheralUUID: String,
+    @objc public func getMaximumWriteValueLengthForWithoutResponse(_ peripheralUUID: String,
                                                             callback: @escaping RCTResponseSenderBlock) {
         NSLog("getMaximumWriteValueLengthForWithoutResponse")
 
@@ -729,7 +705,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    @objc func getMaximumWriteValueLengthForWithResponse(_ peripheralUUID: String,
+    @objc public func getMaximumWriteValueLengthForWithResponse(_ peripheralUUID: String,
                                                          callback: @escaping RCTResponseSenderBlock) {
         NSLog("getMaximumWriteValueLengthForWithResponse")
 
@@ -746,7 +722,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
+    public func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
         if let restoredPeripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral], restoredPeripherals.count > 0 {
             serialQueue.sync {
                 var data = [[String: Any]]()
@@ -756,13 +732,13 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                     data.append(p.advertisingInfo())
                     peripheral.delegate = self
                 }
-                self.sendEvent(withName:"BleManagerCentralManagerWillRestoreState", body: ["peripherals": data])
+                self.bleManager?.emit(onCentralManagerWillRestoreState: ["peripherals": data])
             }
         }
     }
 
 
-    func centralManager(_ central: CBCentralManager,
+    public func centralManager(_ central: CBCentralManager,
                         didConnect peripheral: CBPeripheral) {
         NSLog("Peripheral Connected: \(peripheral.uuidAsString() )")
         peripheral.delegate = self
@@ -777,15 +753,13 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 // didFailToConnectPeripheral should have been called already if not connected by now
                 self.invokeAndClearDictionary(&self.connectCallbacks, withKey: peripheral.uuidAsString(), usingParameters: [NSNull()])
 
-                if self.hasListeners {
-                    self.connectedPeripherals.insert(peripheral.uuidAsString())
-                    self.sendEvent(withName: "BleManagerConnectPeripheral", body: ["peripheral": peripheral.uuidAsString()])
-                }
+                self.connectedPeripherals.insert(peripheral.uuidAsString())
+                self.bleManager?.emit(onConnectPeripheral: ["peripheral": peripheral.uuidAsString()])
             }
         }
     }
 
-    func centralManager(_ central: CBCentralManager,
+    public func centralManager(_ central: CBCentralManager,
                         didFailToConnect peripheral: CBPeripheral,
                         error: Error?) {
         let errorStr = "Peripheral connection failure: \(peripheral.uuidAsString() ) (\(error?.localizedDescription ?? "")"
@@ -794,7 +768,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         invokeAndClearDictionary(&connectCallbacks, withKey: peripheral.uuidAsString(), usingParameters: [errorStr])
     }
 
-    func centralManager(_ central: CBCentralManager,
+    public func centralManager(_ central: CBCentralManager,
                         didDisconnectPeripheral peripheral:
                         CBPeripheral, error: Error?) {
         let peripheralUUIDString:String = peripheral.uuidAsString()
@@ -841,22 +815,18 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             }
         }
 
-        if hasListeners {
-            connectedPeripherals.remove(peripheralUUIDString)
-            if let e:Error = error {
-                sendEvent(withName: "BleManagerDisconnectPeripheral", body: ["peripheral": peripheralUUIDString, "domain": e._domain, "code": e._code, "description": e.localizedDescription])
-            } else {
-                sendEvent(withName: "BleManagerDisconnectPeripheral", body: ["peripheral": peripheralUUIDString])
-            }
+        connectedPeripherals.remove(peripheralUUIDString)
+        if let e:Error = error {
+            self.bleManager?.emit(onDisconnectPeripheral: ["peripheral": peripheralUUIDString, "domain": e._domain, "code": e._code, "description": e.localizedDescription])
+        } else {
+            self.bleManager?.emit(onDisconnectPeripheral: ["peripheral": peripheralUUIDString])
         }
     }
 
 
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+    public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         let stateName = Helper.centralManagerStateToString(central.state)
-        if hasListeners {
-            sendEvent(withName: "BleManagerDidUpdateState", body: ["state": stateName])
-        }
+        self.bleManager?.emit(onDidUpdateState: ["state": stateName])
         if stateName == "off" {
             for peripheralUUID in connectedPeripherals {
                 if let peripheral = peripherals[peripheralUUID] {
@@ -871,7 +841,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     func handleDiscoveredPeripheral(_ peripheral: CBPeripheral,
                                     advertisementData: [String : Any],
                                     rssi : NSNumber) {
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Discover peripheral: \(peripheral.name ?? "NO NAME")");
         }
 
@@ -887,12 +857,10 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             }
         }
 
-        if (hasListeners) {
-            sendEvent(withName: "BleManagerDiscoverPeripheral", body: (cp?.advertisingInfo())!)
-        }
+        self.bleManager?.emit(onDiscoverPeripheral: cp?.advertisingInfo())
     }
 
-    func centralManager(_ central: CBCentralManager,
+    public func centralManager(_ central: CBCentralManager,
                         didDiscover peripheral: CBPeripheral,
                         advertisementData: [String : Any],
                         rssi RSSI: NSNumber) {
@@ -915,13 +883,13 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverServices error: Error?) {
         if let error = error {
             NSLog("Error: \(error)")
             return
         }
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Services Discover")
         }
 
@@ -931,7 +899,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
         if let services = peripheral.services {
             for service in services {
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Service \(service.uuid.uuidString) \(service.description)")
                 }
                 peripheral.discoverIncludedServices(nil, for: service) // discover included services
@@ -940,7 +908,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverIncludedServicesFor service: CBService,
                     error: Error?) {
         if let error = error {
@@ -950,14 +918,14 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         peripheral.discoverCharacteristics(nil, for: service) // discover characteristics for included service
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverCharacteristicsFor service: CBService,
                     error: Error?) {
         if let error = error {
             NSLog("Error: \(error)")
             return
         }
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Characteristics For Service Discover")
         }
 
@@ -972,7 +940,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didDiscoverDescriptorsFor characteristic: CBCharacteristic,
                     error: Error?) {
         if let error = error {
@@ -982,7 +950,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         let peripheralUUIDString:String = peripheral.uuidAsString()
         let serviceUUIDString:String = (characteristic.service?.uuid.uuidString)!
 
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Descriptor For Characteristic Discover \(serviceUUIDString) \(characteristic.uuid.uuidString)")
         }
 
@@ -1009,10 +977,10 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didReadRSSI RSSI: NSNumber,
                     error: Error?) {
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             print("didReadRSSI \(RSSI)")
         }
 
@@ -1023,7 +991,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didUpdateValueFor descriptor: CBDescriptor,
                     error: Error?) {
         let key = Helper.key(forPeripheral: peripheral, andCharacteristic: descriptor.characteristic!, andDescriptor: descriptor)
@@ -1044,19 +1012,19 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             // The most future proof way of doing this that I could find, other option would be running strcmp on CBUUID strings
             // https://developer.apple.com/documentation/corebluetooth/cbuuid/characteristic_descriptors
             if let descriptorValue = descriptor.value as? Data {
-                if (BleManager.verboseLogging) {
+                if (SwiftBleManager.verboseLogging) {
                     NSLog("Descriptor value is Data")
                 }
                 invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), descriptorValue.toArray()])
             } else if let descriptorValue = descriptor.value as? NSNumber {
-                if (BleManager.verboseLogging) {
+                if (SwiftBleManager.verboseLogging) {
                     NSLog("Descriptor value is NSNumber")
                 }
                 var value = descriptorValue.uint64Value
                 let byteData = Data(bytes: &value, count: MemoryLayout.size(ofValue: value))
                 invokeAndClearDictionary(&readDescriptorCallbacks, withKey: key, usingParameters: [NSNull(), byteData.toArray()])
             } else if let descriptorValue = descriptor.value as? String {
-                if (BleManager.verboseLogging) {
+                if (SwiftBleManager.verboseLogging) {
                     NSLog("Descriptor value is String")
                 }
                 if let byteData = descriptorValue.data(using: .utf8) {
@@ -1071,7 +1039,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didUpdateValueFor characteristic: CBCharacteristic,
                     error: Error?) {
         let key = Helper.key(forPeripheral: peripheral, andCharacteristic: characteristic)
@@ -1082,7 +1050,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             return
         }
 
-        if BleManager.verboseLogging, let value = characteristic.value {
+        if SwiftBleManager.verboseLogging, let value = characteristic.value {
             NSLog("Read value [\(characteristic.uuid)]: \( value.hexadecimalString())")
         }
 
@@ -1090,41 +1058,35 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             if readCallbacks[key] != nil {
                 invokeAndClearDictionary_THREAD_UNSAFE(&readCallbacks, withKey: key, usingParameters: [NSNull(), characteristic.value!.toArray()])
             } else {
-                if hasListeners {
-                    sendEvent(withName: "BleManagerDidUpdateValueForCharacteristic", body: [
-                        "peripheral": peripheral.uuidAsString(),
-                        "characteristic": characteristic.uuid.uuidString.lowercased(),
-                        "service": characteristic.service!.uuid.uuidString.lowercased(),
-                        "value": characteristic.value!.toArray()
-                    ])
-                }
+                self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
+                    "peripheral": peripheral.uuidAsString(),
+                    "characteristic": characteristic.uuid.uuidString.lowercased(),
+                    "service": characteristic.service!.uuid.uuidString.lowercased(),
+                    "value": characteristic.value!.toArray()
+                ])
             }
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didUpdateNotificationStateFor characteristic: CBCharacteristic,
                     error: Error?) {
         if let error = error {
             NSLog("Error in didUpdateNotificationStateForCharacteristic: \(error)")
 
-            if hasListeners {
-                sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                    "peripheral": peripheral.uuidAsString(),
-                    "characteristic": characteristic.uuid.uuidString.lowercased(),
-                    "isNotifying": false,
-                    "domain": error._domain,
-                    "code": error._code
-                ])
-            }
+            self.bleManager?.emitOnDidUpdateNotificationState(for: [
+                "peripheral": peripheral.uuidAsString(),
+                "characteristic": characteristic.uuid.uuidString.lowercased(),
+                "isNotifying": false,
+                "domain": error._domain,
+                "code": error._code
+            ])
         } else {
-            if hasListeners {
-                sendEvent(withName: "BleManagerDidUpdateNotificationStateFor", body: [
-                    "peripheral": peripheral.uuidAsString(),
-                    "characteristic": characteristic.uuid.uuidString.lowercased(),
-                    "isNotifying": characteristic.isNotifying
-                ])
-            }
+            self.bleManager?.emitOnDidUpdateNotificationState(for: [
+                "peripheral": peripheral.uuidAsString(),
+                "characteristic": characteristic.uuid.uuidString.lowercased(),
+                "isNotifying": characteristic.isNotifying
+            ])            
         }
 
         let key = Helper.key(forPeripheral: peripheral, andCharacteristic: characteristic)
@@ -1138,7 +1100,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             }
         } else {
             if characteristic.isNotifying {
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Notification began on \(characteristic.uuid)")
                 }
                 if notificationCallbacks[key] != nil {
@@ -1146,7 +1108,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 }
             } else {
                 // Notification has stopped
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Notification ended on \(characteristic.uuid)")
                 }
                 if stopNotificationCallbacks[key] != nil {
@@ -1156,7 +1118,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didWriteValueFor descriptor: CBDescriptor,
                     error: Error?) {
         NSLog("didWrite descriptor")
@@ -1173,7 +1135,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
     }
 
-    func peripheral(_ peripheral: CBPeripheral,
+    public func peripheral(_ peripheral: CBPeripheral,
                     didWriteValueFor characteristic: CBCharacteristic,
                     error: Error?) {
         NSLog("didWrite")
@@ -1202,70 +1164,70 @@ class BleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         return sharedManager
     }
 
-    static func getInstance() -> BleManager? {
+    static func getInstance() -> SwiftBleManager? {
         return shared
     }
 
-    @objc func enableBluetooth(_ callback: @escaping RCTResponseSenderBlock) {
+    @objc public func enableBluetooth(_ callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func getBondedPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
+    @objc public func getBondedPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func createBond(_ peripheralUUID: String,
+    @objc public func createBond(_ peripheralUUID: String,
                           devicePin: String,
                           callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func removeBond(_ peripheralUUID: String,
+    @objc public func removeBond(_ peripheralUUID: String,
                           callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func removePeripheral(_ peripheralUUID: String,
+    @objc public func removePeripheral(_ peripheralUUID: String,
                                 callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func requestMTU(_ peripheralUUID: String,
+    @objc public func requestMTU(_ peripheralUUID: String,
                           mtu: Int,
                           callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func requestConnectionPriority(_ peripheralUUID: String,
+    @objc public func requestConnectionPriority(_ peripheralUUID: String,
                                          connectionPriority: Int,
                                          callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func refreshCache(_ peripheralUUID: String,
+    @objc public func refreshCache(_ peripheralUUID: String,
                             callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func setName(_ name: String,
-                       callback: @escaping RCTResponseSenderBlock) {
+    @objc public func setName(_ name: String) {
+        // Not supported
+    }
+
+    @objc public func getAssociatedPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func getAssociatedPeripherals(_ callback: @escaping RCTResponseSenderBlock) {
-        callback(["Not supported"])
-    }
-
-    @objc func removeAssociatedPeripheral(_ peripheralUUID: String,
+    @objc public func removeAssociatedPeripheral(_ peripheralUUID: String,
                                           callback: @escaping RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
 
-    @objc func supportsCompanion(_ callback: @escaping RCTResponseSenderBlock) {
-        callback(["Not supported"])
+    @objc public func supportsCompanion(_ callback: @escaping RCTResponseSenderBlock) {
+        callback([NSNull(), false])
     }
 
     @objc public func companionScan(_ serviceUUIDs: [Any],
+                                    option: NSDictionary,
                                     callback:RCTResponseSenderBlock) {
         callback(["Not supported"])
     }
