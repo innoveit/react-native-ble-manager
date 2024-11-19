@@ -8,7 +8,25 @@ parent: Usage
 
 # Events
 
-## BleManagerStopScan
+Since react-native version 0.76, events are handled with specific methods that return the listener.
+
+**Examples**
+
+```js
+useEffect(() => {
+  const onStopListener = BleManager.onStopScan((args) => {
+    // Scanning is stopped args.status
+  });
+
+  return () => {
+    onStopListener.remove();
+  };
+    
+}, []);
+```
+---
+
+### onStopScan
 
 The scanning for peripherals is ended.
 
@@ -16,16 +34,10 @@ The scanning for peripherals is ended.
 
 - `status` - `Number` - [iOS] the reason for stopping the scan. Error code 10 is used for timeouts, 0 covers everything else. [Android] the reason for stopping the scan (<https://developer.android.com/reference/android/bluetooth/le/ScanCallback#constants_1>). Error code 10 is used for timeouts
 
-**Examples**
 
-```js
-bleManagerEmitter.addListener("BleManagerStopScan", (args) => {
-  // Scanning is stopped
-});
-```
 ---
 
-## BleManagerDidUpdateState
+### onDidUpdateState
 
 The BLE change state.
 
@@ -33,16 +45,10 @@ The BLE change state.
 
 - `state` - `String` - the new BLE state. can be one of `unknown` (iOS only), `resetting` (iOS only), `unsupported`, `unauthorized` (iOS only), `on`, `off`, `turning_on` (android only), `turning_off` (android only).
 
-**Examples**
 
-```js
-bleManagerEmitter.addListener("BleManagerDidUpdateState", (args) => {
-  // The new state: args.state
-});
-```
 ---
 
-## BleManagerDiscoverPeripheral
+### onDiscoverPeripheral
 
 The scanning find a new peripheral.
 
@@ -59,17 +65,9 @@ The scanning find a new peripheral.
   - `txPowerLevel` - `Int`
   - `rawData` - [Android only] `JSON` - contains the raw `bytes` and `data` (Base64 encoded string) of the all advertising data
 
-**Examples**
-
-```js
-bleManagerEmitter.addListener("BleManagerDiscoverPeripheral", (args) => {
-  // The id: args.id
-  // The name: args.name
-});
-```
 ---
 
-## BleManagerDidUpdateValueForCharacteristic
+### onDidUpdateValueForCharacteristic
 
 A characteristic notify a new value.
 
@@ -82,37 +80,9 @@ A characteristic notify a new value.
 
 > Event will only be emitted after successful `startNotification`.
 
-**Example**
-
-```js
-import { bytesToString } from "convert-string";
-import { NativeModules, NativeEventEmitter } from "react-native";
-
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-
-async function connectAndPrepare(peripheral, service, characteristic) {
-  // Connect to device
-  await BleManager.connect(peripheral);
-  // Before startNotification you need to call retrieveServices
-  await BleManager.retrieveServices(peripheral);
-  // To enable BleManagerDidUpdateValueForCharacteristic listener
-  await BleManager.startNotification(peripheral, service, characteristic);
-  // Add event listener
-  bleManagerEmitter.addListener(
-    "BleManagerDidUpdateValueForCharacteristic",
-    ({ value, peripheral, characteristic, service }) => {
-      // Convert bytes array to string
-      const data = bytesToString(value);
-      console.log(`Received ${data} for characteristic ${characteristic}`);
-    }
-  );
-  // Actions triggereng BleManagerDidUpdateValueForCharacteristic event
-}
-```
 ---
 
-## BleManagerConnectPeripheral
+### onConnectPeripheral
 
 A peripheral was connected.
 
@@ -123,7 +93,7 @@ A peripheral was connected.
 
 ---
 
-## BleManagerDisconnectPeripheral
+### onDisconnectPeripheral
 
 A peripheral was disconnected.
 
@@ -136,7 +106,7 @@ A peripheral was disconnected.
 
 ---
 
-## BleManagerPeripheralDidBond
+### onPeripheralDidBond
 
 A bond with a peripheral was established
 
@@ -146,7 +116,7 @@ Object with information about the device
 
 ---
 
-## BleManagerCentralManagerWillRestoreState [iOS only]
+### onCentralManagerWillRestoreState [iOS only]
 
 This is fired when [`centralManager:WillRestoreState:`](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518819-centralmanager) is called (app relaunched in the background to handle a bluetooth event).
 
@@ -161,7 +131,7 @@ _For more on performing long-term bluetooth actions in the background:_
 [iOS Relaunch Conditions](https://developer.apple.com/documentation/technotes/tn3115-bluetooth-state-restoration-app-relaunch-rules/)
 
 ---
-## BleManagerDidUpdateNotificationStateFor [iOS only]
+### onDidUpdateNotificationStateFor [iOS only]
 
 The peripheral received a request to start or stop providing notifications for a specified characteristic's value.
 
@@ -175,7 +145,7 @@ The peripheral received a request to start or stop providing notifications for a
 
 ---
 
-## BleManagerCompanionPeripheral [Android only]
+### onCompanionPeripheral [Android only]
 
 User picked a device to associate with.
 
@@ -189,7 +159,7 @@ Null if the request was cancelled by the user.
 
 ---
 
-## BleManagerCompanionFailure [Android only]
+### onCompanionFailure [Android only]
 
 Associate callback received a failure or failed to start the intent to
 pick the device to associate.

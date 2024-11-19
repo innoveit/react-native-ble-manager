@@ -132,20 +132,20 @@ public class DefaultScanManager extends ScanManager {
                     return;
                 }
                 Log.d(
-                    BleManager.LOG_TAG,
-                    String.format(
-                        "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
-                        manufacturerId,
-                        Arrays.toString(manufacturerDataBytes),
-                        Arrays.toString(manufacturerDataMaskBytes)
-                    )
+                        BleManager.LOG_TAG,
+                        String.format(
+                                "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
+                                manufacturerId,
+                                Arrays.toString(manufacturerDataBytes),
+                                Arrays.toString(manufacturerDataMaskBytes)
+                        )
                 );
                 ScanFilter filter = new ScanFilter.Builder()
-                    .setManufacturerData(
-                        manufacturerId,
-                        manufacturerDataBytes,
-                        manufacturerDataMaskBytes
-                    ).build();
+                        .setManufacturerData(
+                                manufacturerId,
+                                manufacturerDataBytes,
+                                manufacturerDataMaskBytes
+                        ).build();
                 filters.add(filter);
             }
         }
@@ -179,7 +179,7 @@ public class DefaultScanManager extends ScanManager {
 
                                 WritableMap map = Arguments.createMap();
                                 map.putInt("status", 10);
-                                bleManager.sendEvent("BleManagerStopScan", map);
+                                bleManager.emitOnStopScan(map);
                             }
                         }
                     });
@@ -208,7 +208,7 @@ public class DefaultScanManager extends ScanManager {
 
         DefaultPeripheral peripheral = (DefaultPeripheral) bleManager.getPeripheral(result.getDevice());
         if (peripheral == null) {
-            peripheral = new DefaultPeripheral(bleManager.getReactContext(), result);
+            peripheral = new DefaultPeripheral(bleManager, result);
         } else {
             peripheral.updateData(result);
             peripheral.updateRssi(result.getRssi());
@@ -216,7 +216,7 @@ public class DefaultScanManager extends ScanManager {
         bleManager.savePeripheral(peripheral);
 
         WritableMap map = peripheral.asWritableMap();
-        bleManager.sendEvent("BleManagerDiscoverPeripheral", map);
+        bleManager.emitOnDiscoverPeripheral(map);
     }
 
     private final ScanCallback mScanCallback = new ScanCallback() {
@@ -251,7 +251,7 @@ public class DefaultScanManager extends ScanManager {
             isScanning = false;
             WritableMap map = Arguments.createMap();
             map.putInt("status", errorCode);
-            bleManager.sendEvent("BleManagerStopScan", map);
+            bleManager.emitOnStopScan(map);
         }
     };
 

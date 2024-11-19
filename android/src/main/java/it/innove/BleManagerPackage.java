@@ -13,22 +13,23 @@ import java.util.List;
 
 public class BleManagerPackage implements ReactPackage {
 
-	public BleManagerPackage() {}
+    public BleManagerPackage() {
+    }
 
-	@Override
-	public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-		List<NativeModule> modules = new ArrayList<>();
+    @Override
+    public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
+        List<NativeModule> modules = new ArrayList<>();
 
-		modules.add(new BleManager(reactApplicationContext));
-		return  modules;
-	}
+        modules.add(new BleManager(reactApplicationContext));
+        return modules;
+    }
 
-	public List<Class<? extends JavaScriptModule>> createJSModules() {
-		return new ArrayList<>();
-	}
+    public List<Class<? extends JavaScriptModule>> createJSModules() {
+        return new ArrayList<>();
+    }
 
-	@Override
-	public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-		return Collections.emptyList();
-	}
+    @Override
+    public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
+        return Collections.emptyList();
+    }
 }

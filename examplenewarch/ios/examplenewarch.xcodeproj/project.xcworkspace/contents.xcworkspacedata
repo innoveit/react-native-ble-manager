@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/marco/git/react-native-ble-manager/ios/BleManager.xcodeproj">
+      location = "self:">
    </FileRef>
 </Workspace>

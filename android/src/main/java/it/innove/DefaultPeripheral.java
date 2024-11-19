@@ -24,14 +24,14 @@ public class DefaultPeripheral extends Peripheral {
     private ScanRecord advertisingData;
     private ScanResult scanResult;
 
-    public DefaultPeripheral(ReactContext reactContext, ScanResult result) {
-        super(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), reactContext);
+    public DefaultPeripheral(BleManager bleManager, ScanResult result) {
+        super(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), bleManager);
         this.advertisingData = result.getScanRecord();
         this.scanResult = result;
     }
 
-    public DefaultPeripheral(BluetoothDevice device, ReactApplicationContext reactContext) {
-        super(device, reactContext);
+    public DefaultPeripheral(BluetoothDevice device, BleManager bleManager) {
+        super(device, bleManager);
     }
 
     @Override

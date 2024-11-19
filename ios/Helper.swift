@@ -175,12 +175,12 @@ class Helper {
     }
     
     static func findDescriptor(fromUUID UUID: CBUUID, characteristic: CBCharacteristic) -> CBDescriptor? {
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Looking for descriptor \(UUID) on characteristic \(characteristic.uuid)")
         }
         for descriptor in characteristic.descriptors ?? [] {
             if descriptor.uuid.isEqual(UUID) {
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Found descriptor \(UUID)")
                 }
                 return descriptor
@@ -202,12 +202,12 @@ class Helper {
         
     // Find a characteristic in service with a specific property
     static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService, prop: CBCharacteristicProperties) -> CBCharacteristic? {
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Looking for \(UUID) with properties \(prop.rawValue)")
         }
         for characteristic in service.characteristics ?? [] {
             if (characteristic.properties.contains(prop) && characteristic.uuid.isEqual(UUID)) {
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Found \(UUID)")
                 }
                 return characteristic
@@ -218,12 +218,12 @@ class Helper {
     
     // Find a characteristic in service by UUID
     static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService) -> CBCharacteristic? {
-        if BleManager.verboseLogging {
+        if SwiftBleManager.verboseLogging {
             NSLog("Looking for \(UUID)")
         }
         for characteristic in service.characteristics ?? [] {
             if characteristic.uuid.isEqual(UUID) {
-                if BleManager.verboseLogging {
+                if SwiftBleManager.verboseLogging {
                     NSLog("Found \(UUID)")
                 }
                 return characteristic
