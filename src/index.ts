@@ -840,7 +840,7 @@ class BleManager extends NativeEventEmitter {
   }
 
   onDidUpdateState(callback: any): EventSubscription {
-    return BleManagerModule.onStateChange(callback);
+    return BleManagerModule.onDidUpdateState(callback);
   }
 
   onCentralManagerDidUpdateState(callback: any): EventSubscription {
