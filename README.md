@@ -1,8 +1,9 @@
 # react-native-ble-manager
 
-[![npm version](https://img.shields.io/npm/v/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
-[![npm downloads](https://img.shields.io/npm/dm/react-native-ble-manager.svg?style=flat)](https://www.npmjs.com/package/react-native-ble-manager)
-[![GitHub issues](https://img.shields.io/github/issues/innoveit/react-native-ble-manager.svg?style=flat)](https://github.com/innoveit/react-native-ble-manager/issues)
+![GitHub Release](https://img.shields.io/github/v/release/innoveit/react-native-ble-manager?style=for-the-badge)
+[![npm version](https://img.shields.io/npm/v/react-native-ble-manager.svg?style=for-the-badge)](https://www.npmjs.com/package/react-native-ble-manager)
+[![npm downloads](https://img.shields.io/npm/dm/react-native-ble-manager.svg?style=for-the-badge)](https://www.npmjs.com/package/react-native-ble-manager)
+[![GitHub issues](https://img.shields.io/github/issues/innoveit/react-native-ble-manager.svg?style=for-the-badge)](https://github.com/innoveit/react-native-ble-manager/issues)
 
 A React Native Bluetooth Low Energy library.
 
