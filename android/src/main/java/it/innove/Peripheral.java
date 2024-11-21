@@ -467,7 +467,7 @@ public class Peripheral extends BluetoothGattCallback {
                 map.putString("characteristic", charString);
                 map.putString("service", service);
                 map.putArray("value", BleManager.bytesToWritableArray(dataValue));
-                bleManager.emitOnDidUpdateNotificationStateFor(map);
+                bleManager.emitOnDidUpdateValueForCharacteristic(map);
 
                 // Check if rest exists. If so it needs to be added to the clean buffer
                 dataValue = rest;
