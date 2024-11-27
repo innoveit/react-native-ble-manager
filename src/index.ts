@@ -1,6 +1,5 @@
 import {
   EventSubscription,
-  NativeEventEmitter,
   NativeModules,
 } from 'react-native';
 import {
@@ -33,12 +32,11 @@ const BleManagerModule = isTurboModuleEnabled
   ? require('./NativeBleManager').default
   : NativeModules.BleManager;
 
-class BleManager extends NativeEventEmitter {
+class BleManager {
   constructor() {
     if (!BleManagerModule) {
       throw new Error('BleManagerModule not found');
     }
-    super(BleManagerModule);
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
   }
 
