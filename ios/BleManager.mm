@@ -1,5 +1,9 @@
 #import <BleManager.h>
+#if __has_include("RNBleManager-Swift.h")
 #import <RNBleManager-Swift.h>
+#else
+#import <RNBleManager/RNBleManager-Swift.h>
+#endif
 
 @implementation SpecChecker
 
