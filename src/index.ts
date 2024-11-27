@@ -20,14 +20,7 @@ export * from './types';
 
 // @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
 const isTurboModuleEnabled = global?.__turboModuleProxy != null;
-if (isTurboModuleEnabled) {
-  // Warn users that this is a release candidate and should be used with caution.
-  console.warn(`
-    You're using a turbo module version of react-native-version!\n
-    If something is broken please feedback on "issues" https://github.com/innoveit/react-native-ble-manager\n
-    Please use with caution cause it's not quite stable yet.
-  `);
-}
+
 const BleManagerModule = isTurboModuleEnabled
   ? require('./NativeBleManager').default
   : NativeModules.BleManager;
