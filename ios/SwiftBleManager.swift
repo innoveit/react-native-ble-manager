@@ -177,6 +177,14 @@ import CoreBluetooth
         if SwiftBleManager.verboseLogging {
             NSLog("BleManager initialized")
         }
+        if let bluetoothUsageDescription = Bundle.main.object(forInfoDictionaryKey: "NSBluetoothAlwaysUsageDescription") as? String {
+            // NSBluetoothAlwaysUsageDescription is ok
+        } else {
+            let error = "NSBluetoothAlwaysUsageDescription is not set in the infoPlist"
+            NSLog(error)
+            callback([error])
+            return
+        }
         var initOptions = [String: Any]()
 
         if let showAlert = options["showAlert"] as? Bool {
