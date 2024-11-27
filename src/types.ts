@@ -260,6 +260,7 @@ export interface PeripheralInfo extends Peripheral {
 
 export enum BleEventType {
   BleManagerDidUpdateState = "BleManagerDidUpdateState",
+  BleManagerStartScan = "BleManagerStartScan",
   BleManagerStopScan = "BleManagerStopScan",
   BleManagerDiscoverPeripheral = "BleManagerDiscoverPeripheral",
   BleManagerDidUpdateValueForCharacteristic = "BleManagerDidUpdateValueForCharacteristic",
@@ -277,6 +278,10 @@ export enum BleEventType {
    * [iOS only]
    */
   BleManagerDidUpdateNotificationStateFor = "BleManagerDidUpdateNotificationStateFor",
+}
+
+export interface BleStartScanEvent {
+  status?: number;
 }
 
 export interface BleStopScanEvent {
