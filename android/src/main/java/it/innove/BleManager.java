@@ -229,8 +229,12 @@ class BleManager extends ReactContextBaseJavaModule {
             }
         }
 
-        if (scanManager != null)
+        if (scanManager != null) {
+             WritableMap startMap = Arguments.createMap();
+             startMap.putInt("status", 1);
+             sendEvent("BleManagerStartScan", startMap);
             scanManager.scan(serviceUUIDs, scanSeconds, options, callback);
+        }
     }
 
     @SuppressLint("NewApi") // NOTE: constructor checks the API version.
