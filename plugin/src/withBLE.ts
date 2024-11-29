@@ -13,7 +13,6 @@ const withBLE: ConfigPlugin<
       companionDeviceEnabled?: boolean;
    } | void
 > = (config, props = {}) => {
-   console.log('withBLE');
    const _props = props || {};
    const isBackgroundEnabled = false;
    const neverForLocation = _props.neverForLocation ?? false;
