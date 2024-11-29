@@ -34,6 +34,8 @@
         "/ios",
         "*.podspec",
         "react-native.config.json",
+        "app.plugin.js",
+        "plugin/build",
         "!ios/build",
         "!android/build",
         "!android/gradle",
@@ -49,11 +51,13 @@
         "version": "git add -A",
         "clean": "rimraf dist",
         "type:check": "tsc -p tsconfig.json --noEmit",
+        "build:plugin": "tsc --build plugin",
+        "clean:plugin": "expo-module clean plugin",
         "prepare": "npm run build",
-        "prebuild": "npm run clean",
+        "prebuild": "npm run clean && npm run clean:plugin",
         "build:cjs": "tsc --module commonjs --outDir dist/cjs",
         "build:esm": "tsc --outDir dist/esm",
-        "build": "npm run build:esm && npm run build:cjs",
+        "build": "npm run build:esm && npm run build:cjs && npm run build:plugin",
         "watch": "npm run build --watch",
         "preversion": "npm run build",
         "postversion": "git push --follow-tags"
@@ -82,7 +86,9 @@
         "react-native": "0.76.2",
         "@react-native/gradle-plugin": "^0.76.2",
         "turbo": "^2.3.0",
-        "typescript": "^5.6.3"
+        "typescript": "^5.6.3",
+        "@expo/config-plugins": "^9.0.10",
+        "expo-module-scripts": "^4.0.2"
     },
     "eslintConfig": {
         "root": true,
@@ -105,5 +111,6 @@
         "android": {
             "javaPackageName": "it.innove"
         }
-    }
+    },
+    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

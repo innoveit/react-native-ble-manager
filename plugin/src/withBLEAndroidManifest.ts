@@ -8,7 +8,6 @@ type InnerManifest = AndroidConfig.Manifest.AndroidManifest['manifest'];
 
 type ManifestPermission = InnerManifest['permission'];
 
-// TODO: add to `AndroidManifestAttributes` in @expo/config-plugins
 type ExtraTools = {
   // https://developer.android.com/studio/write/tool-attributes#toolstargetapi
   'tools:targetApi'?: string;
@@ -30,7 +29,8 @@ type AndroidManifest = {
 export const withBLEAndroidManifest: ConfigPlugin<{
   isBackgroundEnabled: boolean;
   neverForLocation: boolean;
-}> = (config, {isBackgroundEnabled, neverForLocation}) => {
+  companionDeviceEnabled: boolean;
+}> = (config, {isBackgroundEnabled, neverForLocation, companionDeviceEnabled}) => {
   return withAndroidManifest(config, config => {
     config.modResults = addLocationPermissionToManifest(
       config.modResults,
@@ -44,7 +44,9 @@ export const withBLEAndroidManifest: ConfigPlugin<{
       config.modResults,
       neverForLocation,
     );
-    config.modResults = addCompanionPermissionToManifest(config.modResults);
+    if (companionDeviceEnabled) {
+      config.modResults = addCompanionPermissionToManifest(config.modResults);
+    }    
     if (isBackgroundEnabled) {
       config.modResults = addBLEHardwareFeatureToManifest(config.modResults);
     }
