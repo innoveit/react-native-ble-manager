@@ -1,4 +1,5 @@
-module.exports = ({ config }) => {
+
+export default ({ config }) => {
   if (process.env.MY_ENVIRONMENT === 'production') {
     config.name = 'RN BLE Example';
   } else {
@@ -6,6 +7,7 @@ module.exports = ({ config }) => {
   }
 
   return {
+    ...config,
     android: {
       package: 'it.innove.example.ble',
     },
