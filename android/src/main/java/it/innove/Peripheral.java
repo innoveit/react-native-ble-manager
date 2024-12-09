@@ -76,7 +76,6 @@ public class Peripheral extends BluetoothGattCallback {
 
     private final Queue<Runnable> commandQueue = new ConcurrentLinkedQueue<>();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private Runnable discoverServicesRunnable;
     private boolean commandQueueBusy = false;
 
     private List<byte[]> writeQueue = new ArrayList<>();
@@ -320,21 +319,6 @@ public class Peripheral extends BluetoothGattCallback {
             if (newState == BluetoothProfile.STATE_CONNECTED && status == BluetoothGatt.GATT_SUCCESS) {
                 connected = true;
 
-                discoverServicesRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            gatt.discoverServices();
-                        } catch (NullPointerException e) {
-                            Log.d(BleManager.LOG_TAG,
-                                    "onConnectionStateChange connected but gatt of Run method was null");
-                        }
-                        discoverServicesRunnable = null;
-                    }
-                };
-
-                mainHandler.post(discoverServicesRunnable);
-
                 sendConnectionEvent(device, "BleManagerConnectPeripheral", status);
 
                 Log.d(BleManager.LOG_TAG, "Connected to: " + device.getAddress());
@@ -344,11 +328,6 @@ public class Peripheral extends BluetoothGattCallback {
                 connectCallbacks.clear();
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED || status != BluetoothGatt.GATT_SUCCESS) {
-
-                if (discoverServicesRunnable != null) {
-                    mainHandler.removeCallbacks(discoverServicesRunnable);
-                    discoverServicesRunnable = null;
-                }
 
                 for (Callback writeCallback : writeCallbacks) {
                     writeCallback.invoke("Device disconnected");
@@ -400,8 +379,6 @@ public class Peripheral extends BluetoothGattCallback {
                 commandQueueBusy = false;
                 connected = false;
                 clearBuffers();
-                commandQueue.clear();
-                commandQueueBusy = false;
 
                 gatt.disconnect();
                 gatt.close();
