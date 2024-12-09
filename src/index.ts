@@ -1,4 +1,7 @@
-import { NativeEventEmitter, NativeModules } from "react-native";
+import {
+  EventSubscription,
+  NativeModules,
+} from 'react-native';
 import {
   BleScanCallbackType,
   BleScanMatchCount,
@@ -12,15 +15,21 @@ import {
   PeripheralInfo,
   ScanOptions,
   StartOptions,
-} from "./types";
+} from './types';
+export * from './types';
 
-export * from "./types";
+// @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
+const isTurboModuleEnabled = global?.__turboModuleProxy != null;
 
-let bleManager = NativeModules.BleManager;
+const BleManagerModule = isTurboModuleEnabled
+  ? require('./NativeBleManager').default
+  : NativeModules.BleManager;
 
-class BleManager extends NativeEventEmitter {
+class BleManager {
   constructor() {
-    super(bleManager);
+    if (!BleManagerModule) {
+      throw new Error('BleManagerModule not found');
+    }
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
   }
 
@@ -33,7 +42,7 @@ class BleManager extends NativeEventEmitter {
    */
   read(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
     return new Promise<number[]>((fulfill, reject) => {
-      bleManager.read(
+      BleManagerModule.read(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -63,7 +72,7 @@ class BleManager extends NativeEventEmitter {
     descriptorUUID: string
   ) {
     return new Promise<number[]>((fulfill, reject) => {
-      bleManager.readDescriptor(
+      BleManagerModule.readDescriptor(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -96,7 +105,7 @@ class BleManager extends NativeEventEmitter {
     data: number[]
   ) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.writeDescriptor(
+      BleManagerModule.writeDescriptor(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -120,7 +129,7 @@ class BleManager extends NativeEventEmitter {
    */
   readRSSI(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.readRSSI(
+      BleManagerModule.readRSSI(
         peripheralId,
         (error: string | null, rssi: number) => {
           if (error) {
@@ -140,7 +149,7 @@ class BleManager extends NativeEventEmitter {
    */
   refreshCache(peripheralId: string) {
     return new Promise<boolean>((fulfill, reject) => {
-      bleManager.refreshCache(
+      BleManagerModule.refreshCache(
         peripheralId,
         (error: string | null, result: boolean) => {
           if (error) {
@@ -161,7 +170,7 @@ class BleManager extends NativeEventEmitter {
    */
   retrieveServices(peripheralId: string, serviceUUIDs: string[] = []) {
     return new Promise<PeripheralInfo>((fulfill, reject) => {
-      bleManager.retrieveServices(
+      BleManagerModule.retrieveServices(
         peripheralId,
         serviceUUIDs,
         (error: string | null, peripheral: PeripheralInfo) => {
@@ -192,7 +201,7 @@ class BleManager extends NativeEventEmitter {
     maxByteSize: number = 20
   ) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.write(
+      BleManagerModule.write(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -228,7 +237,7 @@ class BleManager extends NativeEventEmitter {
     queueSleepTime: number = 10
   ) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.writeWithoutResponse(
+      BleManagerModule.writeWithoutResponse(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -251,13 +260,17 @@ class BleManager extends NativeEventEmitter {
       if (!options) {
         options = {};
       }
-      bleManager.connect(peripheralId, options, (error: string | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
+      BleManagerModule.connect(
+        peripheralId,
+        options,
+        (error: string | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
         }
-      });
+      );
     });
   }
 
@@ -269,7 +282,7 @@ class BleManager extends NativeEventEmitter {
    */
   createBond(peripheralId: string, peripheralPin: string | null = null) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.createBond(
+      BleManagerModule.createBond(
         peripheralId,
         peripheralPin,
         (error: string | null) => {
@@ -290,7 +303,7 @@ class BleManager extends NativeEventEmitter {
    */
   removeBond(peripheralId: string) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.removeBond(peripheralId, (error: string | null) => {
+      BleManagerModule.removeBond(peripheralId, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -308,13 +321,17 @@ class BleManager extends NativeEventEmitter {
    */
   disconnect(peripheralId: string, force: boolean = true) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.disconnect(peripheralId, force, (error: string | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
+      BleManagerModule.disconnect(
+        peripheralId,
+        force,
+        (error: string | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
         }
-      });
+      );
     });
   }
 
@@ -324,7 +341,7 @@ class BleManager extends NativeEventEmitter {
     characteristicUUID: string
   ) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.startNotification(
+      BleManagerModule.startNotification(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -354,7 +371,7 @@ class BleManager extends NativeEventEmitter {
     buffer: number
   ) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.startNotificationUseBuffer(
+      BleManagerModule.startNotificationUseBuffer(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -376,7 +393,7 @@ class BleManager extends NativeEventEmitter {
     characteristicUUID: string
   ) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.stopNotification(
+      BleManagerModule.stopNotification(
         peripheralId,
         serviceUUID,
         characteristicUUID,
@@ -393,7 +410,7 @@ class BleManager extends NativeEventEmitter {
 
   checkState() {
     return new Promise<BleState>((fulfill, _) => {
-      bleManager.checkState((state: BleState) => {
+      BleManagerModule.checkState((state: BleState) => {
         fulfill(state);
       });
     });
@@ -404,7 +421,7 @@ class BleManager extends NativeEventEmitter {
       if (options == null) {
         options = {};
       }
-      bleManager.start(options, (error: string | null) => {
+      BleManagerModule.start(options, (error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -467,14 +484,14 @@ class BleManager extends NativeEventEmitter {
       if (!scanningOptions.exactAdvertisingName) {
         delete scanningOptions.exactAdvertisingName;
       } else {
-        if (typeof scanningOptions.exactAdvertisingName === "string") {
+        if (typeof scanningOptions.exactAdvertisingName === 'string') {
           scanningOptions.exactAdvertisingName = [
             scanningOptions.exactAdvertisingName,
           ];
         }
       }
 
-      bleManager.scan(
+      BleManagerModule.scan(
         serviceUUIDs,
         seconds,
         allowDuplicates,
@@ -492,7 +509,7 @@ class BleManager extends NativeEventEmitter {
 
   stopScan() {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.stopScan((error: string | null) => {
+      BleManagerModule.stopScan((error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -508,7 +525,7 @@ class BleManager extends NativeEventEmitter {
    */
   enableBluetooth() {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.enableBluetooth((error: string | null) => {
+      BleManagerModule.enableBluetooth((error: string | null) => {
         if (error) {
           reject(error);
         } else {
@@ -525,7 +542,7 @@ class BleManager extends NativeEventEmitter {
    */
   getConnectedPeripherals(serviceUUIDs: string[] = []) {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      bleManager.getConnectedPeripherals(
+      BleManagerModule.getConnectedPeripherals(
         serviceUUIDs,
         (error: string | null, result: Peripheral[] | null) => {
           if (error) {
@@ -548,7 +565,7 @@ class BleManager extends NativeEventEmitter {
    */
   getBondedPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      bleManager.getBondedPeripherals(
+      BleManagerModule.getBondedPeripherals(
         (error: string | null, result: Peripheral[] | null) => {
           if (error) {
             reject(error);
@@ -566,7 +583,7 @@ class BleManager extends NativeEventEmitter {
 
   getDiscoveredPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      bleManager.getDiscoveredPeripherals(
+      BleManagerModule.getDiscoveredPeripherals(
         (error: string | null, result: Peripheral[] | null) => {
           if (error) {
             reject(error);
@@ -589,13 +606,16 @@ class BleManager extends NativeEventEmitter {
    */
   removePeripheral(peripheralId: string) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.removePeripheral(peripheralId, (error: string | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill();
+      BleManagerModule.removePeripheral(
+        peripheralId,
+        (error: string | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill();
+          }
         }
-      });
+      );
     });
   }
 
@@ -621,7 +641,7 @@ class BleManager extends NativeEventEmitter {
    */
   isScanning() {
     return new Promise<boolean>((fulfill, reject) => {
-      bleManager.isScanning((error: string | null, status: boolean) => {
+      BleManagerModule.isScanning((error: string | null, status: boolean) => {
         if (error) {
           reject(error);
         } else {
@@ -642,7 +662,7 @@ class BleManager extends NativeEventEmitter {
     connectionPriority: ConnectionPriority
   ) {
     return new Promise<boolean>((fulfill, reject) => {
-      bleManager.requestConnectionPriority(
+      BleManagerModule.requestConnectionPriority(
         peripheralId,
         connectionPriority,
         (error: string | null, status: boolean) => {
@@ -664,7 +684,7 @@ class BleManager extends NativeEventEmitter {
    */
   requestMTU(peripheralId: string, mtu: number) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.requestMTU(
+      BleManagerModule.requestMTU(
         peripheralId,
         mtu,
         (error: string | null, mtu: number) => {
@@ -685,13 +705,15 @@ class BleManager extends NativeEventEmitter {
    */
   getAssociatedPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      bleManager.getAssociatedPeripherals((error: string | null, peripherals: Peripheral[] | null) => {
-        if (error) {
-          reject(error);
-        } else {
-          fulfill(peripherals || []);
+      BleManagerModule.getAssociatedPeripherals(
+        (error: string | null, peripherals: Peripheral[] | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(peripherals || []);
+          }
         }
-      });
+      );
     });
   }
 
@@ -703,13 +725,16 @@ class BleManager extends NativeEventEmitter {
    */
   removeAssociatedPeripheral(peripheralId: string) {
     return new Promise<void>((fulfill, reject) => {
-      bleManager.removeAssociatedPeripheral(peripheralId, (error: string | null) => {
-        if (error !== null) {
-          reject(error);
-        } else {
-          fulfill();
+      BleManagerModule.removeAssociatedPeripheral(
+        peripheralId,
+        (error: string | null) => {
+          if (error !== null) {
+            reject(error);
+          } else {
+            fulfill();
+          }
         }
-      });
+      );
     });
   }
 
@@ -721,8 +746,10 @@ class BleManager extends NativeEventEmitter {
    * @return Promise resolving to a boolean.
    */
   supportsCompanion() {
-    return new Promise<boolean>(fulfill => {
-      bleManager.supportsCompanion((supports: boolean) => fulfill(supports));
+    return new Promise<boolean>((fulfill) => {
+      BleManagerModule.supportsCompanion((supports: boolean) =>
+        fulfill(supports)
+      );
     });
   }
 
@@ -731,18 +758,19 @@ class BleManager extends NativeEventEmitter {
    *
    * Start companion scan.
    */
-  companionScan(
-    serviceUUIDs: string[],
-    options: CompanionScanOptions = {}
-  ) {
+  companionScan(serviceUUIDs: string[], options: CompanionScanOptions = {}) {
     return new Promise<Peripheral | null>((fulfill, reject) => {
-      bleManager.companionScan(serviceUUIDs, options, (error: string | null, peripheral: Peripheral | null) => {
-        if (error) {
-          reject(error)
-        } else {
-          fulfill(peripheral);
+      BleManagerModule.companionScan(
+        serviceUUIDs,
+        options,
+        (error: string | null, peripheral: Peripheral | null) => {
+          if (error) {
+            reject(error);
+          } else {
+            fulfill(peripheral);
+          }
         }
-      });
+      );
     });
   }
 
@@ -751,7 +779,7 @@ class BleManager extends NativeEventEmitter {
    * @param name
    */
   setName(name: string) {
-    bleManager.setName(name);
+    BleManagerModule.setName(name);
   }
 
   /**
@@ -761,7 +789,7 @@ class BleManager extends NativeEventEmitter {
    */
   getMaximumWriteValueLengthForWithoutResponse(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.getMaximumWriteValueLengthForWithoutResponse(
+      BleManagerModule.getMaximumWriteValueLengthForWithoutResponse(
         peripheralId,
         (error: string | null, max: number) => {
           if (error) {
@@ -781,7 +809,7 @@ class BleManager extends NativeEventEmitter {
    */
   getMaximumWriteValueLengthForWithResponse(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
-      bleManager.getMaximumWriteValueLengthForWithResponse(
+      BleManagerModule.getMaximumWriteValueLengthForWithResponse(
         peripheralId,
         (error: string | null, max: number) => {
           if (error) {
@@ -792,6 +820,54 @@ class BleManager extends NativeEventEmitter {
         }
       );
     });
+  }
+
+  onDiscoverPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onDiscoverPeripheral(callback);
+  }
+
+  onStopScan(callback: any): EventSubscription {
+    return BleManagerModule.onStopScan(callback);
+  }
+
+  onDidUpdateState(callback: any): EventSubscription {
+    return BleManagerModule.onDidUpdateState(callback);
+  }
+
+  onCentralManagerDidUpdateState(callback: any): EventSubscription {
+    return BleManagerModule.onCentralManagerDidUpdateState(callback);
+  }
+
+  onConnectPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onConnectPeripheral(callback);
+  }
+
+  onDisconnectPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onDisconnectPeripheral(callback);
+  }
+
+  onDidUpdateValueForCharacteristic(callback: any): EventSubscription {
+    return BleManagerModule.onDidUpdateValueForCharacteristic(callback);
+  }
+
+  onPeripheralDidBond(callback: any): EventSubscription {
+    return BleManagerModule.onPeripheralDidBond(callback);
+  }
+
+  onCentralManagerWillRestoreState(callback: any): EventSubscription {
+    return BleManagerModule.onCentralManagerWillRestoreState(callback);
+  }
+
+  onDidUpdateNotificationStateFor(callback: any): EventSubscription {
+    return BleManagerModule.onDidUpdateNotificationStateFor(callback);
+  }
+
+  onCompanionPeripheral(callback: any): EventSubscription {
+    return BleManagerModule.onCompanionPeripheral(callback);
+  }
+
+  onCompanionAvailability(callback: any): EventSubscription {
+    return BleManagerModule.onCompanionAvailability(callback);
   }
 }
 

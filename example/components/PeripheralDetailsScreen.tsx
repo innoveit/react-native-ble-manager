@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
-import {Peripheral, PeripheralInfo} from 'react-native-ble-manager';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Peripheral, PeripheralInfo } from 'react-native-ble-manager';
 
 // Define interfaces for your peripheral's properties
 interface Characteristic {
@@ -23,7 +23,7 @@ interface PeripheralDetailsProps {
   };
 }
 
-const PeripheralDetailsScreen = ({route}: PeripheralDetailsProps) => {
+const PeripheralDetailsScreen = ({ route }: PeripheralDetailsProps) => {
   const peripheralData = route.params.peripheralData;
   console.log('peripheralData:', JSON.stringify(peripheralData, null, 2));
 
@@ -31,7 +31,7 @@ const PeripheralDetailsScreen = ({route}: PeripheralDetailsProps) => {
   const renderCharacteristicsForService = (serviceUUID: string) => {
     const characteristics = peripheralData.characteristics ?? [];
     return characteristics
-      .filter(char => char.service === serviceUUID)
+      .filter((char) => char.service === serviceUUID)
       .map((char, index) => (
         <View key={index} style={styles.characteristicContainer}>
           <Text style={styles.characteristicTitle}>
@@ -45,7 +45,8 @@ const PeripheralDetailsScreen = ({route}: PeripheralDetailsProps) => {
   return (
     <ScrollView
       style={styles.scrollViewStyle}
-      contentContainerStyle={styles.contentContainer}>
+      contentContainerStyle={styles.contentContainer}
+    >
       <Text style={styles.title}>Peripheral Details</Text>
       <Text style={styles.detail}>name: {peripheralData.name}</Text>
       <Text style={styles.detail}>id: {peripheralData.id}</Text>

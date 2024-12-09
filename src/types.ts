@@ -6,26 +6,26 @@ export enum BleState {
   /**
    * [iOS only]
    */
-  Unknown = "unknown",
+  Unknown = 'unknown',
   /**
    * [iOS only]
    */
-  Resetting = "resetting",
-  Unsupported = "unsupported",
+  Resetting = 'resetting',
+  Unsupported = 'unsupported',
   /**
    * [iOS only]
    */
-  Unauthorized = "unauthorized",
-  On = "on",
-  Off = "off",
+  Unauthorized = 'unauthorized',
+  On = 'on',
+  Off = 'off',
   /**
    * [android only]
    */
-  TurningOn = "turning_on",
+  TurningOn = 'turning_on',
   /**
    * [android only]
    */
-  TurningOff = "turning_off",
+  TurningOff = 'turning_off',
 }
 
 export interface Peripheral {
@@ -47,7 +47,7 @@ export interface AdvertisingData {
 }
 
 export interface CustomAdvertisingData {
-  CDVType: "ArrayBuffer";
+  CDVType: 'ArrayBuffer';
   /**
    * data as an array of numbers (which can be converted back to a Uint8Array (ByteArray),
    * using something like [Buffer.from()](https://github.com/feross/buffer))
@@ -138,7 +138,7 @@ export interface ScanOptions {
    * if `callbackType` is set to `FirstMatch`, the shortenedLocalName will be used for filtering.
    * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
    */
-  exactAdvertisingName?: string|string[];
+  exactAdvertisingName?: string | string[];
   /**
    * Android only. Filters scan results by manufacturer id and data.
    * `manufacturerId` usually matches the company id, can be given as a hex, e.g. 0xe4f7.
@@ -150,7 +150,7 @@ export interface ScanOptions {
     manufacturerId: number;
     manufacturerData?: number[];
     manufacturerDataMask?: number[];
-  }
+  };
   /**
    * When using compaion mode, only associate single peripheral.
    *
@@ -236,16 +236,16 @@ export interface Characteristic {
    * See https://developer.apple.com/documentation/corebluetooth/cbcharacteristicproperties
    */
   properties: {
-    Broadcast?: "Broadcast";
-    Read?: "Read";
-    WriteWithoutResponse?: "WriteWithoutResponse";
-    Write?: "Write";
-    Notify?: "Notify";
-    Indicate?: "Indicate";
-    AuthenticatedSignedWrites?: "AuthenticatedSignedWrites";
-    ExtendedProperties?: "ExtendedProperties";
-    NotifyEncryptionRequired?: "NotifyEncryptionRequired";
-    IndicateEncryptionRequired?: "IndicateEncryptionRequired";
+    Broadcast?: 'Broadcast';
+    Read?: 'Read';
+    WriteWithoutResponse?: 'WriteWithoutResponse';
+    Write?: 'Write';
+    Notify?: 'Notify';
+    Indicate?: 'Indicate';
+    AuthenticatedSignedWrites?: 'AuthenticatedSignedWrites';
+    ExtendedProperties?: 'ExtendedProperties';
+    NotifyEncryptionRequired?: 'NotifyEncryptionRequired';
+    IndicateEncryptionRequired?: 'IndicateEncryptionRequired';
   };
   characteristic: string;
   service: string;
@@ -259,24 +259,24 @@ export interface PeripheralInfo extends Peripheral {
 }
 
 export enum BleEventType {
-  BleManagerDidUpdateState = "BleManagerDidUpdateState",
-  BleManagerStopScan = "BleManagerStopScan",
-  BleManagerDiscoverPeripheral = "BleManagerDiscoverPeripheral",
-  BleManagerDidUpdateValueForCharacteristic = "BleManagerDidUpdateValueForCharacteristic",
-  BleManagerConnectPeripheral = "BleManagerConnectPeripheral",
-  BleManagerDisconnectPeripheral = "BleManagerDisconnectPeripheral",
+  BleManagerDidUpdateState = 'BleManagerDidUpdateState',
+  BleManagerStopScan = 'BleManagerStopScan',
+  BleManagerDiscoverPeripheral = 'BleManagerDiscoverPeripheral',
+  BleManagerDidUpdateValueForCharacteristic = 'BleManagerDidUpdateValueForCharacteristic',
+  BleManagerConnectPeripheral = 'BleManagerConnectPeripheral',
+  BleManagerDisconnectPeripheral = 'BleManagerDisconnectPeripheral',
   /**
    * [Android only]
    */
-  BleManagerPeripheralDidBond = "BleManagerPeripheralDidBond",
+  BleManagerPeripheralDidBond = 'BleManagerPeripheralDidBond',
   /**
    * [iOS only]
    */
-  BleManagerCentralManagerWillRestoreState = "BleManagerCentralManagerWillRestoreState",
+  BleManagerCentralManagerWillRestoreState = 'BleManagerCentralManagerWillRestoreState',
   /**
    * [iOS only]
    */
-  BleManagerDidUpdateNotificationStateFor = "BleManagerDidUpdateNotificationStateFor",
+  BleManagerDidUpdateNotificationStateFor = 'BleManagerDidUpdateNotificationStateFor',
 }
 
 export interface BleStopScanEvent {
@@ -386,7 +386,7 @@ export interface BleManagerCentralManagerWillRestoreState {
  * Associate callback received a failure or failed to start the intent to
  * pick the device to associate.
  */
-export type BleManagerCompanionFailure = { error: string; };
+export type BleManagerCompanionFailure = { error: string };
 
 /**
  * [Android only]

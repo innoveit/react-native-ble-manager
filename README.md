@@ -15,15 +15,16 @@ The library is a simple connection with the OS APIs, the BLE stack should be sta
 
 ## Requirements
 
-RN 0.60+
+RN 0.76+
 
+RN 0.60-0.75 supported until 11.5.X
 RN 0.40-0.59 supported until 6.7.X
 RN 0.30-0.39 supported until 2.4.3
 
 ## Supported Platforms
 
-- iOS 10+
-- Android (API 19+)
+- iOS 15.1+
+- Android (API 23+)
 
 ## Install
 
@@ -70,3 +71,15 @@ npm run build
 ```
 
 > if you are modifying the typescript files of the library (in `src/`) on the fly, you can run `npm run watch` instead. If you are modifying files from the native counterparts, you'll need to rebuild the whole app for your target environnement (`npm run android/ios`).
+
+## Generate the native code from specs
+A react-native project is needed to generate the code via *codegen*.
+
+#### Generate Android code
+- in the example folder generate the android project from expo: `npx expo prebuild --platform android`
+- in the example/android folder run: `./gradlew generateCodegenArtifactsFromSchema` (you can add --info to have debug messages)
+- if you have problems with the gradle cache `cd android && ./gradlew --stop && rm -rf ~/.gradle/caches`
+
+#### Generate iOS code
+- in the example folder generate the ios project from expo: `npx expo prebuild --platform ios`
+- the codegen run during the first build, if you need to run it again use `pod install` in the ios folder
