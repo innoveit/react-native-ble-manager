@@ -315,7 +315,7 @@ public class Peripheral extends BluetoothGattCallback {
         mainHandler.post(() -> {
             gatt = gatta;
 
-            if (status != BluetoothGatt.GATT_SUCCESS) {
+            if (gatt != null && status != BluetoothGatt.GATT_SUCCESS) {
                 gatt.close();
             }
 
@@ -383,9 +383,12 @@ public class Peripheral extends BluetoothGattCallback {
                 commandQueueBusy = false;
                 connected = false;
                 clearBuffers();
+                
+                if (gatt != null) {
+                    gatt.disconnect();
+                    gatt.close();
+                }
 
-                gatt.disconnect();
-                gatt.close();
                 gatt = null;
                 sendDisconnectionEvent(device, BluetoothGatt.GATT_SUCCESS);
             }
@@ -968,6 +971,10 @@ public class Peripheral extends BluetoothGattCallback {
     public void refreshCache(Callback callback) {
         enqueue(() -> {
             try {
+                if (gatt == null) {
+                    throw new Exception("gatt is null");
+                }
+
                 Method localMethod = gatt.getClass().getMethod("refresh", new Class[0]);
                 boolean res = (Boolean) localMethod.invoke(gatt, new Object[0]);
                 callback.invoke(null, res);
