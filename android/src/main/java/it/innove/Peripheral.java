@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothStatusCodes;
+
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -165,12 +166,10 @@ public class Peripheral extends BluetoothGattCallback {
             }
             connectCallbacks.clear();
             connected = false;
-            clearBuffers();
-            commandQueue.clear();
-            commandQueueBusy = false;
 
             if (gatt != null) {
                 try {
+                    resetQueuesAndBuffers();
                     gatt.disconnect();
                     if (force) {
                         gatt.close();
@@ -297,15 +296,83 @@ public class Peripheral extends BluetoothGattCallback {
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         super.onServicesDiscovered(gatt, status);
         mainHandler.post(() -> {
-            for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
-                WritableMap map = this.asWritableMap(gatt);
-                retrieveServicesCallback.invoke(null, map);
+            if (gatt == null) {
+                for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
+                    retrieveServicesCallback.invoke("Error during service retrieval: gatt is null");
+                }
+            }
+            else if (status == BluetoothGatt.GATT_SUCCESS)
+            {
+                for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
+                    WritableMap map = this.asWritableMap(gatt);
+                    retrieveServicesCallback.invoke(null, map);
+                }
+            }
+            else {
+                for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
+                    retrieveServicesCallback.invoke("Error during service retrieval.");
+                }
             }
             retrieveServicesCallbacks.clear();
             completedCommand();
         });
     }
 
+    public void errorAndClearAllCallbacks(final String errorMessage) {
+
+        for (Callback writeCallback : writeCallbacks) {
+            writeCallback.invoke(errorMessage);
+        }
+        writeCallbacks.clear();
+
+        for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
+            retrieveServicesCallback.invoke(errorMessage);
+        }
+        retrieveServicesCallbacks.clear();
+
+        for (Callback readRSSICallback : readRSSICallbacks) {
+            readRSSICallback.invoke(errorMessage);
+        }
+        readRSSICallbacks.clear();
+
+        for (Callback registerNotifyCallback : registerNotifyCallbacks) {
+            registerNotifyCallback.invoke(errorMessage);
+        }
+        registerNotifyCallbacks.clear();
+
+        for (Callback requestMTUCallback : requestMTUCallbacks) {
+            requestMTUCallback.invoke(errorMessage);
+        }
+        requestMTUCallbacks.clear();
+
+        for (Callback readCallback : readCallbacks) {
+            readCallback.invoke(errorMessage);
+        }
+        readCallbacks.clear();
+
+        for (Callback readDescriptorCallback : readDescriptorCallbacks) {
+            readDescriptorCallback.invoke(errorMessage);
+        }
+        readDescriptorCallbacks.clear();
+
+        for (Callback callback : writeDescriptorCallbacks) {
+            callback.invoke(errorMessage);
+        }
+        writeDescriptorCallbacks.clear();
+
+        for (Callback connectCallback : connectCallbacks) {
+            connectCallback.invoke(errorMessage);
+        }
+        connectCallbacks.clear();
+    }
+
+    public void resetQueuesAndBuffers() {
+        writeQueue.clear();
+        commandQueue.clear();
+        commandQueueBusy = false;
+        connected = false;
+        clearBuffers();
+    }
     @Override
     public void onConnectionStateChange(BluetoothGatt gatta, int status, final int newState) {
 
@@ -333,57 +400,8 @@ public class Peripheral extends BluetoothGattCallback {
 
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED || status != BluetoothGatt.GATT_SUCCESS) {
 
-                for (Callback writeCallback : writeCallbacks) {
-                    writeCallback.invoke("Device disconnected");
-                }
-                writeCallbacks.clear();
-
-                for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
-                    retrieveServicesCallback.invoke("Device disconnected");
-                }
-                retrieveServicesCallbacks.clear();
-
-                for (Callback readRSSICallback : readRSSICallbacks) {
-                    readRSSICallback.invoke("Device disconnected");
-                }
-                readRSSICallbacks.clear();
-
-                for (Callback registerNotifyCallback : registerNotifyCallbacks) {
-                    registerNotifyCallback.invoke("Device disconnected");
-                }
-                registerNotifyCallbacks.clear();
-
-                for (Callback requestMTUCallback : requestMTUCallbacks) {
-                    requestMTUCallback.invoke("Device disconnected");
-                }
-                requestMTUCallbacks.clear();
-
-                for (Callback readCallback : readCallbacks) {
-                    readCallback.invoke("Device disconnected");
-                }
-                readCallbacks.clear();
-
-                for (Callback readDescriptorCallback : readDescriptorCallbacks) {
-                    readDescriptorCallback.invoke("Device disconnected");
-                }
-                readDescriptorCallbacks.clear();
-
-                for (Callback callback : writeDescriptorCallbacks) {
-                    callback.invoke("Device disconnected");
-                }
-                writeDescriptorCallbacks.clear();
-
-                for (Callback connectCallback : connectCallbacks) {
-                    connectCallback.invoke("Connection error");
-                }
-                connectCallbacks.clear();
-
-                writeQueue.clear();
-                commandQueue.clear();
-                commandQueueBusy = false;
-                connected = false;
-                clearBuffers();
-                
+                errorAndClearAllCallbacks("Device disconnected");
+                resetQueuesAndBuffers();
                 if (gatt != null) {
                     gatt.disconnect();
                     gatt.close();
@@ -894,7 +912,9 @@ public class Peripheral extends BluetoothGattCallback {
     }
 
     private boolean enqueue(Runnable command) {
+
         final boolean result = commandQueue.add(command);
+
         if (result) {
             nextCommand();
         } else {
@@ -924,7 +944,10 @@ public class Peripheral extends BluetoothGattCallback {
 
             // Check if we still have a valid gatt object
             if (gatt == null) {
-                Log.d(BleManager.LOG_TAG, "Error, gatt is null. Let the next command fullfill its callback with an error");
+                Log.d(BleManager.LOG_TAG, "Error, gatt is null. Fill all callbacks with an error");
+                errorAndClearAllCallbacks("Gatt is null");
+                resetQueuesAndBuffers();
+                return;
             }
 
             // Execute the next command in the queue
