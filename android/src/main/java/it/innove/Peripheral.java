@@ -921,10 +921,7 @@ public class Peripheral extends BluetoothGattCallback {
 
             // Check if we still have a valid gatt object
             if (gatt == null) {
-                Log.d(BleManager.LOG_TAG, "Error, gatt is null");
-                commandQueue.clear();
-                commandQueueBusy = false;
-                return;
+                Log.d(BleManager.LOG_TAG, "Error, gatt is null. Let the next command fullfill its callback with an error");
             }
 
             // Execute the next command in the queue
