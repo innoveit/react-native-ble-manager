@@ -1215,6 +1215,9 @@ public class Peripheral extends BluetoothGattCallback {
                 writeProperty = BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE;
             }
 
+           if (service == null) {
+               throw new Exception("Service is null.");
+           }
             List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
             for (BluetoothGattCharacteristic characteristic : characteristics) {
                 if ((characteristic.getProperties() & writeProperty) != 0
