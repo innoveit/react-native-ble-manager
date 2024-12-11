@@ -7,6 +7,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
@@ -46,8 +48,8 @@ public class DefaultScanManager extends ScanManager {
         scanSessionId.incrementAndGet();
 
         final BluetoothLeScanner scanner = getBluetoothAdapter().getBluetoothLeScanner();
-        if (scanner)
-            getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
+        if (scanner != null)
+            scanner.stopScan(mScanCallback);
         isScanning = false;
         callback.invoke();
     }
