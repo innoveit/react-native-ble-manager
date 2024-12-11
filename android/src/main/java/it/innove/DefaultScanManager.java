@@ -45,7 +45,9 @@ public class DefaultScanManager extends ScanManager {
         // update scanSessionId to prevent stopping next scan by running timeout thread
         scanSessionId.incrementAndGet();
 
-        getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
+        final BluetoothLeScanner scanner = getBluetoothAdapter().getBluetoothLeScanner();
+        if (scanner)
+            getBluetoothAdapter().getBluetoothLeScanner().stopScan(mScanCallback);
         isScanning = false;
         callback.invoke();
     }
