@@ -161,15 +161,12 @@ public class Peripheral extends BluetoothGattCallback {
 
     public void disconnect(final Callback callback, final boolean force) {
         mainHandler.post(() -> {
-            for (Callback connectCallback : connectCallbacks) {
-                connectCallback.invoke("Disconnect called before connect callback invoked");
-            }
-            connectCallbacks.clear();
+            errorAndClearAllCallbacks("Disconnect called before the command completed");
+            resetQueuesAndBuffers();
             connected = false;
 
             if (gatt != null) {
                 try {
-                    resetQueuesAndBuffers();
                     gatt.disconnect();
                     if (force) {
                         gatt.close();
