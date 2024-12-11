@@ -34,6 +34,3 @@ To help configure the app, we added a plugin from version 12.1.x, add the config
 | Android | `isBleRequired` | `Boolean` | `false` | The app require the BLE to work |
 | iOS | `bluetoothAlwaysPermission` | `String | Boolean` | `'Allow $(PRODUCT_NAME) to connect to bluetooth devices'`  | The reason you use the BLE |
 
-
-- `neverForLocation` - `Boolean` - default false - 
-
