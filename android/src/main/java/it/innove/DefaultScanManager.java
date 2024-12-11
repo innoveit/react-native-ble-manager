@@ -177,7 +177,8 @@ public class DefaultScanManager extends ScanManager {
                             // check current scan session was not stopped
                             if (scanSessionId.intValue() == currentScanSession) {
                                 if (btAdapter.getState() == BluetoothAdapter.STATE_ON) {
-                                    btAdapter.getBluetoothLeScanner().stopScan(mScanCallback);
+                                    final BluetoothLeScanner scanner = btAdapter.getBluetoothLeScanner();
+                                    if (scanner) scanner.stopScan(mScanCallback);
                                     isScanning = false;
                                 }
 
