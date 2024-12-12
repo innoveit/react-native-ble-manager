@@ -98,19 +98,18 @@ input:checked+.slider:before {
         color: #FFF;
     }
 
-    /* Icona del sole */
+
     .sun {
-        left: 4px;
+        left: 6px;
     }
 
-    /* Icona della luna */
     .moon {
-        right: 4px;
+        right: -6px;
+        color: #000;
     }
 }
 
 
-/* Mostra l'icona appropriata in base allo stato dello switch */
 input:checked+.slider .sun {
     display: block;
 }
