@@ -209,7 +209,7 @@ public class Peripheral extends BluetoothGattCallback {
 
             map.putMap("advertising", advertising);
         } catch (Exception e) { // this shouldn't happen
-            e.printStackTrace();
+            Log.e(BleManager.LOG_TAG, "Unexpected error on asWritableMap", e);
         }
 
         return map;
