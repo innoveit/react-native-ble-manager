@@ -94,6 +94,14 @@ export interface Spec extends TurboModule {
     callback: (error: string | null, data: number[]) => void
   ): void;
 
+  startNotificationWithBuffer(
+    peripheralUUID: string,
+    serviceUUID: string,
+    characteristicUUID: string,
+    bufferLength: number,
+    callback: (error: string | null) => void
+  ): void;
+
   startNotification(
     peripheralUUID: string,
     serviceUUID: string,

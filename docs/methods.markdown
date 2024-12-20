@@ -256,9 +256,9 @@ BleManager.startNotification(
 
 ---
 
-## startNotificationUseBuffer(peripheralId, serviceUUID, characteristicUUID, buffer) [Android only]
+## startNotificationWithBuffer(peripheralId, serviceUUID, characteristicUUID, buffer) [Android only]
 
-Start the notification on the specified characteristic, you need to call `retrieveServices` method before. The buffer collect messages until the buffer of messages bytes reaches the limit defined with the `buffer` argument and then emit all the collected data. Helpful to reducing the number or js bridge crossings when a characteristic is sending a lot of messages.
+Start the notification on the specified characteristic, you need to call `retrieveServices` method before. The buffer collect messages until the buffer of messages bytes reaches the limit defined with the `buffer` argument and then emit all the collected data. Useful to reduce the number of calls between the native and the react-native part in case of many messages.
 Returns a `Promise` object.
 
 **Arguments**
@@ -271,7 +271,7 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.startNotification(
+BleManager.startNotificationWithBuffer(
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
