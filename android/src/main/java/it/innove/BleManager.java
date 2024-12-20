@@ -446,8 +446,8 @@ class BleManager extends NativeBleManagerSpec {
     }
 
     @ReactMethod
-    public void startNotificationUseBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
-                                           double buffer, Callback callback) {
+    public void startNotificationWithBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
+                                           double bufferLength, Callback callback) {
         Log.d(LOG_TAG, "startNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
@@ -456,7 +456,7 @@ class BleManager extends NativeBleManagerSpec {
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID),
-                    UUIDHelper.uuidFromString(characteristicUUID), (int) buffer, callback);
+                    UUIDHelper.uuidFromString(characteristicUUID), (int) bufferLength, callback);
         } else
             callback.invoke("Peripheral not found");
     }
