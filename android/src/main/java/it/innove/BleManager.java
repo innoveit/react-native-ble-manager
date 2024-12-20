@@ -732,6 +732,8 @@ class BleManager extends NativeBleManagerSpec {
                         peripheral.disconnect(null, true);
                     }
                 }
+                peripheral.errorAndClearAllCallbacks("disconnected by BleManager");
+                peripheral.resetQueuesAndBuffers();
             }
         }
     }
