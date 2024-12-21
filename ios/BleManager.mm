@@ -214,7 +214,7 @@ RCT_EXPORT_MODULE()
     [_swBleManager startNotificationWithBuffer:peripheralUUID
                                    serviceUUID:serviceUUID
                             characteristicUUID:characteristicUUID
-                                  bufferLength:(double)bufferLength
+                                  bufferLength:@(bufferLength)
                                       callback:callback];
 }
 
