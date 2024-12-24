@@ -11,10 +11,11 @@ const withBLE: ConfigPlugin<
       neverForLocation?: boolean;
       bluetoothAlwaysPermission?: string | false;
       companionDeviceEnabled?: boolean;
+      isBleRequired?: boolean;
    } | void
 > = (config, props = {}) => {
    const _props = props || {};
-   const isBackgroundEnabled = false;
+   const isBleRequired = _props.isBleRequired ?? false;
    const neverForLocation = _props.neverForLocation ?? false;
    const companionDeviceEnabled = _props.companionDeviceEnabled ?? false;
    
@@ -28,7 +29,7 @@ const withBLE: ConfigPlugin<
       'android.permission.BLUETOOTH_CONNECT', // since Android SDK 31
    ]);
    config = withBLEAndroidManifest(config, {
-      isBackgroundEnabled,
+      isBleRequired,
       neverForLocation,
       companionDeviceEnabled,
    });

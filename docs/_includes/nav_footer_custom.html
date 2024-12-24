@@ -2,19 +2,23 @@
   <label class="switch">
     <input type="checkbox" id="theme-switch" />
     <span class="slider round">
-      <span class="icon sun">☀️</span>
-      <span class="icon moon">🌙</span>
+      <span class="icon sun"><i class="fa-solid fa-sun"></i></span>
+      <span class="icon moon"><i class="fa-solid fa-moon"></i></span>
     </span>
   </label>
 </div>
 <script>
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    jtd.setTheme(savedTheme);
+    document.getElementById('theme-switch').checked = savedTheme === 'light';
+  }
+
   document
-    .getElementById("theme-switch")
-    .addEventListener("change", function (event) {
-      if (event.target.checked) {
-        jtd.setTheme("light");
-      } else {
-        jtd.setTheme("dark");
-      }
+    .getElementById('theme-switch')
+    .addEventListener('change', function (event) {
+      const newTheme = event.target.checked ? "light" : "dark";
+      jtd.setTheme(newTheme);      
+      localStorage.setItem('theme', newTheme);
     });
 </script>

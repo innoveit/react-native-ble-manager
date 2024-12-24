@@ -446,8 +446,8 @@ class BleManager extends NativeBleManagerSpec {
     }
 
     @ReactMethod
-    public void startNotificationUseBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
-                                           double buffer, Callback callback) {
+    public void startNotificationWithBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
+                                           double bufferLength, Callback callback) {
         Log.d(LOG_TAG, "startNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
@@ -456,7 +456,7 @@ class BleManager extends NativeBleManagerSpec {
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID),
-                    UUIDHelper.uuidFromString(characteristicUUID), (int) buffer, callback);
+                    UUIDHelper.uuidFromString(characteristicUUID), (int) bufferLength, callback);
         } else
             callback.invoke("Peripheral not found");
     }
@@ -470,8 +470,12 @@ class BleManager extends NativeBleManagerSpec {
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID),
-                    UUIDHelper.uuidFromString(characteristicUUID), 1, callback);
+            if (peripheral.isConnected()) {
+                peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID),
+                        UUIDHelper.uuidFromString(characteristicUUID), 1, callback);
+            } else {
+                callback.invoke("Peripheral not connected", null);
+            }
         } else
             callback.invoke("Peripheral not found");
     }
@@ -485,8 +489,12 @@ class BleManager extends NativeBleManagerSpec {
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            peripheral.removeNotify(UUIDHelper.uuidFromString(serviceUUID),
-                    UUIDHelper.uuidFromString(characteristicUUID), callback);
+            if (peripheral.isConnected()) {
+                peripheral.removeNotify(UUIDHelper.uuidFromString(serviceUUID),
+                        UUIDHelper.uuidFromString(characteristicUUID), callback);
+            } else {
+                callback.invoke("Peripheral not connected", null);
+            }
         } else
             callback.invoke("Peripheral not found");
     }
@@ -501,13 +509,17 @@ class BleManager extends NativeBleManagerSpec {
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            byte[] decoded = new byte[message.size()];
-            for (int i = 0; i < message.size(); i++) {
-                decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
+            if (peripheral.isConnected()) {
+                byte[] decoded = new byte[message.size()];
+                for (int i = 0; i < message.size(); i++) {
+                    decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
+                }
+                Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
+                        decoded, (int) maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
+            } else {
+                callback.invoke("Peripheral not connected", null);
             }
-            Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
-            peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
-                    decoded, (int) maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
         } else
             callback.invoke("Peripheral not found");
     }
@@ -522,13 +534,17 @@ class BleManager extends NativeBleManagerSpec {
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            byte[] decoded = new byte[message.size()];
-            for (int i = 0; i < message.size(); i++) {
-                decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
+            if (peripheral.isConnected()) {
+                byte[] decoded = new byte[message.size()];
+                for (int i = 0; i < message.size(); i++) {
+                    decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
+                }
+                Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
+                        decoded, (int) maxByteSize, (int) queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+            } else {
+                callback.invoke("Peripheral not connected", null);
             }
-            Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
-            peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
-                    decoded, (int) maxByteSize, (int) queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         } else
             callback.invoke("Peripheral not found");
     }
@@ -542,8 +558,12 @@ class BleManager extends NativeBleManagerSpec {
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            peripheral.read(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
-                    callback);
+            if (peripheral.isConnected()) {
+                peripheral.read(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
+                        callback);
+            } else {
+                callback.invoke("Peripheral not connected", null);
+            }
         } else
             callback.invoke("Peripheral not found", null);
     }
@@ -559,13 +579,15 @@ class BleManager extends NativeBleManagerSpec {
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral == null) {
             callback.invoke("Peripheral not found", null);
+        } else if (!peripheral.isConnected()) {
+            callback.invoke("Peripheral not connected", null);
+        } else {
+            peripheral.readDescriptor(
+                    UUIDHelper.uuidFromString(serviceUUID),
+                    UUIDHelper.uuidFromString(characteristicUUID),
+                    UUIDHelper.uuidFromString(descriptorUUID),
+                    callback);
         }
-
-        peripheral.readDescriptor(
-                UUIDHelper.uuidFromString(serviceUUID),
-                UUIDHelper.uuidFromString(characteristicUUID),
-                UUIDHelper.uuidFromString(descriptorUUID),
-                callback);
     }
 
     @ReactMethod
@@ -579,6 +601,8 @@ class BleManager extends NativeBleManagerSpec {
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral == null) {
             callback.invoke("Peripheral not found", null);
+        } else if (!peripheral.isConnected()) {
+            callback.invoke("Peripheral not connected", null);
         } else {
             byte[] decoded = new byte[message.size()];
             for (int i = 0; i < message.size(); i++) {
@@ -594,7 +618,11 @@ class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            peripheral.retrieveServices(callback);
+            if (peripheral.isConnected()) {
+                peripheral.retrieveServices(callback);
+            } else {
+                callback.invoke("Peripheral not connected", null);
+            }
         } else
             callback.invoke("Peripheral not found", null);
     }
@@ -604,7 +632,11 @@ class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "Refreshing cache for: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            peripheral.refreshCache(callback);
+            if (peripheral.isConnected()) {
+                peripheral.refreshCache(callback);
+            } else {
+                callback.invoke("Peripheral not connected", null);
+            }
         } else
             callback.invoke("Peripheral not found");
     }
@@ -614,7 +646,11 @@ class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "Read RSSI from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
-            peripheral.readRSSI(callback);
+            if (peripheral.isConnected()) {
+                peripheral.readRSSI(callback);
+            } else {
+                callback.invoke("Peripheral not connected", null);
+            }
         } else
             callback.invoke("Peripheral not found", null);
     }
@@ -951,8 +987,4 @@ class BleManager extends NativeBleManagerSpec {
         }
     }
 
-    @Override
-    public void onCatalystInstanceDestroy() {
-        invalidate();
-    }
 }

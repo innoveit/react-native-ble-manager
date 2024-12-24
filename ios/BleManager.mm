@@ -206,6 +206,18 @@ RCT_EXPORT_MODULE()
     [_swBleManager start:options callback:callback];
 }
 
+- (void)startNotificationWithBuffer:(NSString *)peripheralUUID
+                        serviceUUID:(NSString *)serviceUUID
+                 characteristicUUID:(NSString *)characteristicUUID
+                       bufferLength:(double)bufferLength
+                           callback:(RCTResponseSenderBlock)callback {
+    [_swBleManager startNotificationWithBuffer:peripheralUUID
+                                   serviceUUID:serviceUUID
+                            characteristicUUID:characteristicUUID
+                                  bufferLength:@(bufferLength)
+                                      callback:callback];
+}
+
 - (void)startNotification:(NSString *)peripheralUUID
               serviceUUID:(NSString *)serviceUUID
        characteristicUUID:(NSString *)characteristicUUID

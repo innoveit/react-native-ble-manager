@@ -27,10 +27,10 @@ type AndroidManifest = {
 };
 
 export const withBLEAndroidManifest: ConfigPlugin<{
-  isBackgroundEnabled: boolean;
+  isBleRequired: boolean;
   neverForLocation: boolean;
   companionDeviceEnabled: boolean;
-}> = (config, {isBackgroundEnabled, neverForLocation, companionDeviceEnabled}) => {
+}> = (config, {isBleRequired, neverForLocation, companionDeviceEnabled}) => {
   return withAndroidManifest(config, config => {
     config.modResults = addLocationPermissionToManifest(
       config.modResults,
@@ -47,7 +47,7 @@ export const withBLEAndroidManifest: ConfigPlugin<{
     if (companionDeviceEnabled) {
       config.modResults = addCompanionPermissionToManifest(config.modResults);
     }    
-    if (isBackgroundEnabled) {
+    if (isBleRequired) {
       config.modResults = addBLEHardwareFeatureToManifest(config.modResults);
     }
     return config;
@@ -184,7 +184,7 @@ export function addCompanionPermissionToManifest(
   return androidManifest;
 }
 
-// Add this line if your application always requires BLE. More info can be found on: https://developer.android.com/guide/topics/connectivity/bluetooth-le.html#permissions
+// Add this line if your application always requires BLE. More info can be found on: https://developer.android.com/develop/connectivity/bluetooth/bt-permissions
 export function addBLEHardwareFeatureToManifest(
   androidManifest: AndroidConfig.Manifest.AndroidManifest,
 ) {

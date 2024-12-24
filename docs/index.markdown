@@ -15,12 +15,13 @@ The library is a simple connection with the OS APIs, the BLE stack should be sta
 
 ## Requirements
 
-RN 0.60+
+RN 0.76+ only the new architecture is supported
 
-RN 0.40-0.59 supported until 6.7.X
-RN 0.30-0.39 supported until 2.4.3
+RN 0.60-0.75 supported until 11.5.X  
+RN 0.40-0.59 supported until 6.7.X  
+RN 0.30-0.39 supported until 2.4.3  
 
 ## Supported Platforms
 
-- iOS 10+
-- Android (API 19+)
+- iOS 15.1+
+- Android (API 23+)

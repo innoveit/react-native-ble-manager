@@ -10,8 +10,8 @@ theme: just-the-docs
 color_scheme: dark
 
 aux_links:
-  "Project on GitHub":
-    - "//github.com/innoveit/react-native-ble-manager"
+  "On GitHub":
+    - https://github.com/innoveit/react-native-ble-manager
 
 nav_external_links:
   - title: Project on GitHub
