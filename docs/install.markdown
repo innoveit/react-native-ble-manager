@@ -71,7 +71,7 @@ If you are working with Beacons remove the `android:usesPermissionFlags="neverFo
 
 For more information, refer to the [official documentation](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions).
 
-Runtime permissions must also be requested from users using `PermissionsAndroid`, check the [example](https://github.com/innoveit/react-native-ble-manager/blob/master/example/App.tsx).
+Runtime permissions must also be requested from users using `PermissionsAndroid`, check the [example](https://github.com/innoveit/react-native-ble-manager/blob/master/example/components/ScanDevicesScreen.tsx).
 
 
 ## iOS
