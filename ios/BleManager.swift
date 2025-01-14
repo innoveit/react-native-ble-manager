@@ -1193,11 +1193,11 @@ class BleManager: RCTEventEmitter, CBCentralManagerDelegate, CBPeripheralDelegat
     }
     
     
-    static func getCentralManager() -> CBCentralManager? {
+    @objc static func getCentralManager() -> CBCentralManager? {
         return sharedManager
     }
     
-    static func getInstance() -> BleManager? {
+    @objc static func getInstance() -> BleManager? {
         return shared
     }
     
