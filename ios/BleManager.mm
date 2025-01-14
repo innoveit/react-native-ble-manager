@@ -290,4 +290,12 @@ RCT_EXPORT_MODULE()
                                callback:callback];
 }
 
++ (nullable CBCentralManager *)getCentralManager {
+    return [SwiftBleManager getCentralManager];
+}
+
++ (nullable SwiftBleManager *)getInstance {
+    return [SwiftBleManager getInstance];
+}
+
 @end
