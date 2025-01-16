@@ -4,6 +4,7 @@
 #ifdef RCT_NEW_ARCH_ENABLED
 
 #import <BleManagerSpec/BleManagerSpec.h>
+@class SwiftBleManager;
 
 @interface BleManager : NativeBleManagerSpecBase <NativeBleManagerSpec>
 - (void)emitOnDiscoverPeripheral:(NSDictionary *)value;
@@ -17,6 +18,8 @@
 - (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
 - (void)emitOnCompanionPeripheral:(NSDictionary *)value;
 - (void)emitOnCompanionFailure:(NSDictionary *)value;
++ (nullable CBCentralManager *)getCentralManager;
++ (nullable SwiftBleManager *)getInstance;
 @end
 
 #else

@@ -1178,11 +1178,11 @@ import CoreBluetooth
     }
     
     
-    static func getCentralManager() -> CBCentralManager? {
+    @objc public static func getCentralManager() -> CBCentralManager? {
         return sharedManager
     }
     
-    static func getInstance() -> SwiftBleManager? {
+    @objc public static func getInstance() -> SwiftBleManager? {
         return shared
     }
     
