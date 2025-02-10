@@ -6,7 +6,17 @@ nav_order: 2
 parent: Usage
 ---
 
+<details open markdown="block">
+  <summary>
+    Table of contents
+  </summary>
+  {: .text-delta }
+1. TOC
+{:toc}
+</details>
+
 # Events
+{: .no_toc }
 
 Since react-native version 0.76, events are handled with specific methods that return the listener.
 
