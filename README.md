@@ -72,6 +72,16 @@ npm run build
 
 > if you are modifying the typescript files of the library (in `src/`) on the fly, you can run `npm run watch` instead. If you are modifying files from the native counterparts, you'll need to rebuild the whole app for your target environnement (`npm run android/ios`).
 
+### Updating documentation
+
+Edit files in `docs/`, then test locally with:
+```shell
+cd docs
+bundle install
+bundle exec jekyll serve --watch --baseurl /
+```
+Then open http://localhost:4000/ 
+
 ## Generate the native code from specs
 A react-native project is needed to generate the code via *codegen*.
 
