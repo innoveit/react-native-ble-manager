@@ -973,6 +973,11 @@ class BleManager extends NativeBleManagerSpec {
     @Override
     public void invalidate() {
         try {
+            context.unregisterReceiver(mReceiver);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Receiver not registered or already unregistered", e);
+        }
+        try {
             // Disconnect all known peripherals, otherwise android system will think we are still connected
             // while we have lost the gatt instance
             disconnectPeripherals();
