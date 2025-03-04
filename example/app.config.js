@@ -14,6 +14,12 @@ export default ({ config }) => {
     ios: {
       bundleIdentifier: 'it.innove.example.ble',
     },
-    plugins: [['../app.plugin.js', { companionDeviceEnabled: true, neverForLocation: true }]],
+    plugins: [
+      [
+        '../app.plugin.js',
+        { companionDeviceEnabled: true, neverForLocation: true },
+      ],
+      'expo-build-properties',
+    ],
   };
 };
