@@ -501,7 +501,7 @@ const ScanDevicesScreen = () => {
 
             <View style={styles.buttonGroup}>
               <Pressable style={styles.scanButton} onPress={enableBluetooth}>
-                <Text style={styles.scanButtonText}>{'Enable Bluetooh'}</Text>
+                <Text style={styles.scanButtonText}>{'Enable Bluetooth'}</Text>
               </Pressable>
             </View>
           </>
