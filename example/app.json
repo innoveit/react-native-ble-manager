@@ -1,4 +1,6 @@
 {
-  "name": "example",
-  "icon": "./icon.png"
+  "expo": {
+    "newArchEnabled": false,
+    "icon": "./icon.png"
+  }
 }
