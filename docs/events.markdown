@@ -49,18 +49,18 @@ The scanning for peripherals is ended.
 
 ### onDidUpdateState
 
-The BLE change state.
+The BLE state changed.
 
 **Arguments**
 
-- `state` - `String` - the new BLE state. can be one of `unknown` (iOS only), `resetting` (iOS only), `unsupported`, `unauthorized` (iOS only), `on`, `off`, `turning_on` (android only), `turning_off` (android only).
+- `state` - `String` - the new BLE state. Can be one of `unknown` (iOS only), `resetting` (iOS only), `unsupported`, `unauthorized` (iOS only), `on`, `off`, `turning_on` (android only), `turning_off` (android only).
 
 
 ---
 
 ### onDiscoverPeripheral
 
-The scanning find a new peripheral.
+The scanning found a new peripheral.
 
 **Arguments**
 
@@ -73,13 +73,13 @@ The scanning find a new peripheral.
   - `manufacturerData` - `JSON` - contains a json with the company id as field and the custom value as raw `bytes` and `data` (Base64 encoded string)
   - `serviceData` - `JSON` - contains the raw `bytes` and `data` (Base64 encoded string)
   - `txPowerLevel` - `Int`
-  - `rawData` - [Android only] `JSON` - contains the raw `bytes` and `data` (Base64 encoded string) of the all advertising data
+  - `rawData` - [Android only] `JSON` - contains the raw `bytes` and `data` (Base64 encoded string) of all the advertising data
 
 ---
 
 ### onDidUpdateValueForCharacteristic
 
-A characteristic notify a new value.
+A characteristic notified a new value.
 
 **Arguments**
 
@@ -118,11 +118,11 @@ A peripheral was disconnected.
 
 ### onPeripheralDidBond
 
-A bond with a peripheral was established
+A bond with a peripheral was established.
 
 **Arguments**
 
-Object with information about the device
+Object with information about the device.
 
 ---
 
