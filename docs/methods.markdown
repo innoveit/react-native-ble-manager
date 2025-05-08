@@ -659,7 +659,7 @@ Returns a `Promise` object.
 
 **Arguments**
 
-- `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for.
+- `serviceUUIDs` - `Array of String` - the UUIDs of the services to look for.
 
 **Examples**
 
@@ -674,13 +674,13 @@ BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
 
 ## getAssociatedPeripherals() [Android only, API 26+]
 
-Retrive associated peripherals (from companion manager).
+Retrieve associated peripherals (from companion manager).
 
 ---
 
 ## removeAssociatedPeripheral(peripheralId) [Android only, API 26+]
 
-Remove a associated peripheral.
+Remove an associated peripheral.
 
 Rejects if no association is found.
 
@@ -692,10 +692,10 @@ Rejects if no association is found.
 
 ## createBond(peripheralId,peripheralPin) [Android only]
 
-Start the bonding (pairing) process with the remote device. If you pass peripheralPin(optional), bonding will be auto(without manual entering pin)
-Returns a `Promise` object that will resolves if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
+Start the bonding (pairing) process with the remote device. If you pass peripheralPin (optional), bonding will be auto (without manually entering the pin).
+Returns a `Promise` object that will resolve if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
 > In Android, Ensure to make one bond request at a time.
-**Examples***
+**Examples**
 
 ```js
 BleManager.createBond(peripheralId)

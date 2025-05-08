@@ -11,7 +11,7 @@ nav_order: 1
 
 ## Introduction
 
-The library is a simple connection with the OS APIs, the BLE stack should be standard but often has different behaviors based on the device used, the operating system and the BLE chip it connects to. Before opening an issue verify that the problem is really the library.
+The library is a simple connection with the OS APIs, the BLE stack should be standard but often has different behaviors based on the device used, the operating system and the BLE chip it connects to. Before opening an issue, verify that the problem is related to the library.
 
 ## Requirements
 
