@@ -440,7 +440,7 @@ BleManager.writeWithoutResponse(
 )
   .then(() => {
     // Success code
-    console.log("Writed: " + data);
+    console.log("Wrote: " + data);
   })
   .catch((error) => {
     // Failure code

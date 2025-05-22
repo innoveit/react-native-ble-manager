@@ -82,4 +82,4 @@ In iOS >= 13 you need to add the `NSBluetoothAlwaysUsageDescription` string key.
 
 If the deployment target is earlier than iOS 13, you also need to add the `NSBluetoothPeripheralUsageDescription` string key.
 
-For background use you nedd to add `central-peripheral` in `UIBackgroundModes` key. Refer to the [documentation](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes/).
+For background use you need to add `central-peripheral` in `UIBackgroundModes` key. Refer to the [documentation](https://developer.apple.com/documentation/xcode/configuring-background-execution-modes/).
