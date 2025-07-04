@@ -71,8 +71,36 @@ If you are working with Beacons remove the `android:usesPermissionFlags="neverFo
 
 For more information, refer to the [official documentation](https://developer.android.com/develop/connectivity/bluetooth/bt-permissions).
 
-Runtime permissions must also be requested from users using `PermissionsAndroid`, check the [example](https://github.com/innoveit/react-native-ble-manager/blob/master/example/components/ScanDevicesScreen.tsx).
+Runtime permissions must also be requested during app execution. While the exact requirements may vary depending on your product's needs, the code above should generally be sufficient for most use cases.
 
+```js
+/**
+ * Request runtime permission.
+ * @returns {boolean} 
+ */
+async function requestBluetoothPermissions() {
+  if (Platform.OS === 'android') {
+    const permissions = [];
+    if (Platform.Version >= 23 && Platform.Version <= 30) {
+      permissions.push(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+    } else if (Platform.Version >= 31) {
+      permissions.push(
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      );
+    }
+
+    if (permissions.length === 0) {
+      return true;
+    }
+    const granted = await PermissionsAndroid.requestMultiple(permissions);
+    return Object.values(granted).every(
+      result => result === PermissionsAndroid.RESULTS.GRANTED,
+    );
+  }
+  return true;
+}
+```
 
 ## iOS
 
