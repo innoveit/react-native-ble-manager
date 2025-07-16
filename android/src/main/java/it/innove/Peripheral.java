@@ -294,12 +294,17 @@ public class Peripheral extends BluetoothGattCallback {
     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
         super.onServicesDiscovered(gatt, status);
         mainHandler.post(() -> {
-            for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
-                WritableMap map = this.asWritableMap(gatt);
-                retrieveServicesCallback.invoke(null, map);
+            try {
+                for (Callback retrieveServicesCallback : retrieveServicesCallbacks) {
+                    WritableMap map = this.asWritableMap(gatt);
+                    retrieveServicesCallback.invoke(null, map);
+                }
+            } catch (Exception e) {
+                Log.e(BleManager.LOG_TAG, "Error invoking retrieveServicesCallback status=" + status, e);
+            } finally {
+                retrieveServicesCallbacks.clear();
+                completedCommand();
             }
-            retrieveServicesCallbacks.clear();
-            completedCommand();
         });
     }
 
