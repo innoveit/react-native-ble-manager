@@ -364,14 +364,14 @@ class BleManager {
    * @param buffer
    * @returns
    */
-  startNotificationUseBuffer(
+  startNotificationWithBuffer(
     peripheralId: string,
     serviceUUID: string,
     characteristicUUID: string,
     buffer: number
   ) {
     return new Promise<void>((fulfill, reject) => {
-      BleManagerModule.startNotificationUseBuffer(
+      BleManagerModule.startNotificationWithBuffer(
         peripheralId,
         serviceUUID,
         characteristicUUID,
