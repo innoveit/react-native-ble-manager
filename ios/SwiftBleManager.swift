@@ -1097,12 +1097,33 @@ import CoreBluetooth
             if readCallbacks[key] != nil {
                 invokeAndClearDictionary_THREAD_UNSAFE(&readCallbacks, withKey: key, usingParameters: [NSNull(), characteristic.value!.toArray()])
             } else {
-                self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
-                    "peripheral": peripheral.uuidAsString(),
-                    "characteristic": characteristic.uuid.uuidString.lowercased(),
-                    "service": characteristic.service!.uuid.uuidString.lowercased(),
-                    "value": characteristic.value!.toArray()
-                ])
+                guard let bufferContainer = self.bufferedCharacteristics[key] else {
+                    // Standard notification
+                    self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
+                        "peripheral": peripheral.uuidAsString(),
+                        "characteristic": characteristic.uuid.uuidString.lowercased(),
+                        "service": characteristic.service!.uuid.uuidString.lowercased(),
+                        "value": characteristic.value!.toArray()
+                    ])
+                    return
+                }
+                
+                // Notification with buffer
+                var valueToEmit: Data = characteristic.value!
+                while (!valueToEmit.isEmpty) {
+                    let rest = bufferContainer.put(valueToEmit)
+                    if bufferContainer.isBufferFull {
+                        self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
+                            "peripheral": peripheral.uuidAsString(),
+                            "characteristic": characteristic.uuid.uuidString.lowercased(),
+                            "service": characteristic.service!.uuid.uuidString.lowercased(),
+                            "value": bufferContainer.items.toArray()
+                        ])
+                        bufferContainer.resetBuffer()
+                    }
+                    
+                    valueToEmit = rest
+                }
             }
         }
     }
