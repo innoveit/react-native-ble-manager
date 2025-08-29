@@ -715,6 +715,10 @@ import CoreBluetooth
         if characteristic.isNotifying {
             let key = Helper.key(forPeripheral: (peripheral?.instance as CBPeripheral?)!, andCharacteristic: characteristic)
             insertCallback(callback, intoDictionary: &stopNotificationCallbacks, withKey: key)
+            
+            // Remove any buffered data if notification was started with buffer
+            self.bufferedCharacteristics.removeValue(forKey: key)
+            
             peripheral?.instance.setNotifyValue(false, for: characteristic)
             NSLog("Characteristic stopped notifying")
         } else {
