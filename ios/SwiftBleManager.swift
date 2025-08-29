@@ -655,14 +655,29 @@ import CoreBluetooth
         peripheral?.instance.readValue(for: characteristic!)  // callback sends value
     }
     
-    
-    
     @objc public func startNotificationWithBuffer(_ peripheralUUID: String,
                                                   serviceUUID: String,
                                                   characteristicUUID: String,
                                                   bufferLength: NSNumber,
                                                   callback: @escaping RCTResponseSenderBlock) {
-        callback(["Not supported"])
+        NSLog("startNotificationWithBuffer")
+        
+        guard let context = getContext(
+            peripheralUUID,
+            serviceUUIDString: serviceUUID,
+            characteristicUUIDString: characteristicUUID,
+            prop: CBCharacteristicProperties.notify,
+            callback: callback
+        ) else { return }
+        guard let peripheral = context.peripheral else { return }
+        guard let characteristic = context.characteristic else { return }
+        
+        let key = Helper.key(forPeripheral: (peripheral.instance as CBPeripheral?)!, andCharacteristic: characteristic)
+        insertCallback(callback, intoDictionary: &notificationCallbacks, withKey: key)
+        
+        self.bufferedCharacteristics[key] = NotifyBufferContainer(size: bufferLength)
+        
+        peripheral.instance.setNotifyValue(true, for: characteristic)
     }
     
     @objc public func startNotification(_ peripheralUUID: String,
