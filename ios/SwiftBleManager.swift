@@ -21,6 +21,7 @@ import CoreBluetooth
     private var writeQueue: Array<Any>
     private var notificationCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var stopNotificationCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
+    private var bufferedCharacteristics: Dictionary<String, NotifyBufferContainer>
     
     private var connectedPeripherals: Set<String>
     
@@ -45,6 +46,7 @@ import CoreBluetooth
         writeQueue = []
         notificationCallbacks = [:]
         stopNotificationCallbacks = [:]
+        bufferedCharacteristics = [:]
         retrieveServicesLatches = [:]
         characteristicsLatches = [:]
         exactAdvertisingName = []
