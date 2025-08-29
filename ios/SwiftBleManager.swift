@@ -1140,6 +1140,10 @@ import CoreBluetooth
         if let error = error {
             NSLog("Error in didUpdateNotificationStateForCharacteristic: \(error)")
             
+            // Remove any buffered data if notification was started with buffer
+            let key = Helper.key(forPeripheral: peripheral, andCharacteristic: characteristic)
+            self.bufferedCharacteristics.removeValue(forKey: key)
+            
             self.bleManager?.emitOnDidUpdateNotificationState(for: [
                 "peripheral": peripheral.uuidAsString(),
                 "characteristic": characteristic.uuid.uuidString.lowercased(),
