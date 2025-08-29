@@ -854,6 +854,12 @@ import CoreBluetooth
             }
         }
         
+        for key in bufferedCharacteristics.keys {
+            if let keyString = key as String?, keyString.hasPrefix(peripheralUUIDString) {
+                bufferedCharacteristics.removeValue(forKey: key)
+            }
+        }
+        
         connectedPeripherals.remove(peripheralUUIDString)
         if let e:Error = error {
             self.bleManager?.emit(onDisconnectPeripheral: ["peripheral": peripheralUUIDString, "domain": e._domain, "code": e._code, "description": e.localizedDescription])
