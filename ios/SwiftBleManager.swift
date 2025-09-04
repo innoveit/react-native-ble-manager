@@ -675,7 +675,7 @@ import CoreBluetooth
         let key = Helper.key(forPeripheral: (peripheral.instance as CBPeripheral?)!, andCharacteristic: characteristic)
         insertCallback(callback, intoDictionary: &notificationCallbacks, withKey: key)
         
-        self.bufferedCharacteristics[key] = NotifyBufferContainer(size: bufferLength)
+        self.bufferedCharacteristics[key] = NotifyBufferContainer(size: bufferLength.intValue)
         
         peripheral.instance.setNotifyValue(true, for: characteristic)
     }

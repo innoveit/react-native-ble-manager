@@ -21,11 +21,6 @@ class NotifyBufferContainer {
         self.items = Data(capacity: size)
     }
     
-    init(size: NSNumber) {
-        self.capacity = size.intValue
-        self.items = Data(capacity: size.intValue)
-    }
-    
     public func resetBuffer() {
         items.removeAll(keepingCapacity: true)
     }
