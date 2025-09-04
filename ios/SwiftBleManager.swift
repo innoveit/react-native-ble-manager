@@ -21,6 +21,7 @@ import CoreBluetooth
     private var writeQueue: Array<Any>
     private var notificationCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
     private var stopNotificationCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
+    private var bufferedCharacteristics: Dictionary<String, NotifyBufferContainer>
     
     private var connectedPeripherals: Set<String>
     
@@ -45,6 +46,7 @@ import CoreBluetooth
         writeQueue = []
         notificationCallbacks = [:]
         stopNotificationCallbacks = [:]
+        bufferedCharacteristics = [:]
         retrieveServicesLatches = [:]
         characteristicsLatches = [:]
         exactAdvertisingName = []
@@ -653,14 +655,29 @@ import CoreBluetooth
         peripheral?.instance.readValue(for: characteristic!)  // callback sends value
     }
     
-    
-    
     @objc public func startNotificationWithBuffer(_ peripheralUUID: String,
                                                   serviceUUID: String,
                                                   characteristicUUID: String,
                                                   bufferLength: NSNumber,
                                                   callback: @escaping RCTResponseSenderBlock) {
-        callback(["Not supported"])
+        NSLog("startNotificationWithBuffer")
+        
+        guard let context = getContext(
+            peripheralUUID,
+            serviceUUIDString: serviceUUID,
+            characteristicUUIDString: characteristicUUID,
+            prop: CBCharacteristicProperties.notify,
+            callback: callback
+        ) else { return }
+        guard let peripheral = context.peripheral else { return }
+        guard let characteristic = context.characteristic else { return }
+        
+        let key = Helper.key(forPeripheral: (peripheral.instance as CBPeripheral?)!, andCharacteristic: characteristic)
+        insertCallback(callback, intoDictionary: &notificationCallbacks, withKey: key)
+        
+        self.bufferedCharacteristics[key] = NotifyBufferContainer(size: bufferLength.intValue)
+        
+        peripheral.instance.setNotifyValue(true, for: characteristic)
     }
     
     @objc public func startNotification(_ peripheralUUID: String,
@@ -698,6 +715,10 @@ import CoreBluetooth
         if characteristic.isNotifying {
             let key = Helper.key(forPeripheral: (peripheral?.instance as CBPeripheral?)!, andCharacteristic: characteristic)
             insertCallback(callback, intoDictionary: &stopNotificationCallbacks, withKey: key)
+            
+            // Remove any buffered data if notification was started with buffer
+            self.bufferedCharacteristics.removeValue(forKey: key)
+            
             peripheral?.instance.setNotifyValue(false, for: characteristic)
             NSLog("Characteristic stopped notifying")
         } else {
@@ -831,6 +852,16 @@ import CoreBluetooth
             if let keyString = key as String?, keyString.hasPrefix(peripheralUUIDString) {
                 invokeAndClearDictionary(&stopNotificationCallbacks, withKey: key, usingParameters: [errorStr])
             }
+        }
+        
+        let bufferedCharacteristicsKeysToRemove = bufferedCharacteristics.keys.filter { key in
+            if let keyString = key as String? {
+                return keyString.hasPrefix(peripheralUUIDString)
+            }
+            return false
+        }
+        for key in bufferedCharacteristicsKeysToRemove {
+            bufferedCharacteristics.removeValue(forKey: key)
         }
         
         connectedPeripherals.remove(peripheralUUIDString)
@@ -1076,12 +1107,33 @@ import CoreBluetooth
             if readCallbacks[key] != nil {
                 invokeAndClearDictionary_THREAD_UNSAFE(&readCallbacks, withKey: key, usingParameters: [NSNull(), characteristic.value!.toArray()])
             } else {
-                self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
-                    "peripheral": peripheral.uuidAsString(),
-                    "characteristic": characteristic.uuid.uuidString.lowercased(),
-                    "service": characteristic.service!.uuid.uuidString.lowercased(),
-                    "value": characteristic.value!.toArray()
-                ])
+                guard let bufferContainer = self.bufferedCharacteristics[key] else {
+                    // Standard notification
+                    self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
+                        "peripheral": peripheral.uuidAsString(),
+                        "characteristic": characteristic.uuid.uuidString.lowercased(),
+                        "service": characteristic.service!.uuid.uuidString.lowercased(),
+                        "value": characteristic.value!.toArray()
+                    ])
+                    return
+                }
+                
+                // Notification with buffer
+                var valueToEmit: Data = characteristic.value!
+                while (!valueToEmit.isEmpty) {
+                    let rest = bufferContainer.put(valueToEmit)
+                    if bufferContainer.isBufferFull {
+                        self.bleManager?.emitOnDidUpdateValue(forCharacteristic: [
+                            "peripheral": peripheral.uuidAsString(),
+                            "characteristic": characteristic.uuid.uuidString.lowercased(),
+                            "service": characteristic.service!.uuid.uuidString.lowercased(),
+                            "value": bufferContainer.items.toArray()
+                        ])
+                        bufferContainer.resetBuffer()
+                    }
+                    
+                    valueToEmit = rest
+                }
             }
         }
     }
@@ -1091,6 +1143,10 @@ import CoreBluetooth
                            error: Error?) {
         if let error = error {
             NSLog("Error in didUpdateNotificationStateForCharacteristic: \(error)")
+            
+            // Remove any buffered data if notification was started with buffer
+            let key = Helper.key(forPeripheral: peripheral, andCharacteristic: characteristic)
+            self.bufferedCharacteristics.removeValue(forKey: key)
             
             self.bleManager?.emitOnDidUpdateNotificationState(for: [
                 "peripheral": peripheral.uuidAsString(),
