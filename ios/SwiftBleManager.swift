@@ -854,10 +854,14 @@ import CoreBluetooth
             }
         }
         
-        for key in bufferedCharacteristics.keys {
-            if let keyString = key as String?, keyString.hasPrefix(peripheralUUIDString) {
-                bufferedCharacteristics.removeValue(forKey: key)
+        let bufferedCharacteristicsKeysToRemove = bufferedCharacteristics.keys.filter { key in
+            if let keyString = key as String? {
+                return keyString.hasPrefix(peripheralUUIDString)
             }
+            return false
+        }
+        for key in bufferedCharacteristicsKeysToRemove {
+            bufferedCharacteristics.removeValue(forKey: key)
         }
         
         connectedPeripherals.remove(peripheralUUIDString)
