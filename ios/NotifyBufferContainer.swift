@@ -32,6 +32,8 @@ class NotifyBufferContainer {
     
     public func put(_ value: Data) -> Data {
         let remainingCapacity = self.remaining
+        guard remainingCapacity > 0 else { return value }
+        
         let restLength = value.count - remainingCapacity
         
         let toInsert: Data
