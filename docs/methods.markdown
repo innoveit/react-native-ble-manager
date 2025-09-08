@@ -102,7 +102,7 @@ BleManager.stopScan().then(() => {
 
 Scan for companion devices.
 
-If companion device manger is not supported on this (android) device rejects.
+If companion device manager is not supported on this (android) device rejects.
 
 The promise it will eventually resolve with either:
 
