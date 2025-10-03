@@ -109,6 +109,7 @@ public class DefaultPeripheral extends Peripheral {
     }
 
     public void updateData(ScanResult result) {
+        scanResult = result;
         advertisingData = result.getScanRecord();
         advertisingDataBytes = advertisingData.getBytes();
     }
