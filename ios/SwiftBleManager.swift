@@ -1,6 +1,8 @@
 import Foundation
 import CoreBluetooth
-
+#if canImport(AccessorySetupKit)
+    import AccessorySetupKit
+#endif
 
 @objc public class SwiftBleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     static var shared:SwiftBleManager?
@@ -9,6 +11,7 @@ import CoreBluetooth
     private weak var bleManager: BleManager?
     private var manager: CBCentralManager?
     private var scanTimer: Timer?
+    private var session: ASAccessorySession?
     
     private var peripherals: Dictionary<String, Peripheral>
     private var connectCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
@@ -1304,5 +1307,126 @@ import CoreBluetooth
                                     option: NSDictionary,
                                     callback:RCTResponseSenderBlock) {
         callback(["Not supported"])
+    }    
+
+    private func getAccessoriesSession() -> ASAccessorySession {
+        if self.session == nil {
+            self.session = ASAccessorySession()
+        } else if session?.isActive == true {
+            self.session.invalidate()
+            self.session = ASAccessorySession()
+        }
+        return self.session
+    }
+
+    @objc public func startScanAccessories(_ displayItems: [Any],  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 18.4, *) {
+            if serviceUUIDs.isEmpty {
+                reject("NO_SERVICE_UUID_PROVIDED", "At least one serviceUUIDs should be provided.", nil);
+            }
+
+            let session = getAccessoriesSession()
+
+            func createImage(from string: String) -> UIImage? {
+                if let base64Data = Data(base64Encoded: string),
+                let image = UIImage(data: base64Data) {
+                    return image
+                }
+
+                if let image = UIImage(contentsOfFile: string) {
+                    return image
+                }
+
+                if let data = string.data(using: .utf8),
+                let image = UIImage(data: data) {
+                    return image
+                }
+
+                return nil
+            }
+
+            let displayItems: [ASPickerDisplayItem] = displayItems.map { displayItem -> ASPickerDisplayItem in
+                let name = displayItem["name"]
+                let productImage = createImage(diplayItem["productImage"])
+                let serviceUUID = CBUUID(displayItem["serviceUUID"])
+                let base64ProductImage = Data(base64Encoded: productImage)
+                let descriptor = ASDiscoveryDescriptor()
+                descriptor.bluetoothServiceUUID = serviceUUID
+
+                if productImage == nil {
+                    callback(["The product image must be provided as a Base64 string, a file path, or the raw contents of a valid image file."])
+                }
+
+                return ASPickerDisplayItem(
+                    name: name,
+                    productImage: productImage!,
+                    descriptor: descriptor
+                )
+            }
+
+            func createDescriptorDict(_ descriptor: ASDiscoveryDescriptor) -> [String: Any] {
+                var dict: [String: Any] = [:]
+                dict["id"] = desription.bluetoothServiceUUID.uuidString
+                return dict
+            }
+
+            func createAccessoryDict(_ accessory: ASAccessory) {
+                var dict: [String: Any] = [:]
+                dict["id"] = accessory.bluetoothidentifier.uuidString
+                dict["name"] = accessory.displayName
+                dict["state"] = accessory.state
+                dict["descriptor"] = createDescriptorDict(accessory.descriptor)
+                return dict
+            }
+
+            func toArray(_ map: [UUID: ASAccessory]) -> [[String: Any]] {
+                return map.values.map { accessory in
+                    return createAccessoryDict(accessory)
+                }
+            }
+
+            let map = [UUID : ASAccessory]()
+            session.activate(on: DispatchQueue.main) {
+                event in switch event.eventType {
+                    case .activated:
+                        bleManager?.emit(onStartScanAccessories: [])
+                        resolve(true)
+                    break
+
+                    case .deactivated:
+                        bleManager?.emit(onStopScanAccessories: [])
+                    break
+
+                    case .accessoryAdded, .accessoryChanged:
+                        map.updateValue(event.accessory, forKey: key)
+                        bleManager?.emit(onAccessoriesChanged: toArray(map))
+                    break
+
+                    case .accessoryChanged:
+                        map.updateValue(event.accessory, forKey: key)
+                        bleManager?.emit(onAccessoriesChanged: toArray(map))
+                    break
+
+                    case .accessoryRemoved:
+                        map.removeValue(forKey: event.accessory.bluetoothIdentifier)
+                        bleManager?.emit(onAccessoriesChanged: toArray(map))
+                    break
+                }
+            }
+        } else {
+            reject("UNSUPPORTED_VERSION", "Not supported, requires iOS 18.4 or above.", nil);
+        }
+    }
+
+    @objc public func stopScanAccessories(_ callback: @escaping RCTResponseSenderBlock) {
+        if #available(iOS 18.4, *) {
+            let session = getAccessoriesSession()
+            if session.isActive {
+                session.invalidate()
+            }
+            callback([])
+        } else {
+            callback(["Not supported, requires iOS 18.4 or above."])
+        }
     }
 }

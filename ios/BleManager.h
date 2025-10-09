@@ -18,6 +18,8 @@
 - (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
 - (void)emitOnCompanionPeripheral:(NSDictionary *)value;
 - (void)emitOnCompanionFailure:(NSDictionary *)value;
+- (void)emitOnStartScanAccessories:(NSDictionary *)value;
+- (void)emitOnStopScanAccessories:(NSDictionary *)value;
 + (nullable CBCentralManager *)getCentralManager;
 + (nullable SwiftBleManager *)getInstance;
 @end
@@ -36,6 +38,9 @@
 - (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
 - (void)emitOnCompanionPeripheral:(NSDictionary *)value;
 - (void)emitOnCompanionFailure:(NSDictionary *)value;
+- (void)emitOnAccessoriesChanged:(NSDictionary *)value;
+- (void)emitOnStartScanAccessories:(NSDictionary *)value;
+- (void)emitOnStopScanAccessories:(NSDictionary *)value;
 @end
 
 #endif

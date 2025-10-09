@@ -50,6 +50,17 @@ RCT_EXPORT_MODULE()
     [_swBleManager companionScan:serviceUUIDs option:option callback:callback];
 }
 
+- (void)startScanAccessories:(NSArray *)displayItems
+                     resolve:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject {
+    [_swBleManager startScanAccessories:displayItems resolve:resolve reject:reject];
+}
+
+- (void)stopScanAccessories:(NSArray *)displayItems
+                    callback:(RCTResponseSenderBlock)callback {
+    [_swBleManager stopScanAccessories:displayItems callback:callback];
+}
+
 - (void)connect:(NSString *)peripheralUUID
         options:(NSDictionary *)options
        callback:(RCTResponseSenderBlock)callback {

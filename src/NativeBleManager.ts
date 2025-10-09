@@ -1,3 +1,4 @@
+// @ts-ignore
 import { TurboModule, TurboModuleRegistry } from 'react-native';
 // @ts-ignore Ignore since it comes from codegen types.
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
@@ -196,6 +197,10 @@ export interface Spec extends TurboModule {
     callback: (error: string | null, peripheral: Peripheral | null) => void
   ): void;
 
+  startScanAccessories(displayItems: AccessoryDisplayItem[]): Promise<[true, string]>
+
+  stopScanAccessories(callback: (error: string | null ) => void): void
+
   /**
    * Supported events.
    */
@@ -210,6 +215,9 @@ export interface Spec extends TurboModule {
   readonly onDidUpdateNotificationStateFor: EventEmitter<EventDidUpdateNotificationStateFor>;
   readonly onCompanionPeripheral: EventEmitter<EventCompanionPeripheral>;
   readonly onCompanionFailure: EventEmitter<EventCompanionFailure>;
+  readonly onStartScanAccessories: EventEmitter<EventStartScanAccessories>;
+  readonly onStopScanAccessories: EventEmitter<EventStopScanAccessories>;
+  readonly onAccessoriesChanged: EventEmitter<EventAccessoriesChanged>;
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec;
@@ -327,20 +335,6 @@ export type EventDidUpdateState = {
   state: string;
 };
 
-export type EventDiscoverPeripheral = {
-  id: string;
-  name: string;
-  rssi: number;
-  advertising: {
-    isConnectable: boolean;
-    serviceUUIDs: string[];
-    manufacturerData: number[];
-    serviceData: number[];
-    txPowerLevel: number;
-    rawData?: number | null;
-  };
-};
-
 export type EventDidUpdateValueForCharacteristic = {
   value: number[];
   peripheral: string;
@@ -415,3 +409,22 @@ export type EventCompanionPeripheral = {
 export type EventCompanionFailure = {
   error: string;
 };
+
+export type AccessoryDisplayItem = {
+  name:string,
+  productImage:string;
+  serviceUUID:string;
+}
+
+export type EventStartScanAccessories = {}
+
+export type EventStopScanAccessories = {}
+
+export type EventAccessoriesChanged = {
+  id: string;
+  name: string;
+  state: number;
+  descriptor: { id: string }
+}[]
+
+
