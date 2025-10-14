@@ -178,15 +178,15 @@ pick the device to associate.
 - (void)emit:(NSDictionary *)value;
 - (void)emitOnAccessorySessionUpdateState:(NSNumber *)value;
 
-### onAccessoriesChanged [IOS only]
+### onAccessoriesChanged [iOS only, available only on IOS 18+]
   Only triggered when startScanAccessories is called.
   Triggered when an accessory is added, removed or updated through startScanAccessories.
 
-### onStopScanAccessories [IOS only]
+### onStopScanAccessories [iOS only, available only on IOS 18+]
   Only triggered when startScanAccessories is called.
   Triggered when the scan for accessories is ended.
 
-### onAccessorySessionUpdateState [IOS only]
+### onAccessorySessionUpdateState [iOS only, available only on IOS 18+]
   Only triggered when startScanAccessories is called.
   Triggered when the accessory scan session state changed.
   
