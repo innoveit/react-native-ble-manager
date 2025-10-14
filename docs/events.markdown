@@ -173,3 +173,23 @@ Null if the request was cancelled by the user.
 
 Associate callback received a failure or failed to start the intent to
 pick the device to associate.
+
+- (void)emitOnStartScanAccessories:(NSDictionary *)value;
+- (void)emit:(NSDictionary *)value;
+- (void)emitOnAccessorySessionUpdateState:(NSNumber *)value;
+
+### onAccessoriesChanged [IOS only]
+  Only triggered when startScanAccessories is called.
+  Triggered when an accessory is added, removed or updated through startScanAccessories.
+
+### onStopScanAccessories [IOS only]
+  Only triggered when startScanAccessories is called.
+  Triggered when the scan for accessories is ended.
+
+### onAccessorySessionUpdateState [IOS only]
+  Only triggered when startScanAccessories is called.
+  Triggered when the accessory scan session state changed.
+  
+  
+
+  

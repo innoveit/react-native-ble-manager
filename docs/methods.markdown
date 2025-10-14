@@ -865,3 +865,24 @@ BleManager.getMaximumWriteValueLengthForWithResponse(
   console.log("Maximum length for WriteWithResponse: " + maxValue);
 });
 ```
+
+## startScanAccessories [iOS only, available only on IOS 18+]
+
+Starts the search for accessories.
+Returns a `Promise` that resolves when it successfully showed the picker or rejects with the appropriate error.
+It safely cancel the in progress search if there is one.
+
+This method can trigger a bunch of events, please see:
+- onAccessorySessionUpdateState
+- onAccessoriesChanged
+
+## stopScanAccessories [iOS only, available only on IOS 18+]
+
+Stops the current accessory search.
+
+## getAccessories [iOS only, available only on IOS 18+]
+
+Gets the current ios accessories for your app.
+
+Tips:
+- You should call it to get an accessory to avoid calling startScanAccessories everytime your app needs a new connection.

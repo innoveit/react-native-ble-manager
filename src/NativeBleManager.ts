@@ -199,7 +199,9 @@ export interface Spec extends TurboModule {
 
   startScanAccessories(displayItems: AccessoryDisplayItem[]): Promise<[true, string]>
 
-  stopScanAccessories(callback: (error: string | null ) => void): void
+  stopScanAccessories(): Promise<[true, string]>
+
+  getAccessories(): Promise<[IOSAccessory, string]>
 
   /**
    * Supported events.
@@ -217,7 +219,13 @@ export interface Spec extends TurboModule {
   readonly onCompanionFailure: EventEmitter<EventCompanionFailure>;
   readonly onStartScanAccessories: EventEmitter<EventStartScanAccessories>;
   readonly onStopScanAccessories: EventEmitter<EventStopScanAccessories>;
-  readonly onAccessoriesChanged: EventEmitter<EventAccessoriesChanged>;
+  readonly onAccessoriesChanged: EventEmitter<{
+    id: string;
+    name: string;
+    state: number;
+    descriptor: {id:string}
+  }[]>;
+  readonly onAccessorySessionUpdateState: EventEmitter<number>;
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec;
@@ -327,6 +335,13 @@ export type PeripheralInfo = {
   services?: { uuid: string }[];
 };
 
+export type IOSAccessory = {
+  id: string;
+  name: string;
+  state: number;
+  descriptor: {id:string};
+}
+
 export type EventStopScan = {
   status: number;
 };
@@ -411,20 +426,16 @@ export type EventCompanionFailure = {
 };
 
 export type AccessoryDisplayItem = {
-  name:string,
-  productImage:string;
-  serviceUUID:string;
+  name: string,
+  productImage: string;
+  serviceUUID: string;
 }
 
 export type EventStartScanAccessories = {}
 
 export type EventStopScanAccessories = {}
 
-export type EventAccessoriesChanged = {
-  id: string;
-  name: string;
-  state: number;
-  descriptor: { id: string }
-}[]
+export type EventAccessoriesChanged = IOSAccessory[]
+
 
 

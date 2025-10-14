@@ -1,3 +1,4 @@
+// @ts-ignore
 import {
   EventSubscription,
   NativeModules,
@@ -16,6 +17,7 @@ import {
   ScanOptions,
   StartOptions,
 } from './types';
+import { IOSAccessory } from './NativeBleManager';
 export * from './types';
 
 // @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
@@ -822,6 +824,14 @@ class BleManager {
     });
   }
 
+  /**
+   * [iOS only]
+   * @returns
+   */
+  getAccessories(): Promise<[IOSAccessory, string]> {
+    return BleManagerModule.getAccessories();
+  }
+
   onDiscoverPeripheral(callback: any): EventSubscription {
     return BleManagerModule.onDiscoverPeripheral(callback);
   }
@@ -868,6 +878,22 @@ class BleManager {
 
   onCompanionAvailability(callback: any): EventSubscription {
     return BleManagerModule.onCompanionAvailability(callback);
+  }
+
+  onStartScanAccessories(callback: any): EventSubscription {
+    return BleManagerModule.onStartScanAccessories(callback);
+  }
+
+  onStopScanAccessories(callback: any): EventSubscription {
+    return BleManagerModule.onStopScanAccessories(callback);
+  }
+
+  onAccessoriesChanged(callback: any): EventSubscription {
+    return BleManagerModule.onAccessoriesChanged(callback);
+  }
+
+  onAccessorySessionUpdateState(callback: any): EventSubscription {
+    return BleManagerModule.onAccessorySessionUpdateState(callback);
   }
 }
 
