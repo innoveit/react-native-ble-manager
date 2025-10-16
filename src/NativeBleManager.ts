@@ -197,11 +197,11 @@ export interface Spec extends TurboModule {
     callback: (error: string | null, peripheral: Peripheral | null) => void
   ): void;
 
-  startScanAccessories(displayItems: AccessoryDisplayItem[]): Promise<[true, string]>
+  accessoriesScan(displayItems: AccessoryDisplayItem[]): Promise<[true, string]>
 
-  stopScanAccessories(): Promise<[true, string]>
+  stopAccessoriesScan(): Promise<[true, string]>
 
-  getAccessories(): Promise<[IOSAccessory, string]>
+  getAccessories(): Promise<[IOSAccessory[], string]>
 
   /**
    * Supported events.

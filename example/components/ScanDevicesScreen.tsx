@@ -98,6 +98,19 @@ const ScanDevicesScreen = () => {
     }
   };
 
+  const startAccessoryScan = async ()=>{
+    try {
+      const name = 'Accessory';
+      const serviceUUID = '0x2A37'
+      const productImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgQd+Fi0AAAAASUVORK5CYII=';
+      await BleManager.accessoriesScan([{name, productImage, serviceUUID}]);
+      setIsScanning(true);
+    } catch (err){
+      setIsScanning(false);
+      console.error(err);
+    }
+  }
+
   const enableBluetooth = async () => {
     try {
       console.debug('[enableBluetooth]');
@@ -482,13 +495,12 @@ const ScanDevicesScreen = () => {
           </Pressable>
         </View>
 
-        {Platform.OS === 'android' && (
+        {Platform.OS === 'android' ? (
           <>
             <View style={styles.buttonGroup}>
               <Pressable style={styles.scanButton} onPress={startCompanionScan}>
                 <Text style={styles.scanButtonText}>{'Scan Companion'}</Text>
               </Pressable>
-
               <Pressable
                 style={styles.scanButton}
                 onPress={getAssociatedPeripherals}
@@ -505,6 +517,12 @@ const ScanDevicesScreen = () => {
               </Pressable>
             </View>
           </>
+        ): (
+          <View style={styles.buttonGroup}>
+            <Pressable style={styles.scanButton} onPress={startAccessoryScan}>
+              <Text style={styles.scanButtonText}>{'Scan Accessory'}</Text>
+            </Pressable>
+          </View>
         )}
 
         {Array.from(peripherals.values()).length === 0 && (

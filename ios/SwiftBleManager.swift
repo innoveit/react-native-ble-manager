@@ -1336,7 +1336,7 @@ import CoreBluetooth
         return dict
     }
 
-    @objc public func startScanAccessories(_ displayItems: [Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    @objc public func accessoriesScan(_ displayItems: [Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         if #available(iOS 18.0, *) {
             let session = getOrCreateAccessoriesSession()
             session.invalidate()
@@ -1415,7 +1415,7 @@ import CoreBluetooth
                         }
 
                     default:
-                        self.bleManager?.emit(onAccessorySessionStateChange: NSNumber(value: event.eventType.rawValue))
+                        self.bleManager?.emit(onAccessorySessionUpdateState: NSNumber(value: event.eventType.rawValue))
                         break
                 }
             }
@@ -1424,7 +1424,7 @@ import CoreBluetooth
         }
     }
 
-    @objc public func stopScanAccessories() {
+    @objc public func stopAccessoriesScan() {
         if #available(iOS 18.0, *) {
             if let session = self.session as? ASAccessorySession {
                 session.invalidate()

@@ -825,11 +825,24 @@ class BleManager {
   }
 
   /**
-   * [iOS only]
-   * @returns
+   * [iOS +18 only]
    */
-  getAccessories(): Promise<[IOSAccessory, string]> {
+  getAccessories(): Promise<[IOSAccessory[], string]> {
     return BleManagerModule.getAccessories();
+  }
+
+  /**
+   * [iOS +18 only]
+   */
+  accessoriesScan(): Promise<[true, string]> {
+    return BleManagerModule.accessoriesScan();
+  }
+
+  /**
+   * [iOS +18 only]
+   */
+  stopAccessoriesScan(): Promise<[true, string]>{
+    return BleManagerModule.stopAccessoriesScan();
   }
 
   onDiscoverPeripheral(callback: any): EventSubscription {
