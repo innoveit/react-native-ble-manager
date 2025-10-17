@@ -199,9 +199,9 @@ export interface Spec extends TurboModule {
 
   accessoriesScan(displayItems: AccessoryDisplayItem[]): Promise<[true, string]>
 
-  stopAccessoriesScan(): Promise<[true, string]>
+  stopAccessoriesScan(): void
 
-  getAccessories(): Promise<[IOSAccessory[], string]>
+  getAccessoryKitSupported(): boolean
 
   /**
    * Supported events.

@@ -50,9 +50,9 @@ RCT_EXPORT_MODULE()
     [_swBleManager companionScan:serviceUUIDs option:option callback:callback];
 }
 
-- (void)accessoriesScan:(NSArray *) displayItems
-                     resolve:(RCTPromiseResolveBlock) resolve
-                     reject:(RCTPromiseRejectBlock) reject {
+- (void)accessoriesScan:(NSArray *)displayItems
+                 resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject {
     [_swBleManager accessoriesScan:displayItems resolve:resolve reject:reject];
 }
 
@@ -60,11 +60,10 @@ RCT_EXPORT_MODULE()
     [_swBleManager stopAccessoriesScan];
 }
 
-- (void)getAccessories:(RCTPromiseResolveBlock)resolve
-                            reject:(RCTPromiseRejectBlock)reject {
-    [_swBleManager getAccessories:resolve reject:reject];
+- (NSNumber*)getAccessoryKitSupported {
+   BOOL supported = [_swBleManager getAccessoryKitSupported];
+   return @(supported);
 }
-
 
 - (void)connect:(NSString *)peripheralUUID
         options:(NSDictionary *)options

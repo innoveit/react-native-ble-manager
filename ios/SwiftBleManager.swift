@@ -13,6 +13,7 @@ import AccessorySetupKit
     private var scanTimer: Timer?
 
     private var session: Any?
+    private var sessionActivated: Bool = false
 
     private var peripherals: Dictionary<String, Peripheral>
     private var connectCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
@@ -85,6 +86,14 @@ import AccessorySetupKit
         }
 
         peripherals = [:]
+
+        if #available(iOS 18.0, *) {
+            DispatchQueue.main.sync {
+                if let session = self.session as? ASAccessorySession {
+                    session.invalidate()
+                }
+            }
+        }
     }
 
 
@@ -222,11 +231,6 @@ import AccessorySetupKit
             SwiftBleManager.sharedManager = manager
         }
 
-        #if canImport(AccessorySetupKit)
-        if #available(iOS 18.0, *) {
-            session = ASAccessorySession()
-        }
-        #endif
         callback([])
     }
 
@@ -1331,12 +1335,6 @@ import AccessorySetupKit
 
     @objc public func accessoriesScan(_ displayItems: [Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         if #available(iOS 18.0, *) {
-            guard let session = self.session as? ASAccessorySession else {
-                reject("INVALID_SESSION", "session is not an ASAccessorySession, please reach support.", nil)
-                return
-            }
-            session.invalidate()
-
             var items: [ASPickerDisplayItem] = []
 
             func createImageFromString(_ string: String) -> UIImage? {
@@ -1377,43 +1375,69 @@ import AccessorySetupKit
 
             func toArray(_ map: [UUID: ASAccessory]) -> [[String: Any]] {
                 return map.values.map { accessory in
-                    return createAccessory(accessory)
+                    return self.createAccessory(accessory)
+                }
+            }
+
+            DispatchQueue.main.sync {
+                if let session = self.session as? ASAccessorySession {
+                    session.invalidate()
                 }
             }
 
             var map = [UUID : ASAccessory]()
-            session.activate(on: DispatchQueue.main) { event in
-                switch event.eventType {
-                    case .activated:
-                        self.bleManager?.emit(onStartScanAccessories: [:])
-                        session.showPicker(for: items) { error in
-                            if let error = error as NSError? {
-                                reject("COULD_NOT_SHOW_PICKER", error.localizedDescription, nil)
-                            } else {
-                                resolve(true)
+            self.session = ASAccessorySession()
+            if let session = self.session as? ASAccessorySession {
+                var resolved = false
+                session.activate(on: DispatchQueue.main) { [weak self] event in
+                    guard let self else { return }
+                    switch event.eventType {
+                        case .activated:
+                            self.bleManager?.emit(onStartScanAccessories: [:])
+                            if let session = self.session as? ASAccessorySession {
+                                session.showPicker(for: items) { error in
+                                    if !resolved {
+                                        if let error = error as NSError? {
+                                            resolved = true
+                                            reject("COULD_NOT_SHOW_PICKER", error.localizedDescription, nil)
+                                        } else {
+                                            resolved = true
+                                            resolve(
+                                                session.accessories.map {
+                                                    accessory in self.createAccessory(accessory)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                        }
 
-                    case .invalidated:
-                        self.bleManager?.emit(onStopScanAccessories: [:])
-                        reject("INVALIDATED", "session was invalidated", nil)
+                        case .invalidated:
+                            self.bleManager?.emit(onStopScanAccessories: [:])
+                            if !resolved {
+                                resolved = true
+                                reject("SESSION_INVALIDATED", "session was invalidated. This might happen if `startAccessoriesScan()` was called multiple times in a row.", nil)
+                            }
 
-                    case .accessoryAdded, .accessoryChanged:
-                        if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
-                            map.updateValue(accessory, forKey: uuid)
-                            self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
-                        }
+                        case .accessoryAdded, .accessoryChanged:
+                            if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
+                                map.updateValue(accessory, forKey: uuid)
+                                self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
+                            }
 
-                    case .accessoryRemoved:
-                        if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
-                            map.removeValue(forKey: uuid)
-                            self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
-                        }
+                        case .accessoryRemoved:
+                            if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
+                                map.removeValue(forKey: uuid)
+                                self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
+                            }
 
-                    default:
-                        self.bleManager?.emit(onAccessorySessionUpdateState: NSNumber(value: event.eventType.rawValue))
-                        break
+                        default:
+                            self.bleManager?.emit(onAccessorySessionUpdateState: NSNumber(value: event.eventType.rawValue))
+                            break
+                    }
                 }
+            } else {
+                reject("COULD_NOT_CREATE_SESSION", "could not create a accessory session.", nil)
             }
         } else {
             reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.", nil)
@@ -1422,27 +1446,18 @@ import AccessorySetupKit
 
     @objc public func stopAccessoriesScan() {
         if #available(iOS 18.0, *) {
-            guard let session = self.session as? ASAccessorySession else {
-                return
+            if let session = self.session as? ASAccessorySession {
+                session.invalidate()
+                self.session = nil
             }
-            session.invalidate()
         }
     }
 
-    @objc public func getAccessories(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        if #available(iOS 18.0, *) {
-            guard let session = self.session as? ASAccessorySession else {
-                reject("INVALID_SESSION", "session is not an ASAccessorySession, please reach support.", nil)
-                return
-            }
-
-            resolve(
-                session.accessories.map { accessory in
-                    createAccessory(accessory)
-                }
-            )
-        } else {
-            reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.", nil)
-        }
+    @objc public func getAccessoryKitSupported() -> Bool {
+        #if canImport(AccessorySetupKit)
+            return true
+        #else
+            return false
+        #endif
     }
 }

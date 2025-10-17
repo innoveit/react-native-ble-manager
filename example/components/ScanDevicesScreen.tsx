@@ -98,23 +98,27 @@ const ScanDevicesScreen = () => {
     }
   };
 
-  const startAccessoryScan = async ()=>{
-     try{
-       console.log(await BleManager.getAccessories())
-     }catch (err){
-       console.error(err)
-     }
-    // try {
-    //   const name = 'Accessory';
-    //   const serviceUUID = '0x2A37'
-    //   const productImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgQd+Fi0AAAAASUVORK5CYII=';
-    //   await BleManager.accessoriesScan([{name, productImage, serviceUUID}]);
-    //   setIsScanning(true);
-    // } catch (err){
-    //   setIsScanning(false);
-    //   console.error(err);
-    // }
-  }
+  const startAccessoryScan = async () => {
+    try {
+      if (!BleManager.getAccessoryKitSupported()) {
+        console.error('AccessoryKit not supported in your device.');
+        return;
+      }
+      BleManager.stopAccessoriesScan();
+      console.log('AccessoryKit scan ensured to be stopped');
+      await BleManager.accessoriesScan([
+        {
+          name: 'Accessory',
+          productImage:
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII',
+          serviceUUID: '0x2A37',
+        },
+      ]);
+      console.log('AccessoryKit scan started');
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const enableBluetooth = async () => {
     try {
@@ -137,7 +141,7 @@ const ScanDevicesScreen = () => {
       `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
     );
     setPeripherals((map) => {
-      let p = map.get(event.peripheral);
+      const p = map.get(event.peripheral);
       if (p) {
         p.connected = false;
         return new Map(map.set(event.peripheral, p));
@@ -199,9 +203,9 @@ const ScanDevicesScreen = () => {
         connectedPeripherals
       );
 
-      for (let peripheral of connectedPeripherals) {
+      for (const peripheral of connectedPeripherals) {
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.connected = true;
             return new Map(map.set(p.id, p));
@@ -287,7 +291,7 @@ const ScanDevicesScreen = () => {
     try {
       if (peripheral) {
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.connecting = true;
             return new Map(map.set(p.id, p));
@@ -299,7 +303,7 @@ const ScanDevicesScreen = () => {
         console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
 
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.connecting = false;
             p.connected = true;
@@ -319,7 +323,7 @@ const ScanDevicesScreen = () => {
         );
 
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             return new Map(map.set(p.id, p));
           }
@@ -336,7 +340,7 @@ const ScanDevicesScreen = () => {
             if (characteristic.descriptors) {
               for (const descriptor of characteristic.descriptors) {
                 try {
-                  let data = await BleManager.readDescriptor(
+                  const data = await BleManager.readDescriptor(
                     peripheral.id,
                     characteristic.service,
                     characteristic.characteristic,
@@ -358,7 +362,7 @@ const ScanDevicesScreen = () => {
         }
 
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.rssi = rssi;
             return new Map(map.set(p.id, p));
@@ -367,7 +371,7 @@ const ScanDevicesScreen = () => {
         });
 
         navigation.navigate('PeripheralDetails', {
-          peripheralData: peripheralData,
+          peripheralData,
         });
       }
     } catch (error) {
@@ -491,7 +495,7 @@ const ScanDevicesScreen = () => {
 
           <Pressable style={styles.scanButton} onPress={retrieveConnected}>
             <Text style={styles.scanButtonText} lineBreakMode="middle">
-              {'Retrieve connected peripherals'}
+              Retrieve connected peripherals
             </Text>
           </Pressable>
 
@@ -504,28 +508,28 @@ const ScanDevicesScreen = () => {
           <>
             <View style={styles.buttonGroup}>
               <Pressable style={styles.scanButton} onPress={startCompanionScan}>
-                <Text style={styles.scanButtonText}>{'Scan Companion'}</Text>
+                <Text style={styles.scanButtonText}>Scan Companion</Text>
               </Pressable>
               <Pressable
                 style={styles.scanButton}
                 onPress={getAssociatedPeripherals}
               >
                 <Text style={styles.scanButtonText}>
-                  {'Get Associated Peripherals'}
+                  Get Associated Peripherals
                 </Text>
               </Pressable>
             </View>
 
             <View style={styles.buttonGroup}>
               <Pressable style={styles.scanButton} onPress={enableBluetooth}>
-                <Text style={styles.scanButtonText}>{'Enable Bluetooth'}</Text>
+                <Text style={styles.scanButtonText}>Enable Bluetooth</Text>
               </Pressable>
             </View>
           </>
-        ): (
+        ) : (
           <View style={styles.buttonGroup}>
             <Pressable style={styles.scanButton} onPress={startAccessoryScan}>
-              <Text style={styles.scanButtonText}>{'Scan Accessory'}</Text>
+              <Text style={styles.scanButtonText}>Scan Accessory</Text>
             </Pressable>
           </View>
         )}

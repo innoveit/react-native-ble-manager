@@ -1,7 +1,7 @@
 // @ts-ignore
 import {
   EventSubscription,
-  NativeModules,
+  NativeModules, Platform,
 } from 'react-native';
 import {
   BleScanCallbackType,
@@ -17,7 +17,7 @@ import {
   ScanOptions,
   StartOptions,
 } from './types';
-import { IOSAccessory } from './NativeBleManager';
+import { AccessoryDisplayItem, IOSAccessory } from './NativeBleManager';
 export * from './types';
 
 // @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
@@ -827,15 +827,8 @@ class BleManager {
   /**
    * [iOS +18 only]
    */
-  getAccessories(): Promise<[IOSAccessory[], string]> {
-    return BleManagerModule.getAccessories();
-  }
-
-  /**
-   * [iOS +18 only]
-   */
-  accessoriesScan(): Promise<[true, string]> {
-    return BleManagerModule.accessoriesScan();
+  accessoriesScan(displayItems: AccessoryDisplayItem[]): Promise<[AccessoryDisplayItem[], string]> {
+    return BleManagerModule.accessoriesScan(displayItems);
   }
 
   /**
@@ -843,6 +836,13 @@ class BleManager {
    */
   stopAccessoriesScan(): Promise<[true, string]>{
     return BleManagerModule.stopAccessoriesScan();
+  }
+
+  /**
+   * Gets if the Apple AccessoryKit is supported.
+   */
+  getAccessoryKitSupported(): boolean {
+    return BleManagerModule.getAccessoryKitSupported();
   }
 
   onDiscoverPeripheral(callback: any): EventSubscription {
