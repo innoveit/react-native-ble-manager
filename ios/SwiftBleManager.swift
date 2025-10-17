@@ -1,7 +1,7 @@
 import Foundation
 import CoreBluetooth
 #if canImport(AccessorySetupKit)
-    import AccessorySetupKit
+import AccessorySetupKit
 #endif
 
 @objc public class SwiftBleManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
@@ -62,7 +62,6 @@ import CoreBluetooth
         NSLog("BleManager created");
 
         SwiftBleManager.shared = self
-
 
         NotificationCenter.default.addObserver(self, selector: #selector(bridgeReloading), name: NSNotification.Name(rawValue: "RCTBridgeWillReloadNotification"), object: nil)
     }
@@ -223,6 +222,11 @@ import CoreBluetooth
             SwiftBleManager.sharedManager = manager
         }
 
+        #if canImport(AccessorySetupKit)
+        if #available(iOS 18.0, *) {
+            session = ASAccessorySession()
+        }
+        #endif
         callback([])
     }
 
@@ -1311,17 +1315,6 @@ import CoreBluetooth
     }
 
     @available(iOS 18.0, *)
-    private func getOrCreateAccessoriesSession() -> ASAccessorySession {
-        if let session = self.session as? ASAccessorySession {
-            return session
-        }
-
-        let newSession = ASAccessorySession()
-        self.session = newSession
-        return newSession
-    }
-
-    @available(iOS 18.0, *)
     private func createAccessory(_ accessory: ASAccessory) -> [String: Any] {
         var dict: [String: Any] = ["id":""]
         if let uuid = accessory.bluetoothIdentifier?.uuidString {
@@ -1338,7 +1331,10 @@ import CoreBluetooth
 
     @objc public func accessoriesScan(_ displayItems: [Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         if #available(iOS 18.0, *) {
-            let session = getOrCreateAccessoriesSession()
+            guard let session = self.session as? ASAccessorySession else {
+                reject("INVALID_SESSION", "session is not an ASAccessorySession, please reach support.", nil)
+                return
+            }
             session.invalidate()
 
             var items: [ASPickerDisplayItem] = []
@@ -1426,18 +1422,23 @@ import CoreBluetooth
 
     @objc public func stopAccessoriesScan() {
         if #available(iOS 18.0, *) {
-            if let session = self.session as? ASAccessorySession {
-                session.invalidate()
+            guard let session = self.session as? ASAccessorySession else {
+                return
             }
+            session.invalidate()
         }
     }
 
     @objc public func getAccessories(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         if #available(iOS 18.0, *) {
-            let session = getOrCreateAccessoriesSession()
+            guard let session = self.session as? ASAccessorySession else {
+                reject("INVALID_SESSION", "session is not an ASAccessorySession, please reach support.", nil)
+                return
+            }
+
             resolve(
                 session.accessories.map { accessory in
-                    return createAccessory(accessory)
+                    createAccessory(accessory)
                 }
             )
         } else {

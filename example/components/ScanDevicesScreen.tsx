@@ -99,16 +99,21 @@ const ScanDevicesScreen = () => {
   };
 
   const startAccessoryScan = async ()=>{
-    try {
-      const name = 'Accessory';
-      const serviceUUID = '0x2A37'
-      const productImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgQd+Fi0AAAAASUVORK5CYII=';
-      await BleManager.accessoriesScan([{name, productImage, serviceUUID}]);
-      setIsScanning(true);
-    } catch (err){
-      setIsScanning(false);
-      console.error(err);
-    }
+     try{
+       console.log(await BleManager.getAccessories())
+     }catch (err){
+       console.error(err)
+     }
+    // try {
+    //   const name = 'Accessory';
+    //   const serviceUUID = '0x2A37'
+    //   const productImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgQd+Fi0AAAAASUVORK5CYII=';
+    //   await BleManager.accessoriesScan([{name, productImage, serviceUUID}]);
+    //   setIsScanning(true);
+    // } catch (err){
+    //   setIsScanning(false);
+    //   console.error(err);
+    // }
   }
 
   const enableBluetooth = async () => {
