@@ -40,7 +40,11 @@ public class DefaultPeripheral extends Peripheral {
         WritableMap advertising = Arguments.createMap();
 
         try {
-            map.putString("name", device.getName());
+            String name = device.getName();
+            if (name == null) {
+                name = Objects.requireNonNull(scanResult.getScanRecord()).getDeviceName();
+            }
+            map.putString("name", name);
             map.putString("id", device.getAddress()); // mac address
             map.putInt("rssi", advertisingRSSI);
 
