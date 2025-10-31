@@ -221,12 +221,7 @@ export interface Spec extends TurboModule {
   readonly onCompanionFailure: EventEmitter<EventCompanionFailure>;
   readonly onStartScanAccessories: EventEmitter<EventStartScanAccessories>;
   readonly onStopScanAccessories: EventEmitter<EventStopScanAccessories>;
-  readonly onAccessoriesChanged: EventEmitter<{
-    id: string;
-    name: string;
-    state: number;
-    serviceUUID: string
-  }[]>;
+  readonly onAccessoriesChanged: EventEmitter<IOSAccessory[]>;
   readonly onAccessorySessionUpdateState: EventEmitter<number>;
 }
 
