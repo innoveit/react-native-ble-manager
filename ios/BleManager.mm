@@ -50,10 +50,15 @@ RCT_EXPORT_MODULE()
     [_swBleManager companionScan:serviceUUIDs option:option callback:callback];
 }
 
-- (void)accessoriesScan:(NSArray *)displayItems
+- (void)accessoriesScan:(NSArray *) displayItems
                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject {
+                 reject:(RCTPromiseRejectBlock)reject {
     [_swBleManager accessoriesScan:displayItems resolve:resolve reject:reject];
+}
+
+- (void)getConnectedAccessories:(RCTPromiseResolveBlock)resolve
+                         reject:(RCTPromiseRejectBlock)reject {
+    [_swBleManager getConnectedAccessories:resolve reject:reject];
 }
 
 - (void)stopAccessoriesScan {

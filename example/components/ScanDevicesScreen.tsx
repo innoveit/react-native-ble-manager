@@ -104,17 +104,18 @@ const ScanDevicesScreen = () => {
         console.error('AccessoryKit not supported in your device.');
         return;
       }
-      BleManager.stopAccessoriesScan();
-      console.log('AccessoryKit scan ensured to be stopped');
-      await BleManager.accessoriesScan([
+
+      const connectedAccessories = await BleManager.getConnectedAccessories();
+      console.log('connected accessories', connectedAccessories);
+      const accessories = await BleManager.accessoriesScan([
         {
-          name: 'Accessory',
-          productImage:
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII',
-          serviceUUID: '0x2A37',
+          name: 'Polar',
+          productImage: "heart.fill",
+          serviceUUID: '0000180D-0000-1000-8000-00805F9B34FB',
         },
       ]);
       console.log('AccessoryKit scan started');
+      console.log('found accessories', accessories);
     } catch (err) {
       console.error(err);
     }
@@ -386,6 +387,23 @@ const ScanDevicesScreen = () => {
     return new Promise<void>((resolve) => setTimeout(resolve, ms));
   }
 
+  function handleOnAccessorySessionUpdateState(code: number){
+    console.debug(`accessorykit accessories updated state=${code}`)
+
+  }
+
+  function handleOnAccessoriesChanged(accessories){
+    console.debug(`accessorykit accessories discovered`, accessories)
+  }
+
+  function handleOnStartScanAccessories(){
+    console.debug('accessorykit scan started')
+  }
+
+  function handleOnStopScanAccessories(){
+    console.debug('accessorykit scan stopped')
+  }
+
   useEffect(() => {
     try {
       BleManager.start({ showAlert: false })
@@ -406,6 +424,12 @@ const ScanDevicesScreen = () => {
         handleUpdateValueForCharacteristic
       ),
       BleManager.onDisconnectPeripheral(handleDisconnectedPeripheral),
+      BleManager.onAccessorySessionUpdateState(
+        handleOnAccessorySessionUpdateState
+      ),
+      BleManager.onAccessoriesChanged(handleOnAccessoriesChanged),
+      BleManager.onStartScanAccessories(handleOnStartScanAccessories),
+      BleManager.onStopScanAccessories(handleOnStopScanAccessories)
     ];
 
     handleAndroidPermissions();

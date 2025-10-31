@@ -13,7 +13,6 @@ import AccessorySetupKit
     private var scanTimer: Timer?
 
     private var session: Any?
-    private var sessionActivated: Bool = false
 
     private var peripherals: Dictionary<String, Peripheral>
     private var connectCallbacks: Dictionary<String, [RCTResponseSenderBlock]>
@@ -88,7 +87,7 @@ import AccessorySetupKit
         peripherals = [:]
 
         if #available(iOS 18.0, *) {
-            DispatchQueue.main.sync {
+            serialQueue.sync {
                 if let session = self.session as? ASAccessorySession {
                     session.invalidate()
                 }
@@ -1319,126 +1318,146 @@ import AccessorySetupKit
     }
 
     @available(iOS 18.0, *)
-    private func createAccessory(_ accessory: ASAccessory) -> [String: Any] {
-        var dict: [String: Any] = ["id":""]
-        if let uuid = accessory.bluetoothIdentifier?.uuidString {
-            dict["id"] = uuid
+    private func createJsAccessory(_ accessory: ASAccessory) -> [String: Any] {
+        var jsAccessory: [String: Any] = [:]
+        guard let serviceUUID = accessory.descriptor.bluetoothServiceUUID?.uuidString else {
+            fatalError("Could not get accessory serviceUUID")
         }
-
-        dict["name"] = accessory.displayName
-        dict["state"] = accessory.state.rawValue
-        let serviceUUID = accessory.descriptor.bluetoothServiceUUID?.uuidString ?? ""
-        dict["descriptor"] = ["id": serviceUUID]
-        dict["state"] = accessory.state
-        return dict
+        guard let id = accessory.bluetoothIdentifier?.uuidString else {
+            fatalError("Could not get accessory id")
+        }
+        jsAccessory["id"] = id
+        jsAccessory["name"] = accessory.displayName
+        jsAccessory["state"] = NSNumber(value: accessory.state.rawValue)
+        jsAccessory["serviceUUID"] = serviceUUID
+        return jsAccessory
     }
 
-    @objc public func accessoriesScan(_ displayItems: [Any], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    @objc public func accessoriesScan(_ displayItems: [[String: String]], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         if #available(iOS 18.0, *) {
-            var items: [ASPickerDisplayItem] = []
+            self.stopAccessoriesScan(); // safely end previous session
 
-            func createImageFromString(_ string: String) -> UIImage? {
-                if let base64Data = Data(base64Encoded: string),
-                let image = UIImage(data: base64Data) {
-                    return image
-                }
-
-                if let data = string.data(using: .utf8),
-                let image = UIImage(data: data) {
-                    return image
-                }
-
-                return nil
+            // Safely reject invalid configurations.
+            if displayItems.isEmpty {
+                reject("INVALID_DISPLAY_ITEMS", "You should provide at least one accessory scan display item.", nil);
+                return;
+            }
+            if Bundle.main.object(forInfoDictionaryKey: "NSAccessorySetupKitSupports") == nil {
+                reject("INCORRECT_ACCESSORY_KIT_SETUP", "NSAccessorySetupKitSupports not present in the app plist, please add it correctly.", nil);
+                return;
+            }
+            guard let names = Bundle.main.object(forInfoDictionaryKey: "NSAccessorySetupBluetoothNames") as? [String] else {
+                reject("INCORRECT_ACCESSORY_KIT_SETUP", "NSAccessorySetupBluetoothNames not present in the app plist, please add a accessory name into NSAccessorySetupBluetoothNames on plist.", nil);
+                return;
             }
 
-            for displayItem in displayItems {
-                if let d = displayItem as? [String: Any],
-                   let title = d["title"] as? String, !title.isEmpty,
-                   let productImageString = d["productImage"] as? String, !productImageString.isEmpty,
-                   let serviceUUID = d["serviceUUID"] as? String, !serviceUUID.isEmpty {
-                    guard let productImage = createImageFromString(productImageString) else {
-                        reject("INVALID_ACCESSORY_PRODUCT_IMAGE", "Failed to create image from string", nil)
-                        continue
+            var items: [ASPickerDisplayItem] = []
+            if let pListServices = Bundle.main.object(forInfoDictionaryKey: "NSAccessorySetupBluetoothServices") as? [String] {
+                for d in displayItems {
+                    guard let name = d["name"], !name.isEmpty else {
+                        reject("INVALID_DISPLAY_ITEM_NAME", "One of display items does not contain a valid \"name\"", nil)
+                        return
                     }
-
+                    if !names.contains(name) {
+                        reject("INVALID_DISPLAY_ITEM_NAME", "\"\(name)\" should be present on plist NSAccessorySetupBluetoothNames array", nil)
+                        return
+                    }
+                    guard let serviceUUID = d["serviceUUID"], !serviceUUID.isEmpty else {
+                        reject("INVALID_SERVICE_UUID_SERVICE_UUID", "One of display items does not contain a valid \"serviceUUID\"", nil)
+                        return
+                    }
+                    guard let productImage = d["productImage"], !serviceUUID.isEmpty else {
+                        reject("INVALID_PRODUCT_IMAGE", "One of display items does not contain a valid \"productImage\"", nil)
+                        return
+                    }
+                    if !pListServices.contains(serviceUUID) {
+                        reject("INVALID_SERVICE_UUID_SERVICE_UUID", "service \"\(serviceUUID)\" should be present on plist NSAccessorySetupBluetoothServices", nil)
+                        return
+                    }
+                    guard let productImage = UIImage(named: productImage) else {
+                        reject("INVALID_PRODUCT_IMAGE", "Could not find an IOS productImage with the name \"\(productImage)\".", nil)
+                        return
+                    }
 
                     let descriptor = ASDiscoveryDescriptor()
                     descriptor.bluetoothServiceUUID = CBUUID(string: serviceUUID)
-                    let item = ASPickerDisplayItem(
-                        name: title,
-                        productImage: productImage,
-                        descriptor: descriptor
+                    descriptor.bluetoothNameSubstring = name
+                    items.append(
+                        ASPickerDisplayItem(
+                            name: name,
+                            productImage: productImage,
+                            descriptor: descriptor
+                        )
                     )
-                    items.append(item)
                 }
+            } else {
+                reject("INCORRECT_ACCESSORY_KIT_SETUP", "NSAccessorySetupBluetoothServices not present in the app plist, please add your desired bluetooth service to be searched in the app plist.", nil);
+                return;
             }
 
             func toArray(_ map: [UUID: ASAccessory]) -> [[String: Any]] {
                 return map.values.map { accessory in
-                    return self.createAccessory(accessory)
-                }
-            }
-
-            DispatchQueue.main.sync {
-                if let session = self.session as? ASAccessorySession {
-                    session.invalidate()
+                    return self.createJsAccessory(accessory)
                 }
             }
 
             var map = [UUID : ASAccessory]()
-            self.session = ASAccessorySession()
-            if let session = self.session as? ASAccessorySession {
-                var resolved = false
-                session.activate(on: DispatchQueue.main) { [weak self] event in
-                    guard let self else { return }
-                    switch event.eventType {
-                        case .activated:
-                            self.bleManager?.emit(onStartScanAccessories: [:])
-                            if let session = self.session as? ASAccessorySession {
-                                session.showPicker(for: items) { error in
-                                    if !resolved {
-                                        if let error = error as NSError? {
-                                            resolved = true
-                                            reject("COULD_NOT_SHOW_PICKER", error.localizedDescription, nil)
-                                        } else {
-                                            resolved = true
-                                            resolve(
-                                                session.accessories.map {
-                                                    accessory in self.createAccessory(accessory)
-                                                }
-                                            )
-                                        }
-                                    }
+            let session = ASAccessorySession()
+            session.activate(on: DispatchQueue.main) { [weak self] event in
+                guard let self else { return }
+
+                switch event.eventType {
+                    case .activated:
+                        session.showPicker(for: items) { error in
+                            if let error = error as NSError? {
+                                let message = error.localizedDescription
+                                reject("COULD_NOT_SHOW_PICKER", message, nil)
+                                if !invalidated  {
+                                    session.invalidate()
                                 }
+                            } else {
+                                self.bleManager?.emit(onStartScanAccessories: [:])
+                                resolve(session.accessories.map {
+                                    accessory in self.createJsAccessory(accessory)
+                                })
                             }
+                        }
 
-                        case .invalidated:
-                            self.bleManager?.emit(onStopScanAccessories: [:])
-                            if !resolved {
-                                resolved = true
-                                reject("SESSION_INVALIDATED", "session was invalidated. This might happen if `startAccessoriesScan()` was called multiple times in a row.", nil)
-                            }
+                    case .invalidated:
+                        self.bleManager?.emit(onStopScanAccessories: [:])
 
-                        case .accessoryAdded, .accessoryChanged:
-                            if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
-                                map.updateValue(accessory, forKey: uuid)
-                                self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
-                            }
+                    case .accessoryAdded, .accessoryChanged:
+                        if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
+                            map[uuid] = accessory
+                            self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
+                        }
 
-                        case .accessoryRemoved:
-                            if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
-                                map.removeValue(forKey: uuid)
-                                self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
-                            }
+                    case .accessoryRemoved:
+                        if let accessory = event.accessory, let uuid = accessory.bluetoothIdentifier {
+                            map.removeValue(forKey: uuid)
+                            self.bleManager?.emit(onAccessoriesChanged: ["accessories": toArray(map)])
+                        }
 
-                        default:
-                            self.bleManager?.emit(onAccessorySessionUpdateState: NSNumber(value: event.eventType.rawValue))
-                            break
-                    }
+                    default:
+                        self.bleManager?.emit(onAccessorySessionUpdateState: NSNumber(value: event.eventType.rawValue))
                 }
-            } else {
-                reject("COULD_NOT_CREATE_SESSION", "could not create a accessory session.", nil)
             }
+            self.session = session;
+        } else {
+            reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.", nil)
+        }
+    }
+
+    @objc public func getConnectedAccessories(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        if #available(iOS 18.0, *){
+            self.stopAccessoriesScan(); // safely end previous session
+
+            let session = ASAccessorySession()
+            resolve(
+                session.accessories.map { accessory in
+                    return self.createJsAccessory(accessory)
+                }
+            )
         } else {
             reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.", nil)
         }

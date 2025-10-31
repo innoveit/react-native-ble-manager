@@ -396,3 +396,10 @@ export type BleManagerCompanionFailure = { error: string };
  * Null if the request was cancelled by the user.
  */
 export type BleManagerCompanionPeripheral = Peripheral | null;
+
+
+export enum IOSAccessoryState {
+  Unauthorized = 0,
+  AwaitingAuthorization = 1,
+  Authorized = 2
+}
