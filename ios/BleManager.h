@@ -18,6 +18,7 @@
 - (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
 - (void)emitOnCompanionPeripheral:(NSDictionary *)value;
 - (void)emitOnCompanionFailure:(NSDictionary *)value;
+- (void)emitOnAccessoriesChanged:(NSDictionary *)value;
 - (void)emitOnStartScanAccessories:(NSDictionary *)value;
 - (void)emitOnStopScanAccessories:(NSDictionary *)value;
 - (void)emitOnAccessorySessionUpdateState:(NSNumber *)value;
