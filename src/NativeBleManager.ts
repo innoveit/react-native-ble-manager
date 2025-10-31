@@ -197,7 +197,7 @@ export interface Spec extends TurboModule {
     callback: (error: string | null, peripheral: Peripheral | null) => void
   ): void;
 
-  accessoriesScan(displayItems: AccessoryDisplayItem[]): Promise<[true, string]>
+  accessoriesScan(displayItems: IOSAccessoryDisplayItem[]): Promise<[IOSAccessory[], string]>
 
   stopAccessoriesScan(): void
 
@@ -335,13 +335,6 @@ export type PeripheralInfo = {
   services?: { uuid: string }[];
 };
 
-export type IOSAccessory = {
-  id: string;
-  name: string;
-  state: number;
-  descriptor: {id:string};
-}
-
 export type EventStopScan = {
   status: number;
 };
@@ -425,9 +418,15 @@ export type EventCompanionFailure = {
   error: string;
 };
 
-export type AccessoryDisplayItem = {
+export type IOSAccessoryDisplayItem = {
   name: string,
   productImage: string;
+  serviceUUID: string;
+}
+
+export type IOSAccessory = {
+  name: string;
+  state: number;
   serviceUUID: string;
 }
 

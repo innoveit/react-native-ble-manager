@@ -14,9 +14,10 @@ export default ({ config }) => {
       bundleIdentifier: 'it.innove.example.ble',
       infoPlist: {
         NSAccessorySetupKitSupports: ['Bluetooth'],
-        NSAccessorySetupBluetoothCompanyIdentifiers: [],
-        NSAccessorySetupBluetoothNames: ['MyAccessoryName'],
-        NSAccessorySetupBluetoothServices: ['0x180D', '0x180F','0x2A37'],
+        NSAccessorySetupBluetoothServices: [
+          '0000180D-0000-1000-8000-00805F9B34FB',
+        ],
+        NSAccessorySetupBluetoothNames: ['Polar'],
       },
     },
     plugins: [

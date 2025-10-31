@@ -17,7 +17,7 @@ import {
   ScanOptions,
   StartOptions,
 } from './types';
-import { AccessoryDisplayItem, IOSAccessory } from './NativeBleManager';
+import { IOSAccessoryDisplayItem, IOSAccessory } from './NativeBleManager';
 export * from './types';
 
 // @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
@@ -827,7 +827,7 @@ class BleManager {
   /**
    * [iOS +18 only]
    */
-  accessoriesScan(displayItems: AccessoryDisplayItem[]): Promise<[AccessoryDisplayItem[], string]> {
+  accessoriesScan(displayItems: IOSAccessoryDisplayItem[]): Promise<[IOSAccessoryDisplayItem[], string]> {
     return BleManagerModule.accessoriesScan(displayItems);
   }
 
