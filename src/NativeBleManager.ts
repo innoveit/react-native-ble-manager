@@ -225,7 +225,7 @@ export interface Spec extends TurboModule {
     id: string;
     name: string;
     state: number;
-    descriptor: {id:string}
+    serviceUUID: string
   }[]>;
   readonly onAccessorySessionUpdateState: EventEmitter<number>;
 }
@@ -427,9 +427,10 @@ export type IOSAccessoryDisplayItem = {
 }
 
 export type IOSAccessory = {
+  id: string;
   name: string;
   state: number;
-  serviceUUID: string;
+  serviceUUID: string
 }
 
 export type EventStartScanAccessories = {}
