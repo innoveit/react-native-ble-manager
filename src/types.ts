@@ -158,6 +158,11 @@ export interface ScanOptions {
    */
   single?: boolean;
   companion?: boolean;
+  /**
+   * Deliver scan results via a PendingIntent instead of the default ScanCallback.
+   * Useful when you need background delivery.
+   */
+  useScanIntent?: boolean;
 }
 
 export interface CompanionScanOptions {
