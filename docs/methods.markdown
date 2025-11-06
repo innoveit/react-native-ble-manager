@@ -60,6 +60,7 @@ Returns a `Promise` object.
     - `manufacturerData` - `number[]` - Additional manufacturer data filter.
     - `manufacturerDataMask` - `number[]` - Mask for manufacturer data, must have the same length as `manufacturerData`.
       For any bit in the mask, set it to 1 if it needs to match the one in manufacturer data, otherwise set it to 0.
+  - `useScanIntent` - `Boolean` - [Android only, API 26+] deliver scan results through a `PendingIntent` instead of the default callback. The manager will stop any in-flight callback-based scan before starting the intent-based one.
 
 **Examples**
 
@@ -88,7 +89,7 @@ BleManager.stopScan().then(() => {
 
 ---
 
-## companionScan() [Android only, API 26+]
+## companionScan() [Android only]
 
 Scan for companion devices.
 

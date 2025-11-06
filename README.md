@@ -22,7 +22,7 @@ RN 0.30-0.39 supported until 2.4.3
 ## Supported Platforms
 
 - iOS 10+
-- Android (API 19+)
+- Android (API 24+)
 
 ## Install
 
