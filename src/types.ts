@@ -155,9 +155,13 @@ export interface ScanOptions {
    * When using compaion mode, only associate single peripheral.
    *
    * See: https://developer.android.com/reference/android/companion/AssociationRequest.Builder#setSingleDevice(boolean)
-   */
+  */
   single?: boolean;
   companion?: boolean;
+  /**
+   * [Android O+] Deliver scan results using a PendingIntent instead of the default callback.
+   */
+  useScanIntent?: boolean;
 }
 
 export interface CompanionScanOptions {

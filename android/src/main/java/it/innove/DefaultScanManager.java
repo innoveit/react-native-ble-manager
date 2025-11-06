@@ -7,19 +7,24 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
@@ -36,6 +41,14 @@ import java.util.List;
 public class DefaultScanManager extends ScanManager {
 
     private boolean isScanning = false;
+    private PendingIntent scanPendingIntent;
+    private BroadcastReceiver scanReceiver;
+    private boolean scanReceiverRegistered = false;
+    private boolean scanningWithIntent = false;
+    private static final String ACTION_SCAN_RESULT = "it.innove.BleManager.ACTION_SCAN_RESULT";
+    private static final String EXTRA_LIST_SCAN_RESULT = "android.bluetooth.le.extra.LIST_SCAN_RESULT";
+    private static final String EXTRA_SCAN_RESULT = "android.bluetooth.le.extra.SCAN_RESULT";
+    private static final String EXTRA_ERROR_CODE = "android.bluetooth.le.extra.ERROR_CODE";
 
     public DefaultScanManager(ReactApplicationContext reactContext, BleManager bleManager) {
         super(reactContext, bleManager);
@@ -47,10 +60,7 @@ public class DefaultScanManager extends ScanManager {
         // update scanSessionId to prevent stopping next scan by running timeout thread
         scanSessionId.incrementAndGet();
 
-        final BluetoothLeScanner scanner = getBluetoothAdapter().getBluetoothLeScanner();
-        if (scanner != null)
-            scanner.stopScan(mScanCallback);
-        isScanning = false;
+        stopActiveScan();
         callback.invoke();
     }
 
@@ -103,11 +113,17 @@ public class DefaultScanManager extends ScanManager {
 
 
         if (options.hasKey("exactAdvertisingName")) {
-            ArrayList<Object> expectedNames = options.getArray("exactAdvertisingName").toArrayList();
-            Log.d(BleManager.LOG_TAG, "Filter on advertising names:" + expectedNames);
-            for (Object name : expectedNames) {
-                ScanFilter filter = new ScanFilter.Builder().setDeviceName(name.toString()).build();
-                filters.add(filter);
+            ReadableArray exactAdvertisingNameArray = options.getArray("exactAdvertisingName");
+            if (exactAdvertisingNameArray == null) {
+                Log.w(BleManager.LOG_TAG, "exactAdvertisingName key present but array is null");
+            }
+            if (exactAdvertisingNameArray != null) {
+                ArrayList<Object> expectedNames = exactAdvertisingNameArray.toArrayList();
+                Log.d(BleManager.LOG_TAG, "Filter on advertising names:" + expectedNames);
+                for (Object name : expectedNames) {
+                    ScanFilter filter = new ScanFilter.Builder().setDeviceName(name.toString()).build();
+                    filters.add(filter);
+                }
             }
         }
 
@@ -154,7 +170,55 @@ public class DefaultScanManager extends ScanManager {
             }
         }
 
-        getBluetoothAdapter().getBluetoothLeScanner().startScan(filters, scanSettingsBuilder.build(), mScanCallback);
+        boolean useScanIntent = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && options.hasKey("useScanIntent")
+                && options.getBoolean("useScanIntent");
+
+        if (useScanIntent && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            callback.invoke("useScanIntent requires Android O (API 26) or higher");
+            return;
+        }
+
+        if (isScanning) {
+            scanSessionId.incrementAndGet();
+            stopActiveScan();
+        }
+
+        BluetoothLeScanner scanner = getBluetoothAdapter().getBluetoothLeScanner();
+        if (scanner == null) {
+            callback.invoke("No BLE scanner available");
+            return;
+        }
+
+        try {
+            if (useScanIntent) {
+                Log.i(BleManager.LOG_TAG, "Scan with intent");
+                ensureScanReceiver();
+                Intent intent = new Intent(ACTION_SCAN_RESULT);
+                intent.setPackage(context.getPackageName());
+                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    flags |= PendingIntent.FLAG_MUTABLE;
+                }
+                scanPendingIntent = PendingIntent.getBroadcast(context, 0, intent, flags);
+                scanner.startScan(filters, scanSettingsBuilder.build(), scanPendingIntent);
+                scanningWithIntent = true;
+            } else {
+                scanner.startScan(filters, scanSettingsBuilder.build(), mScanCallback);
+                scanningWithIntent = false;
+            }
+        } catch (Exception e) {
+            if (useScanIntent) {
+                if (scanPendingIntent != null) {
+                    scanPendingIntent.cancel();
+                    scanPendingIntent = null;
+                }
+                unregisterScanReceiver();
+            }
+            callback.invoke("Failed to start scan: " + e.getMessage());
+            return;
+        }
+
         isScanning = true;
 
         if (scanSeconds > 0) {
@@ -165,7 +229,7 @@ public class DefaultScanManager extends ScanManager {
                 public void run() {
 
                     try {
-                        Thread.sleep(scanSeconds * 1000);
+                        Thread.sleep(scanSeconds * 1000L);
                     } catch (InterruptedException ignored) {
                     }
 
@@ -177,9 +241,7 @@ public class DefaultScanManager extends ScanManager {
                             // check current scan session was not stopped
                             if (scanSessionId.intValue() == currentScanSession) {
                                 if (btAdapter.getState() == BluetoothAdapter.STATE_ON) {
-                                    final BluetoothLeScanner scanner = btAdapter.getBluetoothLeScanner();
-                                    if (scanner != null) scanner.stopScan(mScanCallback);
-                                    isScanning = false;
+                                    stopActiveScan();
                                 }
 
                                 WritableMap map = Arguments.createMap();
@@ -268,5 +330,86 @@ public class DefaultScanManager extends ScanManager {
     @Override
     public void setScanning(boolean scanning) {
         isScanning = scanning;
+    }
+
+    private void stopActiveScan() {
+        BluetoothLeScanner scanner = getBluetoothAdapter() != null ? getBluetoothAdapter().getBluetoothLeScanner() : null;
+        if (scanner != null) {
+            try {
+                if (scanningWithIntent && scanPendingIntent != null) {
+                    scanner.stopScan(scanPendingIntent);
+                } else {
+                    scanner.stopScan(mScanCallback);
+                }
+            } catch (IllegalArgumentException | IllegalStateException ignored) {
+                Log.w(BleManager.LOG_TAG, "stopScan ignored error: " + ignored.getMessage());
+            }
+        }
+        if (scanPendingIntent != null) {
+            scanPendingIntent.cancel();
+            scanPendingIntent = null;
+        }
+        unregisterScanReceiver();
+        scanningWithIntent = false;
+        isScanning = false;
+    }
+
+    private void ensureScanReceiver() {
+        if (scanReceiver == null) {
+            scanReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    if (!ACTION_SCAN_RESULT.equals(intent.getAction())) {
+                        return;
+                    }
+
+                    if (intent.hasExtra(EXTRA_ERROR_CODE)) {
+                        final int errorCode = intent.getIntExtra(EXTRA_ERROR_CODE, ScanCallback.SCAN_FAILED_INTERNAL_ERROR);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                stopActiveScan();
+                                WritableMap map = Arguments.createMap();
+                                map.putInt("status", errorCode);
+                                bleManager.emitOnStopScan(map);
+                            }
+                        });
+                        return;
+                    }
+
+                    final ArrayList<ScanResult> results = intent.getParcelableArrayListExtra(EXTRA_LIST_SCAN_RESULT);
+                    final ScanResult singleResult = intent.getParcelableExtra(EXTRA_SCAN_RESULT);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (results != null) {
+                                for (ScanResult result : results) {
+                                    onDiscoveredPeripheral(result);
+                                }
+                            } else if (singleResult != null) {
+                                onDiscoveredPeripheral(singleResult);
+                            }
+                        }
+                    });
+                }
+            };
+        }
+
+        if (!scanReceiverRegistered) {
+            IntentFilter intentFilter = new IntentFilter(ACTION_SCAN_RESULT);
+            ContextCompat.registerReceiver(context, scanReceiver, intentFilter, ContextCompat.RECEIVER_NOT_EXPORTED);
+            scanReceiverRegistered = true;
+        }
+    }
+
+    private void unregisterScanReceiver() {
+        if (scanReceiverRegistered) {
+            try {
+                context.unregisterReceiver(scanReceiver);
+            } catch (IllegalArgumentException ignored) {
+            }
+            scanReceiverRegistered = false;
+        }
     }
 }

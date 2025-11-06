@@ -70,6 +70,7 @@ Returns a `Promise` object.
     - `manufacturerData` - `number[]` - Additional manufacturer data filter.
     - `manufacturerDataMask` - `number[]` - Mask for manufacturer data, must have the same length as `manufacturerData`.
       For any bit in the mask, set it to 1 if it needs to match the one in manufacturer data, otherwise set it to 0.
+  - `useScanIntent` - `Boolean` - [Android only, API 26+] deliver scan results through a `PendingIntent` instead of the default callback. Any ongoing callback scan is automatically stopped before switching to this mode.
 
 **Examples**
 
