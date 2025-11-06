@@ -70,7 +70,7 @@ public class DefaultScanManager extends ScanManager {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
 
-        if (options.hasKey("legacy")) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && options.hasKey("legacy")) {
             scanSettingsBuilder.setLegacy(options.getBoolean("legacy"));
         }
 
@@ -92,7 +92,7 @@ public class DefaultScanManager extends ScanManager {
             scanSettingsBuilder.setReportDelay(options.getInt("reportDelay"));
         }
 
-        if (options.hasKey("phy")) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && options.hasKey("phy")) {
             int phy = options.getInt("phy");
             if (phy == BluetoothDevice.PHY_LE_CODED && getBluetoothAdapter().isLeCodedPhySupported()) {
                 scanSettingsBuilder.setPhy(BluetoothDevice.PHY_LE_CODED);
@@ -145,20 +145,20 @@ public class DefaultScanManager extends ScanManager {
                     return;
                 }
                 Log.d(
-                    BleManager.LOG_TAG,
-                    String.format(
-                        "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
-                        manufacturerId,
-                        Arrays.toString(manufacturerDataBytes),
-                        Arrays.toString(manufacturerDataMaskBytes)
-                    )
+                        BleManager.LOG_TAG,
+                        String.format(
+                                "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
+                                manufacturerId,
+                                Arrays.toString(manufacturerDataBytes),
+                                Arrays.toString(manufacturerDataMaskBytes)
+                        )
                 );
                 ScanFilter filter = new ScanFilter.Builder()
-                    .setManufacturerData(
-                        manufacturerId,
-                        manufacturerDataBytes,
-                        manufacturerDataMaskBytes
-                    ).build();
+                        .setManufacturerData(
+                                manufacturerId,
+                                manufacturerDataBytes,
+                                manufacturerDataMaskBytes
+                        ).build();
                 filters.add(filter);
             }
         }

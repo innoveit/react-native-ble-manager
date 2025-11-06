@@ -60,7 +60,7 @@ Returns a `Promise` object.
     - `manufacturerData` - `number[]` - Additional manufacturer data filter.
     - `manufacturerDataMask` - `number[]` - Mask for manufacturer data, must have the same length as `manufacturerData`.
       For any bit in the mask, set it to 1 if it needs to match the one in manufacturer data, otherwise set it to 0.
-  - `useScanIntent` - `Boolean` - [Android only] deliver scan results through a `PendingIntent` instead of the default callback. The manager will stop any in-flight callback-based scan before starting the intent-based one.
+  - `useScanIntent` - `Boolean` - [Android only, API 26+] deliver scan results through a `PendingIntent` instead of the default callback. The manager will stop any in-flight callback-based scan before starting the intent-based one.
 
 **Examples**
 
@@ -663,13 +663,13 @@ BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
 
 ---
 
-## getAssociatedPeripherals() [Android only]
+## getAssociatedPeripherals() [Android only, API 26+]
 
 Retrive associated peripherals (from companion manager).
 
 ---
 
-## removeAssociatedPeripheral(peripheralId) [Android only]
+## removeAssociatedPeripheral(peripheralId) [Android only, API 26+]
 
 Remove a associated peripheral.
 

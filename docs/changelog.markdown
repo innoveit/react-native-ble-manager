@@ -11,7 +11,6 @@ To read all the details go to the [Github Releases section](https://github.com/i
 
 ## Release v11.4.x
 
-- [Android only] Move to API 26+
 - [Android only] Added `useScanIntent` scan option to receive results via `PendingIntent`.
 
 ## Release v11.3.X
