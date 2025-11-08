@@ -1038,7 +1038,12 @@ public class Peripheral extends BluetoothGattCallback {
                 return;
             } else {
                 this.retrieveServicesCallbacks.addLast(callback);
-                gatt.discoverServices();
+                boolean started = gatt.discoverServices();
+                if (!started) {
+                    this.retrieveServicesCallbacks.removeLastOccurrence(callback);
+                    callback.invoke("Failed to start service discovery", null);
+                    completedCommand();
+                }
             }
         });
     }
@@ -1095,7 +1100,7 @@ public class Peripheral extends BluetoothGattCallback {
         final byte[] copyOfData = copyOf(data);
         return enqueue(() -> {
             if (characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                && callback != null) {
+                    && callback != null) {
                 writeCallbacks.addLast(callback);
             }
             doWrite(characteristic, copyOfData);
