@@ -1,16 +1,17 @@
 package it.innove;
 
+import static it.innove.BleManager.LOG_TAG;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.annotation.SuppressLint;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
@@ -25,7 +26,7 @@ public class DefaultPeripheral extends Peripheral {
     private ScanResult scanResult;
 
     public DefaultPeripheral(BleManager bleManager, ScanResult result) {
-        super(result.getDevice(), result.getRssi(), result.getScanRecord().getBytes(), bleManager);
+        super(result.getDevice(), result.getRssi(), Objects.requireNonNull(result.getScanRecord()).getBytes(), bleManager);
         this.advertisingData = result.getScanRecord();
         this.scanResult = result;
     }
@@ -40,9 +41,9 @@ public class DefaultPeripheral extends Peripheral {
         WritableMap advertising = Arguments.createMap();
 
         try {
-            String name = device.getName();
-            if (name == null) {
-                name = Objects.requireNonNull(scanResult.getScanRecord()).getDeviceName();
+            String name = getSafeDeviceName();
+            if (name == null && scanResult != null && scanResult.getScanRecord() != null) {
+                name = scanResult.getScanRecord().getDeviceName();
             }
             map.putString("name", name);
             map.putString("id", device.getAddress()); // mac address
@@ -50,7 +51,7 @@ public class DefaultPeripheral extends Peripheral {
 
             advertising.putMap("rawData", byteArrayToWritableMap(advertisingDataBytes));
 
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // We can check if peripheral is connectable using the scanresult
                 if (this.scanResult != null) {
                     advertising.putBoolean("isConnectable", scanResult.isConnectable());
@@ -66,7 +67,7 @@ public class DefaultPeripheral extends Peripheral {
                     advertising.putString("localName", deviceName.replace("\0", ""));
 
                 WritableArray serviceUuids = Arguments.createArray();
-                if (advertisingData.getServiceUuids() != null && advertisingData.getServiceUuids().size() != 0) {
+                if (advertisingData.getServiceUuids() != null && !advertisingData.getServiceUuids().isEmpty()) {
                     for (ParcelUuid uuid : advertisingData.getServiceUuids()) {
                         serviceUuids.pushString(UUIDHelper.uuidToString(uuid.getUuid()));
                     }
@@ -106,7 +107,7 @@ public class DefaultPeripheral extends Peripheral {
 
             map.putMap("advertising", advertising);
         } catch (Exception e) { // this shouldn't happen
-            e.printStackTrace();
+            Log.e(LOG_TAG, "asWritableMap error", e);
         }
 
         return map;
@@ -115,6 +116,6 @@ public class DefaultPeripheral extends Peripheral {
     public void updateData(ScanResult result) {
         scanResult = result;
         advertisingData = result.getScanRecord();
-        advertisingDataBytes = advertisingData.getBytes();
+        advertisingDataBytes = advertisingData != null ? advertisingData.getBytes() : null;
     }
 }
