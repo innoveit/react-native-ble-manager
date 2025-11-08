@@ -81,7 +81,7 @@ public class Peripheral extends BluetoothGattCallback {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private boolean commandQueueBusy = false;
 
-    private List<byte[]> writeQueue = new ArrayList<>();
+    private final Queue<byte[]> writeQueue = new LinkedList<>();
 
     public Peripheral(BluetoothDevice device, int advertisingRSSI, byte[] scanRecord, BleManager bleManager) {
         this.device = device;
@@ -535,27 +535,28 @@ public class Peripheral extends BluetoothGattCallback {
         super.onCharacteristicWrite(gatt, characteristic, status);
 
         mainHandler.post(() -> {
-            if (writeQueue.size() > 0) {
-                byte[] data = writeQueue.get(0);
-                writeQueue.remove(0);
-                doWrite(characteristic, data, null);
-            } else if (status != BluetoothGatt.GATT_SUCCESS) {
-                if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
-                    Log.d(BleManager.LOG_TAG, "Write needs bonding");
-                    // *not* doing completedCommand()
-                    return;
+            if (!writeQueue.isEmpty()) {
+                byte[] data = writeQueue.poll();
+                doWrite(characteristic, data);
+            } else {
+                if (status != BluetoothGatt.GATT_SUCCESS) {
+                    if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
+                        Log.d(BleManager.LOG_TAG, "Write needs bonding");
+                        // *not* doing completedCommand()
+                        return;
+                    }
+                    for (Callback writeCallback : writeCallbacks) {
+                        writeCallback.invoke("Error writing " + characteristic.getUuid() + " status=" + status, null);
+                    }
+                    writeCallbacks.clear();
+                } else if (!writeCallbacks.isEmpty()) {
+                    for (Callback writeCallback : writeCallbacks) {
+                        writeCallback.invoke();
+                    }
+                    writeCallbacks.clear();
                 }
-                for (Callback writeCallback : writeCallbacks) {
-                    writeCallback.invoke("Error writing " + characteristic.getUuid() + " status=" + status, null);
-                }
-                writeCallbacks.clear();
-            } else if (!writeCallbacks.isEmpty()) {
-                for (Callback writeCallback : writeCallbacks) {
-                    writeCallback.invoke();
-                }
-                writeCallbacks.clear();
+                completedCommand();
             }
-            completedCommand();
         });
     }
 
@@ -1078,25 +1079,26 @@ public class Peripheral extends BluetoothGattCallback {
         return null;
     }
 
-    public boolean doWrite(final BluetoothGattCharacteristic characteristic, byte[] data, final Callback callback) {
-        final byte[] copyOfData = copyOf(data);
-        return enqueue(new Runnable() {
-            @Override
-            public void run() {
-                characteristic.setValue(copyOfData);
-                if (characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                        && callback != null) {
-                    writeCallbacks.addLast(callback);
-                }
-                if (!gatt.writeCharacteristic(characteristic)) {
-                    // write without response, caller will handle the callback
-                    for (Callback writeCallback : writeCallbacks) {
-                        writeCallback.invoke("Write failed", null);
-                    }
-                    writeCallbacks.clear();
-                    completedCommand();
-                }
+    private void doWrite(final BluetoothGattCharacteristic characteristic, final byte[] data) {
+        characteristic.setValue(data);
+        if (!gatt.writeCharacteristic(characteristic)) {
+            // write without response, caller will handle the callback
+            for (Callback writeCallback : writeCallbacks) {
+                writeCallback.invoke("Write failed", null);
             }
+            writeCallbacks.clear();
+            completedCommand();
+        }
+    }
+
+    private boolean enqueueWrite(final BluetoothGattCharacteristic characteristic, byte[] data, final Callback callback) {
+        final byte[] copyOfData = copyOf(data);
+        return enqueue(() -> {
+            if (characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                && callback != null) {
+                writeCallbacks.addLast(callback);
+            }
+            doWrite(characteristic, copyOfData);
         });
     }
 
@@ -1122,7 +1124,7 @@ public class Peripheral extends BluetoothGattCallback {
             characteristic.setWriteType(writeType);
 
             if (data.length <= maxByteSize) {
-                if (!doWrite(characteristic, data, callback)) {
+                if (!enqueueWrite(characteristic, data, callback)) {
                     callback.invoke("Write failed");
                 } else {
                     if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
@@ -1152,21 +1154,21 @@ public class Peripheral extends BluetoothGattCallback {
 
                 if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
                     writeQueue.addAll(splittedMessage);
-                    if (!doWrite(characteristic, firstMessage, callback)) {
+                    if (!enqueueWrite(characteristic, firstMessage, callback)) {
                         writeQueue.clear();
                         callback.invoke("Write failed");
                     }
                 } else {
                     try {
                         boolean writeError = false;
-                        if (!doWrite(characteristic, firstMessage, callback)) {
+                        if (!enqueueWrite(characteristic, firstMessage, callback)) {
                             writeError = true;
                             callback.invoke("Write failed");
                         }
                         if (!writeError) {
                             Thread.sleep(queueSleepTime);
                             for (byte[] message : splittedMessage) {
-                                if (!doWrite(characteristic, message, callback)) {
+                                if (!enqueueWrite(characteristic, message, callback)) {
                                     writeError = true;
                                     callback.invoke("Write failed");
                                     break;
