@@ -20,7 +20,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     private var writeDescriptorCallbacks: [String: [RCTResponseSenderBlock]]
     private var retrieveServicesCallbacks: [String: [RCTResponseSenderBlock]]
     private var writeCallbacks: [String: [RCTResponseSenderBlock]]
-    private var writeQueue: [Any]
+    private var writeQueues: [String: [Data]]
     private var notificationCallbacks: [String: [RCTResponseSenderBlock]]
     private var stopNotificationCallbacks: [String: [RCTResponseSenderBlock]]
     private var bufferedCharacteristics: [String: NotifyBufferContainer]
@@ -45,7 +45,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         writeDescriptorCallbacks = [:]
         retrieveServicesCallbacks = [:]
         writeCallbacks = [:]
-        writeQueue = []
+        writeQueues = [:]
         notificationCallbacks = [:]
         stopNotificationCallbacks = [:]
         bufferedCharacteristics = [:]
@@ -131,6 +131,43 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 usingParameters: parameters
             )
         }
+    }
+
+    private func enqueueSplitMessages(
+        _ messages: [Data],
+        forKey key: String
+    ) -> (firstChunk: Data?, remainingCount: Int) {
+        var chunkToSend: Data?
+        var remainingCount = 0
+
+        serialQueue.sync {
+            var queue = writeQueues[key] ?? []
+            queue.append(contentsOf: messages)
+
+            if !queue.isEmpty {
+                chunkToSend = queue.removeFirst()
+            }
+
+            remainingCount = queue.count
+            writeQueues[key] = queue
+        }
+
+        return (chunkToSend, remainingCount)
+    }
+
+    private func dequeueNextSplitMessage(forKey key: String) -> Data? {
+        var nextMessage: Data?
+
+        serialQueue.sync {
+            if var queue = writeQueues[key], !queue.isEmpty {
+                nextMessage = queue.removeFirst()
+                writeQueues[key] = queue
+            } else {
+                writeQueues.removeValue(forKey: key)
+            }
+        }
+
+        return nextMessage
     }
 
     func invokeAndClearDictionary_THREAD_UNSAFE(
@@ -775,13 +812,15 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             if dataMessage.count > maxByteSize {
                 var count = 0
                 var offset = 0
+                var splitMessages = [Data]()
+
                 while count < dataMessage.count,
                     (dataMessage.count - count) > maxByteSize
                 {
                     let splitMessage = dataMessage.subdata(
                         in: offset..<offset + maxByteSize
                     )
-                    writeQueue.append(splitMessage)
+                    splitMessages.append(splitMessage)
                     count += maxByteSize
                     offset += maxByteSize
                 }
@@ -790,14 +829,21 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     let splitMessage = dataMessage.subdata(
                         in: offset..<dataMessage.count
                     )
-                    writeQueue.append(splitMessage)
+                    splitMessages.append(splitMessage)
                 }
+
+                let enqueueResult = enqueueSplitMessages(
+                    splitMessages,
+                    forKey: key
+                )
 
                 if SwiftBleManager.verboseLogging {
-                    NSLog("Queued splitted message: \(writeQueue.count)")
+                    NSLog(
+                        "Queued splitted message for \(key): \(enqueueResult.remainingCount) chunk(s) pending"
+                    )
                 }
 
-                if case let firstMessage as Data = writeQueue.removeFirst() {
+                if let firstMessage = enqueueResult.firstChunk {
                     peripheral.instance.writeValue(
                         firstMessage,
                         for: characteristic,
@@ -1781,19 +1827,18 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     usingParameters: [error.localizedDescription]
                 )
             } else {
-                if writeQueue.isEmpty {
-                    invokeAndClearDictionary(
-                        &writeCallbacks,
-                        withKey: key,
-                        usingParameters: []
-                    )
-                } else {
-                    let message = writeQueue.removeFirst() as! Data
+                if let message = dequeueNextSplitMessage(forKey: key) {
                     NSLog("Message to write \(message.hexadecimalString())")
                     peripheral.writeValue(
                         message,
                         for: characteristic,
                         type: .withResponse
+                    )
+                } else {
+                    invokeAndClearDictionary(
+                        &writeCallbacks,
+                        withKey: key,
+                        usingParameters: []
                     )
                 }
             }
