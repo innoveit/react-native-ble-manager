@@ -1826,6 +1826,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     withKey: key,
                     usingParameters: [error.localizedDescription]
                 )
+                serialQueue.sync {
+                    writeQueues.removeValue(forKey: key)
+                }
             } else {
                 if let message = dequeueNextSplitMessage(forKey: key) {
                     NSLog("Message to write \(message.hexadecimalString())")
