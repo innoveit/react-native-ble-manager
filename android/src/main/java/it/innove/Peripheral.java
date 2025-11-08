@@ -1096,6 +1096,7 @@ public class Peripheral extends BluetoothGattCallback {
         return enqueue(() -> {
             if (!isConnected() || gatt == null) {
                 if (withResponse && callback != null) {
+                    writeCallbacks.removeLastOccurrence(callback);
                     callback.invoke("Device is not connected", null);
                 }
                 completedCommand();
@@ -1128,6 +1129,9 @@ public class Peripheral extends BluetoothGattCallback {
 
             if (data.length <= maxByteSize) {
                 if (!enqueueWrite(characteristic, data, callback)) {
+                    if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
+                        writeCallbacks.removeLastOccurrence(callback);
+                    }
                     callback.invoke("Write failed");
                     completedCommand();
                 } else if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
