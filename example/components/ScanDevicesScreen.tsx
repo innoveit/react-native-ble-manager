@@ -127,7 +127,7 @@ const ScanDevicesScreen = () => {
       `[handleDisconnectedPeripheral][${event.peripheral}] disconnected.`
     );
     setPeripherals((map) => {
-      let p = map.get(event.peripheral);
+      const p = map.get(event.peripheral);
       if (p) {
         p.connected = false;
         return new Map(map.set(event.peripheral, p));
@@ -189,9 +189,9 @@ const ScanDevicesScreen = () => {
         connectedPeripherals
       );
 
-      for (let peripheral of connectedPeripherals) {
+      for (const peripheral of connectedPeripherals) {
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.connected = true;
             return new Map(map.set(p.id, p));
@@ -277,7 +277,7 @@ const ScanDevicesScreen = () => {
     try {
       if (peripheral) {
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.connecting = true;
             return new Map(map.set(p.id, p));
@@ -289,7 +289,7 @@ const ScanDevicesScreen = () => {
         console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
 
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.connecting = false;
             p.connected = true;
@@ -309,7 +309,7 @@ const ScanDevicesScreen = () => {
         );
 
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             return new Map(map.set(p.id, p));
           }
@@ -326,7 +326,7 @@ const ScanDevicesScreen = () => {
             if (characteristic.descriptors) {
               for (const descriptor of characteristic.descriptors) {
                 try {
-                  let data = await BleManager.readDescriptor(
+                  const data = await BleManager.readDescriptor(
                     peripheral.id,
                     characteristic.service,
                     characteristic.characteristic,
@@ -348,7 +348,7 @@ const ScanDevicesScreen = () => {
         }
 
         setPeripherals((map) => {
-          let p = map.get(peripheral.id);
+          const p = map.get(peripheral.id);
           if (p) {
             p.rssi = rssi;
             return new Map(map.set(p.id, p));
@@ -365,6 +365,15 @@ const ScanDevicesScreen = () => {
         `[connectPeripheral][${peripheral.id}] connectPeripheral error`,
         error
       );
+    }
+  };
+
+  const checkIsStarted = async () => {
+    try {
+      const isStarted = await BleManager.isStarted();
+      console.debug('[checkIsStarted] isStarted:', isStarted);
+    } catch (error) {
+      console.error('[checkIsStarted] error checking isStarted:', error);
     }
   };
 
@@ -481,12 +490,17 @@ const ScanDevicesScreen = () => {
 
           <Pressable style={styles.scanButton} onPress={retrieveConnected}>
             <Text style={styles.scanButtonText} lineBreakMode="middle">
-              {'Retrieve connected peripherals'}
+              Retrieve connected peripherals
             </Text>
           </Pressable>
+        </View>
 
+        <View style={styles.buttonGroup}>
           <Pressable style={styles.scanButton} onPress={readCharacteristics}>
             <Text style={styles.scanButtonText}>Read characteristics</Text>
+          </Pressable>
+          <Pressable style={styles.scanButton} onPress={checkIsStarted}>
+            <Text style={styles.scanButtonText}>Check isStarted</Text>
           </Pressable>
         </View>
 
@@ -494,7 +508,7 @@ const ScanDevicesScreen = () => {
           <>
             <View style={styles.buttonGroup}>
               <Pressable style={styles.scanButton} onPress={startCompanionScan}>
-                <Text style={styles.scanButtonText}>{'Scan Companion'}</Text>
+                <Text style={styles.scanButtonText}>Scan Companion</Text>
               </Pressable>
 
               <Pressable
@@ -502,14 +516,14 @@ const ScanDevicesScreen = () => {
                 onPress={getAssociatedPeripherals}
               >
                 <Text style={styles.scanButtonText}>
-                  {'Get Associated Peripherals'}
+                  Get Associated Peripherals
                 </Text>
               </Pressable>
             </View>
 
             <View style={styles.buttonGroup}>
               <Pressable style={styles.scanButton} onPress={enableBluetooth}>
-                <Text style={styles.scanButtonText}>{'Enable Bluetooth'}</Text>
+                <Text style={styles.scanButtonText}>Enable Bluetooth</Text>
               </Pressable>
             </View>
           </>

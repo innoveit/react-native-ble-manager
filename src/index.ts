@@ -13,6 +13,7 @@ import {
   ScanOptions,
   StartOptions,
 } from './types';
+import { CallbackError } from './NativeBleManager';
 export * from './types';
 
 // @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
@@ -423,6 +424,22 @@ class BleManager {
           reject(error);
         } else {
           fulfill();
+        }
+      });
+    });
+  }
+
+  /**
+   * Check if the BLE manager has been started.
+   * @returns boolean promise indicating if the manager is started.
+   */
+  isStarted(): Promise<boolean> {
+    return new Promise((fulfill, reject) => {
+      BleManagerModule.isStarted((error: CallbackError, started: boolean) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill(started);
         }
       });
     });

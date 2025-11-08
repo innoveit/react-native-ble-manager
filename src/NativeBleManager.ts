@@ -13,7 +13,9 @@ import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 export interface Spec extends TurboModule {
   start(options: Object, callback: (error: CallbackError) => void): void;
 
-  scan(scanningOptions: Object, callback: (error: CallbackError) => void): void;
+  isStarted(callback: (error: CallbackError, started: boolean) => void): void;
+
+  scan(scanningOptions: Object, callback: (error: CallbackError) => void): void;  
 
   stopScan(callback: (error: CallbackError) => void): void;
 
@@ -37,7 +39,7 @@ export interface Spec extends TurboModule {
 
   readRSSI(
     peripheralUUID: string,
-    callback: (error: string | null, rssi: number) => void
+    callback: (error: CallbackError, rssi: number) => void
   ): void;
 
   readDescriptor(
@@ -45,7 +47,7 @@ export interface Spec extends TurboModule {
     serviceUUID: string,
     characteristicUUID: string,
     descriptorUUID: string,
-    callback: (error: string | null, data: number[]) => void
+    callback: (error: CallbackError, data: number[]) => void
   ): void;
 
   writeDescriptor(
@@ -54,11 +56,11 @@ export interface Spec extends TurboModule {
     characteristicUUID: string,
     descriptorUUID: string,
     data: Object[],
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   getDiscoveredPeripherals(
-    callback: (error: string | null, result: Peripheral[] | null) => void
+    callback: (error: CallbackError, result: Peripheral[] | null) => void
   ): void;
 
   checkState(callback: (state: BleState) => void): void;
@@ -69,7 +71,7 @@ export interface Spec extends TurboModule {
     characteristicUUID: string,
     message: Object[],
     maxByteSize: number,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   writeWithoutResponse(
@@ -79,14 +81,14 @@ export interface Spec extends TurboModule {
     message: Object[],
     maxByteSize: number,
     queueSleepTime: number,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   read(
     peripheralUUID: string,
     serviceUUID: string,
     characteristicUUID: string,
-    callback: (error: string | null, data: number[]) => void
+    callback: (error: CallbackError, data: number[]) => void
   ): void;
 
   startNotificationWithBuffer(
@@ -94,26 +96,26 @@ export interface Spec extends TurboModule {
     serviceUUID: string,
     characteristicUUID: string,
     bufferLength: number,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   startNotification(
     peripheralUUID: string,
     serviceUUID: string,
     characteristicUUID: string,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   stopNotification(
     peripheralUUID: string,
     serviceUUID: string,
     characteristicUUID: string,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   getConnectedPeripherals(
     serviceUUIDStrings: string[],
-    callback: (error: string | null, result: Peripheral[] | null) => void
+    callback: (error: CallbackError, result: Peripheral[] | null) => void
   ): void;
 
   isPeripheralConnected(
@@ -121,66 +123,66 @@ export interface Spec extends TurboModule {
     callback: (error: Peripheral[]) => void
   ): void;
 
-  isScanning(callback: (error: string | null, status: boolean) => void): void;
+  isScanning(callback: (error: CallbackError, status: boolean) => void): void;
 
   getMaximumWriteValueLengthForWithoutResponse(
     peripheralUUID: string,
-    callback: (error: string | null, max: number) => void
+    callback: (error: CallbackError, max: number) => void
   ): void;
 
   getMaximumWriteValueLengthForWithResponse(
     deviceUUID: string,
-    callback: (error: string | null, max: number) => void
+    callback: (error: CallbackError, max: number) => void
   ): void;
 
-  enableBluetooth(callback: (error: string | null) => void): void;
+  enableBluetooth(callback: (error: CallbackError) => void): void;
 
   getBondedPeripherals(
-    callback: (error: string | null, result: Peripheral[] | null) => void
+    callback: (error: CallbackError, result: Peripheral[] | null) => void
   ): void;
 
   createBond(
     peripheralUUID: string,
     devicePin: string,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   removeBond(
     peripheralUUID: string,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   removePeripheral(
     peripheralUUID: string,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   requestMTU(
     peripheralUUID: string,
     mtu: number,
-    callback: (error: string | null, mtu: number) => void
+    callback: (error: CallbackError, mtu: number) => void
   ): void;
 
   requestConnectionPriority(
     peripheralUUID: string,
     connectionPriority: number,
-    callback: (error: string | null, status: boolean) => void
+    callback: (error: CallbackError, status: boolean) => void
   ): void;
 
   refreshCache(
     peripheralUUID: string,
-    callback: (error: string | null, result: boolean) => void
+    callback: (error: CallbackError, result: boolean) => void
   ): void;
 
   setName(name: string): void;
 
   getAssociatedPeripherals(
-    callback: (error: string | null, peripherals: Peripheral[] | null) => void
+    callback: (error: CallbackError, peripherals: Peripheral[] | null) => void
   ): void;
 
   removeAssociatedPeripheral(
     peripheralUUID: string,
-    callback: (error: string | null) => void
+    callback: (error: CallbackError) => void
   ): void;
 
   supportsCompanion(callback: (supports: boolean) => void): void;
@@ -188,7 +190,7 @@ export interface Spec extends TurboModule {
   companionScan(
     serviceUUIDs: string[],
     option: Object,
-    callback: (error: string | null, peripheral: Peripheral | null) => void
+    callback: (error: CallbackError, peripheral: Peripheral | null) => void
   ): void;
 
   /**

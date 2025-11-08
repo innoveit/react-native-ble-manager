@@ -293,6 +293,11 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         callback([])
     }
 
+    @objc public func isStarted(_ callback: RCTResponseSenderBlock) {
+        let started = manager != nil
+        callback([NSNull(), started])
+    }
+
     @objc public func scan(
         _ scanningOptions: NSDictionary,
         callback: RCTResponseSenderBlock

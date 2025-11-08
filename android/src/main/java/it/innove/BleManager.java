@@ -282,6 +282,12 @@ class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "BleManager initialized");
     }
 
+    @ReactMethod
+    public void isStarted(Callback callback) {
+        Log.d(LOG_TAG, "isStarted");
+        callback.invoke(null, scanManager != null);
+    }
+
     @SuppressLint("MissingPermission")
     @ReactMethod
     public void enableBluetooth(Callback callback) {
@@ -448,7 +454,7 @@ class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void startNotificationWithBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
-                                           double bufferLength, Callback callback) {
+                                            double bufferLength, Callback callback) {
         Log.d(LOG_TAG, "startNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
