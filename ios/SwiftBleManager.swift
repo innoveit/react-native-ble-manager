@@ -222,13 +222,10 @@ import CoreBluetooth
         callback([])
     }
     
-    @objc public func scan(_ serviceUUIDStrings: [Any],
-                           timeoutSeconds: NSNumber,
-                           allowDuplicates: Bool,
-                           scanningOptions: NSDictionary,
+    @objc public func scan(_ scanningOptions: NSDictionary,
                            callback:RCTResponseSenderBlock) {
-        if Int(truncating: timeoutSeconds) > 0 {
-            NSLog("scan with timeout \(timeoutSeconds)")
+        if Int(truncating: scanningOptions["seconds"] as? NSNumber ?? 0) > 0 {
+            NSLog("scan with timeout \(scanningOptions["seconds"] ?? 0)")
         } else {
             NSLog("scan")
         }
@@ -245,12 +242,13 @@ import CoreBluetooth
         }
         
         var serviceUUIDs = [CBUUID]()
-        if let serviceUUIDStrings = serviceUUIDStrings as? [String] {
+        if let serviceUUIDStrings = scanningOptions["serviceUUIDStrings"] as? [String] {
             serviceUUIDs = serviceUUIDStrings.map { CBUUID(string: $0) }
         }
         
         var options: [String: Any]?
-        if allowDuplicates {
+        let allowDuplicates = scanningOptions["allowDuplicates"] as? Bool ?? false
+        if (allowDuplicates) {
             options = [CBCentralManagerScanOptionAllowDuplicatesKey: true]
         }
         
@@ -261,13 +259,14 @@ import CoreBluetooth
         
         manager?.scanForPeripherals(withServices: serviceUUIDs, options: options)
         
-        if timeoutSeconds.doubleValue > 0 {
+        let timeoutSeconds = scanningOptions["seconds"] as? Double ?? 0
+        if timeoutSeconds > 0 {
             if let scanTimer = scanTimer {
                 scanTimer.invalidate()
                 self.scanTimer = nil
             }
             DispatchQueue.main.async {
-                self.scanTimer = Timer.scheduledTimer(timeInterval: timeoutSeconds.doubleValue, target: self, selector: #selector(self.stopTimer), userInfo: nil, repeats: false)
+                self.scanTimer = Timer.scheduledTimer(timeInterval: timeoutSeconds, target: self, selector: #selector(self.stopTimer), userInfo: nil, repeats: false)
             }
         }
         
