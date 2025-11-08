@@ -1158,6 +1158,7 @@ public class Peripheral extends BluetoothGattCallback {
                     writeQueue.addAll(splittedMessage);
                     if (!enqueueWrite(characteristic, firstMessage, callback)) {
                         writeQueue.clear();
+                        writeCallbacks.remove(callback);
                         callback.invoke("Write failed");
                         completedCommand();
                     }
