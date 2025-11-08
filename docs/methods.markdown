@@ -18,7 +18,11 @@ parent: Usage
 # Methods
 {: .no_toc }
 
-## start(options)
+## Common (iOS & Android)
+
+These APIs are available on both platforms.
+
+### start(options)
 
 Init the module.
 Returns a `Promise` object.
@@ -46,17 +50,31 @@ BleManager.start({ showAlert: false }).then(() => {
 
 ---
 
-## scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions)
+### isStarted()
+
+Returns if the module was initialised with `start`.
+
+**Examples**
+
+```js
+BleManager.isStarted().then((started) => {
+  // Success code
+  console.log(`Module is ${isStarted ? '' : 'not '}started`);
+});
+```
+
+---
+
+### scan(scanningOptions)
 
 Scan for available peripherals.
 Returns a `Promise` object.
 
 **Arguments**
-
-- `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for. On Android the filter works only for 5.0 or newer.
-- `seconds` - `Integer` - the amount of seconds to scan.
-- `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
 - `scanningOptions` - `JSON` - user can control specific ble scan behaviors:
+  - `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for.
+  - `seconds` - `Integer` - the amount of seconds to scan.
+  - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
   - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>). Defaults to `ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
   - `matchMode` - `Number` - [Android only] corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>). Defaults to `ScanSettings.MATCH_MODE_AGGRESSIVE`.
   - `callbackType` - `Number` - [Android only] corresponding to [`setCallbackType`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setCallbackType(int)>). Defaults `ScanSettings.CALLBACK_TYPE_ALL_MATCHES`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
@@ -83,7 +101,7 @@ BleManager.scan([], 5, true).then(() => {
 
 ---
 
-## stopScan()
+### stopScan()
 
 Stop the scanning.
 Returns a `Promise` object.
@@ -99,39 +117,7 @@ BleManager.stopScan().then(() => {
 
 ---
 
-## companionScan() [Android only, API 26+]
-
-Scan for companion devices.
-
-If companion device manager is not supported on this (android) device rejects.
-
-The promise it will eventually resolve with either:
-
-1.  peripheral if user selects one
-2.  null if user "cancels" (i.e. doesn't select anything)
-
-See `BleManager.supportsCompanion`.
-
-See: https://developer.android.com/develop/connectivity/bluetooth/companion-device-pairing
-
-**Arguments**
-
-- `serviceUUIDs` - `String[]` - List of service UUIDs to use as a filter
-- `options` - `JSON` - Additional options
-
-  - `single` - `String?` - Scan only for single peripheral. See Android's `AssocationRequest.Builder.setSingleDevice`.
-
-**Examples**
-
-```js
-BleManager.compationScan([]).then(peripheral => {
-  console.log('Associated peripheral', peripheral);
-});
-```
-
----
-
-## connect(peripheralId, options)
+### connect(peripheralId, options)
 
 Attempts to connect to a peripheral. In many case if you can't connect you have to scan for the peripheral before.
 Returns a `Promise` object.
@@ -162,7 +148,7 @@ BleManager.connect("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 ---
 
-## disconnect(peripheralId, force)
+### disconnect(peripheralId, force)
 
 Disconnect from a peripheral.
 Returns a `Promise` object.
@@ -194,28 +180,7 @@ BleManager.disconnect("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 ---
 
-## enableBluetooth() [Android only]
-
-Create the ACTION_REQUEST_ENABLE to ask the user to activate the bluetooth.
-Returns a `Promise` object.
-
-**Examples**
-
-```js
-BleManager.enableBluetooth()
-  .then(() => {
-    // Success code
-    console.log("The bluetooth is already enabled or the user confirm");
-  })
-  .catch((error) => {
-    // Failure code
-    console.log("The user refuse to enable bluetooth");
-  });
-```
-
----
-
-## checkState()
+### checkState()
 
 Force the module to check the state of the native BLE manager and trigger a BleManagerDidUpdateState event.
 Resolves to a promise containing the current BleState.
@@ -230,13 +195,7 @@ BleManager.checkState().then((state) =>
 
 ---
 
-## supportsCompanion() [Android only]
-
-Check if current device supports companion device manager.
-
----
-
-## startNotification(peripheralId, serviceUUID, characteristicUUID)
+### startNotification(peripheralId, serviceUUID, characteristicUUID)
 
 Start the notification on the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
@@ -267,40 +226,7 @@ BleManager.startNotification(
 
 ---
 
-## startNotificationWithBuffer(peripheralId, serviceUUID, characteristicUUID, buffer) [Android only]
-
-Start the notification on the specified characteristic, you need to call `retrieveServices` method before. The buffer collect messages until the buffer of messages bytes reaches the limit defined with the `buffer` argument and then emit all the collected data. Useful to reduce the number of calls between the native and the react-native part in case of many messages.
-Returns a `Promise` object.
-
-**Arguments**
-
-- `peripheralId` - `String` - the id/mac address of the peripheral.
-- `serviceUUID` - `String` - the UUID of the service.
-- `characteristicUUID` - `String` - the UUID of the characteristic.
-- `buffer` - `Integer` - the capacity of the buffer (bytes) stored before emitting the data for the characteristic.
-
-**Examples**
-
-```js
-BleManager.startNotificationWithBuffer(
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  1234
-)
-  .then(() => {
-    // Success code
-    console.log("Notification started");
-  })
-  .catch((error) => {
-    // Failure code
-    console.log(error);
-  });
-```
-
----
-
-## stopNotification(peripheralId, serviceUUID, characteristicUUID)
+### stopNotification(peripheralId, serviceUUID, characteristicUUID)
 
 Stop the notification on the specified characteristic.
 Returns a `Promise` object.
@@ -313,7 +239,7 @@ Returns a `Promise` object.
 
 ---
 
-## read(peripheralId, serviceUUID, characteristicUUID)
+### read(peripheralId, serviceUUID, characteristicUUID)
 
 Read the current value of the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object that will resolves to an array of plain integers (`number[]`) representing a `ByteArray` structure.
@@ -350,7 +276,7 @@ BleManager.read(
 
 ---
 
-## write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
+### write(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize)
 
 Write with response to the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
@@ -412,7 +338,7 @@ BleManager.write(
 
 ---
 
-## writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime)
+### writeWithoutResponse(peripheralId, serviceUUID, characteristicUUID, data, maxByteSize, queueSleepTime)
 
 Write without response to the specified characteristic, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
@@ -451,7 +377,7 @@ BleManager.writeWithoutResponse(
 
 ---
 
-## readRSSI(peripheralId)
+### readRSSI(peripheralId)
 
 Read the current value of the RSSI.
 Returns a `Promise` object resolving with the updated RSSI value (`number`) if it succeeds.
@@ -476,7 +402,7 @@ BleManager.readRSSI("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 ---
 
-## readDescriptor(peripheralId, serviceId, characteristicId, descriptorId)
+### readDescriptor(peripheralId, serviceId, characteristicId, descriptorId)
 
 Read the current value of the specified descriptor, you need to call `retrieveServices` method before.
 Returns a `Promise` object that will resolves to an array of plain integers (`number[]`) representing a `ByteArray` structure.
@@ -515,7 +441,7 @@ BleManager.readDescriptor(
 
 ---
 
-## writeDescriptor(peripheralId, serviceId, characteristicId, descriptorId, data)
+### writeDescriptor(peripheralId, serviceId, characteristicId, descriptorId, data)
 
 Write a value to the specified descriptor, you need to call `retrieveServices` method before.
 Returns a `Promise` object.
@@ -549,7 +475,205 @@ BleManager.writeDescriptor(
 
 ---
 
-## requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
+### retrieveServices(peripheralId[, serviceUUIDs])
+
+Retrieve the peripheral's services and characteristics.
+Returns a `Promise` object.
+
+**Arguments**
+
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUIDs` - `String[]` - [iOS only] only retrieve these services.
+
+**Examples**
+
+```js
+BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then(
+  (peripheralInfo) => {
+    // Success code
+    console.log("Peripheral info:", peripheralInfo);
+  }
+);
+```
+
+---
+
+### getConnectedPeripherals(serviceUUIDs)
+
+Return the connected peripherals.
+Returns a `Promise` object.
+> In Android, Peripherals "advertising" property can be not set!
+> Will be available if peripheral was found through scan before connect. This matches to current Android Bluetooth design specification.
+
+**Arguments**
+
+- `serviceUUIDs` - `Array of String` - the UUIDs of the services to look for.
+
+**Examples**
+
+```js
+BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
+  // Success code
+  console.log("Connected peripherals: " + peripheralsArray.length);
+});
+```
+
+---
+
+### getDiscoveredPeripherals()
+
+Return the discovered peripherals after a scan.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.getDiscoveredPeripherals([]).then((peripheralsArray) => {
+  // Success code
+  console.log("Discovered peripherals: " + peripheralsArray.length);
+});
+```
+
+---
+
+### isPeripheralConnected(peripheralId, serviceUUIDs)
+
+Check whether a specific peripheral is connected and return `true` or `false`.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.isPeripheralConnected(
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  []
+).then((isConnected) => {
+  if (isConnected) {
+    console.log("Peripheral is connected!");
+  } else {
+    console.log("Peripheral is NOT connected!");
+  }
+});
+```
+
+---
+
+### isScanning()
+
+Checks whether the scan is in progress and return `true` or `false`.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.isScanning().then((isScanning) => {
+  if (isScanning) {
+    console.log("Is scanning!");
+  } else {
+    console.log("Is NOT scanning!");
+  }
+});
+```
+
+---
+
+## Android-only
+
+APIs that require Android; many expose platform concepts like ScanSettings, bonding, or adapter state.
+
+### companionScan() [Android only, API 26+]
+
+Scan for companion devices.
+
+If companion device manager is not supported on this (android) device rejects.
+
+The promise it will eventually resolve with either:
+
+1.  peripheral if user selects one
+2.  null if user "cancels" (i.e. doesn't select anything)
+
+See `BleManager.supportsCompanion`.
+
+See: https://developer.android.com/develop/connectivity/bluetooth/companion-device-pairing
+
+**Arguments**
+
+- `serviceUUIDs` - `String[]` - List of service UUIDs to use as a filter
+- `options` - `JSON` - Additional options
+
+  - `single` - `String?` - Scan only for single peripheral. See Android's `AssocationRequest.Builder.setSingleDevice`.
+
+**Examples**
+
+```js
+BleManager.compationScan([]).then(peripheral => {
+  console.log('Associated peripheral', peripheral);
+});
+```
+
+---
+
+### enableBluetooth() [Android only]
+
+Create the ACTION_REQUEST_ENABLE to ask the user to activate the bluetooth.
+Returns a `Promise` object.
+
+**Examples**
+
+```js
+BleManager.enableBluetooth()
+  .then(() => {
+    // Success code
+    console.log("The bluetooth is already enabled or the user confirm");
+  })
+  .catch((error) => {
+    // Failure code
+    console.log("The user refuse to enable bluetooth");
+  });
+```
+
+---
+
+### supportsCompanion() [Android only]
+
+Check if current device supports companion device manager.
+
+---
+
+### startNotificationWithBuffer(peripheralId, serviceUUID, characteristicUUID, buffer) [Android only]
+
+Start the notification on the specified characteristic, you need to call `retrieveServices` method before. The buffer collect messages until the buffer of messages bytes reaches the limit defined with the `buffer` argument and then emit all the collected data. Useful to reduce the number of calls between the native and the react-native part in case of many messages.
+Returns a `Promise` object.
+
+**Arguments**
+
+- `peripheralId` - `String` - the id/mac address of the peripheral.
+- `serviceUUID` - `String` - the UUID of the service.
+- `characteristicUUID` - `String` - the UUID of the characteristic.
+- `buffer` - `Integer` - the capacity of the buffer (bytes) stored before emitting the data for the characteristic.
+
+**Examples**
+
+```js
+BleManager.startNotificationWithBuffer(
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+  1234
+)
+  .then(() => {
+    // Success code
+    console.log("Notification started");
+  })
+  .catch((error) => {
+    // Failure code
+    console.log(error);
+  });
+```
+
+---
+
+### requestConnectionPriority(peripheralId, connectionPriority) [Android only API 21+]
 
 Request a connection parameter update.
 Returns a `Promise` object which fulfills with the status of the request.
@@ -578,7 +702,7 @@ BleManager.requestConnectionPriority("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", 1)
 
 ---
 
-## requestMTU(peripheralId, mtu) [Android only API 21+]
+### requestMTU(peripheralId, mtu) [Android only API 21+]
 
 Request an MTU size used for a given connection.
 Returns a `Promise` object.
@@ -604,30 +728,7 @@ BleManager.requestMTU("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX", 512)
 
 ---
 
-## retrieveServices(peripheralId[, serviceUUIDs])
-
-Retrieve the peripheral's services and characteristics.
-Returns a `Promise` object.
-
-**Arguments**
-
-- `peripheralId` - `String` - the id/mac address of the peripheral.
-- `serviceUUIDs` - `String[]` - [iOS only] only retrieve these services.
-
-**Examples**
-
-```js
-BleManager.retrieveServices("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX").then(
-  (peripheralInfo) => {
-    // Success code
-    console.log("Peripheral info:", peripheralInfo);
-  }
-);
-```
-
----
-
-## refreshCache(peripheralId) [Android only]
+### refreshCache(peripheralId) [Android only]
 
 refreshes the peripheral's services and characteristics cache
 Returns a `Promise` object.
@@ -651,35 +752,13 @@ BleManager.refreshCache("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
 
 ---
 
-## getConnectedPeripherals(serviceUUIDs)
-
-Return the connected peripherals.
-Returns a `Promise` object.
-> In Android, Peripherals "advertising" property can be not set!
-> Will be available if peripheral was found through scan before connect. This matches to current Android Bluetooth design specification.
-
-**Arguments**
-
-- `serviceUUIDs` - `Array of String` - the UUIDs of the services to look for.
-
-**Examples**
-
-```js
-BleManager.getConnectedPeripherals([]).then((peripheralsArray) => {
-  // Success code
-  console.log("Connected peripherals: " + peripheralsArray.length);
-});
-```
-
----
-
-## getAssociatedPeripherals() [Android only, API 26+]
+### getAssociatedPeripherals() [Android only, API 26+]
 
 Retrieve associated peripherals (from companion manager).
 
 ---
 
-## removeAssociatedPeripheral(peripheralId) [Android only, API 26+]
+### removeAssociatedPeripheral(peripheralId) [Android only, API 26+]
 
 Remove an associated peripheral.
 
@@ -691,7 +770,7 @@ Rejects if no association is found.
 
 ---
 
-## createBond(peripheralId,peripheralPin) [Android only]
+### createBond(peripheralId,peripheralPin) [Android only]
 
 Start the bonding (pairing) process with the remote device. If you pass peripheralPin (optional), bonding will be auto (without manually entering the pin).
 Returns a `Promise` object that will resolve if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
@@ -710,7 +789,7 @@ BleManager.createBond(peripheralId)
 
 ---
 
-## removeBond(peripheralId) [Android only]
+### removeBond(peripheralId) [Android only]
 
 Remove a paired device.
 Returns a `Promise` object.
@@ -729,7 +808,7 @@ BleManager.removeBond(peripheralId)
 
 ---
 
-## getBondedPeripherals() [Android only]
+### getBondedPeripherals() [Android only]
 
 Return the bonded peripherals.
 Returns a `Promise` object.
@@ -745,23 +824,7 @@ BleManager.getBondedPeripherals([]).then((bondedPeripheralsArray) => {
 
 ---
 
-## getDiscoveredPeripherals()
-
-Return the discovered peripherals after a scan.
-Returns a `Promise` object.
-
-**Examples**
-
-```js
-BleManager.getDiscoveredPeripherals([]).then((peripheralsArray) => {
-  // Success code
-  console.log("Discovered peripherals: " + peripheralsArray.length);
-});
-```
-
----
-
-## removePeripheral(peripheralId) [Android only]
+### removePeripheral(peripheralId) [Android only]
 
 Removes a disconnected peripheral from the cached list.
 It is useful if the device is turned off, because it will be re-discovered upon turning on again.
@@ -773,48 +836,7 @@ Returns a `Promise` object.
 
 ---
 
-## isPeripheralConnected(peripheralId, serviceUUIDs)
-
-Check whether a specific peripheral is connected and return `true` or `false`.
-Returns a `Promise` object.
-
-**Examples**
-
-```js
-BleManager.isPeripheralConnected(
-  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
-  []
-).then((isConnected) => {
-  if (isConnected) {
-    console.log("Peripheral is connected!");
-  } else {
-    console.log("Peripheral is NOT connected!");
-  }
-});
-```
-
----
-
-## isScanning()
-
-Checks whether the scan is in progress and return `true` or `false`.
-Returns a `Promise` object.
-
-**Examples**
-
-```js
-BleManager.isScanning().then((isScanning) => {
-  if (isScanning) {
-    console.log("Is scanning!");
-  } else {
-    console.log("Is NOT scanning!");
-  }
-});
-```
-
----
-
-## setName(name) [Android only]
+### setName(name) [Android only]
 
 Create the request to set the name of the bluetooth adapter. (https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#setName(java.lang.String))
 Returns a `Promise` object.
@@ -835,7 +857,11 @@ BleManager.setName("INNOVEIT_CENTRAL")
 
 ---
 
-## getMaximumWriteValueLengthForWithoutResponse(peripheralId) [iOS only]
+## iOS-only
+
+APIs that surface CoreBluetooth limitations or platform-specific helpers.
+
+### getMaximumWriteValueLengthForWithoutResponse(peripheralId) [iOS only]
 
 Return the maximum value length for WriteWithoutResponse.
 Returns a `Promise` object.
@@ -852,7 +878,7 @@ BleManager.getMaximumWriteValueLengthForWithoutResponse(
 
 ---
 
-## getMaximumWriteValueLengthForWithResponse(peripheralId) [iOS only]
+### getMaximumWriteValueLengthForWithResponse(peripheralId) [iOS only]
 
 Return the maximum value length for WriteWithResponse.
 Returns a `Promise` object.
