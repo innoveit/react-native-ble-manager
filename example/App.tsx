@@ -4,8 +4,9 @@ import React from 'react';
 
 import PeripheralDetailsScreen from './components/PeripheralDetailsScreen';
 import ScanDevicesScreen from './components/ScanDevicesScreen';
+import { RootStackParamList } from './types/navigation';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const App = () => {
   return (
