@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class BleManager extends NativeBleManagerSpec {
+public class BleManager extends NativeBleManagerSpec {
 
     public static final String LOG_TAG = "RNBleManager";
     private static final int ENABLE_REQUEST = 539;
