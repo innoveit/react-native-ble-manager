@@ -94,6 +94,12 @@ export interface ConnectOptions {
  * https://developer.android.com/reference/android/bluetooth/le/ScanSettings
  */
 export interface ScanOptions {
+  serviceUUIDs?: string[];
+  seconds?: number;
+  /**
+   *  iOS only: whether to allow duplicate peripheral during a scan
+   */
+  allowDuplicates?: boolean;
   /**
    * This will only works if a ScanFilter is active. Otherwise, may not retrieve any result.
    * See https://developer.android.com/reference/android/bluetooth/le/ScanSettings#MATCH_NUM_FEW_ADVERTISEMENT.
@@ -155,7 +161,7 @@ export interface ScanOptions {
    * When using compaion mode, only associate single peripheral.
    *
    * See: https://developer.android.com/reference/android/companion/AssociationRequest.Builder#setSingleDevice(boolean)
-  */
+   */
   single?: boolean;
   companion?: boolean;
   /**

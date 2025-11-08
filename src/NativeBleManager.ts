@@ -1,3 +1,4 @@
+// oxlint-disable no-wrapper-object-types
 import { TurboModule, TurboModuleRegistry } from 'react-native';
 // @ts-ignore Ignore since it comes from codegen types.
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
@@ -12,13 +13,7 @@ import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 export interface Spec extends TurboModule {
   start(options: Object, callback: (error: CallbackError) => void): void;
 
-  scan(
-    serviceUUIDStrings: string[],
-    timeoutSeconds: number,
-    allowDuplicates: boolean,
-    scanningOptions: Object,
-    callback: (error: CallbackError) => void
-  ): void;
+  scan(scanningOptions: Object, callback: (error: CallbackError) => void): void;
 
   stopScan(callback: (error: CallbackError) => void): void;
 
@@ -58,7 +53,7 @@ export interface Spec extends TurboModule {
     serviceUUID: string,
     characteristicUUID: string,
     descriptorUUID: string,
-    data: object[],
+    data: Object[],
     callback: (error: string | null) => void
   ): void;
 
@@ -72,7 +67,7 @@ export interface Spec extends TurboModule {
     peripheralUUID: string,
     serviceUUID: string,
     characteristicUUID: string,
-    message: object[],
+    message: Object[],
     maxByteSize: number,
     callback: (error: string | null) => void
   ): void;
@@ -81,7 +76,7 @@ export interface Spec extends TurboModule {
     peripheralUUID: string,
     serviceUUID: string,
     characteristicUUID: string,
-    message: object[],
+    message: Object[],
     maxByteSize: number,
     queueSleepTime: number,
     callback: (error: string | null) => void
@@ -232,30 +227,16 @@ export type Peripheral = {
   advertising: {
     isConnectable?: boolean;
     localName?: string | null;
-    rawData?: {
-      CDVType: number[];
-      bytes: number[];
-      data: string;
-    };
+    rawData?: { CDVType: number[]; bytes: number[]; data: string };
     manufacturerData?:
-      | {
-          CDVType: number[];
-          bytes: number[];
-          data: string;
-        }[]
+      | { CDVType: number[]; bytes: number[]; data: string }[]
       | null;
     manufacturerRawData?: {
       CDVType: number[];
       bytes: number[];
       data: string;
     } | null;
-    serviceData?:
-      | {
-          CDVType: number[];
-          bytes: number[];
-          data: string;
-        }[]
-      | null;
+    serviceData?: { CDVType: number[]; bytes: number[]; data: string }[] | null;
     serviceUUIDs?: string[];
     txPowerLevel?: number;
   };
@@ -268,30 +249,16 @@ export type PeripheralInfo = {
   advertising: {
     isConnectable?: boolean;
     localName?: string | null;
-    rawData?: {
-      CDVType: number[];
-      bytes: number[];
-      data: string;
-    } | null;
+    rawData?: { CDVType: number[]; bytes: number[]; data: string } | null;
     manufacturerData?:
-      | {
-          CDVType: number[];
-          bytes: number[];
-          data: string;
-        }[]
+      | { CDVType: number[]; bytes: number[]; data: string }[]
       | null;
     manufacturerRawData?: {
       CDVType: number[];
       bytes: number[];
       data: string;
     } | null;
-    serviceData?:
-      | {
-          CDVType: number[];
-          bytes: number[];
-          data: string;
-        }[]
-      | null;
+    serviceData?: { CDVType: number[]; bytes: number[]; data: string }[] | null;
     serviceUUIDs?: string[];
     txPowerLevel?: number;
   };
@@ -311,21 +278,14 @@ export type PeripheralInfo = {
     };
     characteristic: string;
     service: string;
-    descriptors?: {
-      value: string;
-      uuid: string;
-    }[];
+    descriptors?: { value: string; uuid: string }[];
   }[];
   services?: { uuid: string }[];
 };
 
-export type EventStopScan = {
-  status: number;
-};
+export type EventStopScan = { status: number };
 
-export type EventDidUpdateState = {
-  state: string;
-};
+export type EventDidUpdateState = { state: string };
 
 export type EventDiscoverPeripheral = {
   id: string;
@@ -412,6 +372,4 @@ export type EventCompanionPeripheral = {
   };
 };
 
-export type EventCompanionFailure = {
-  error: string;
-};
+export type EventCompanionFailure = { error: string };
