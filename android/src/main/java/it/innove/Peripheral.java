@@ -912,9 +912,8 @@ public class Peripheral extends BluetoothGattCallback {
                     writeCallback.invoke("writeDescriptor failed for descriptor: " + descriptor.getUuid(), null);
                 }
                 writeDescriptorCallbacks.clear();
+                completedCommand();
             }
-
-            completedCommand();
         });
     }
 
@@ -955,14 +954,6 @@ public class Peripheral extends BluetoothGattCallback {
             final Runnable nextCommand = commandQueue.peek();
             if (nextCommand == null) {
                 Log.d(BleManager.LOG_TAG, "Command queue empty");
-                return;
-            }
-
-            // Check if we still have a valid gatt object
-            if (gatt == null) {
-                Log.d(BleManager.LOG_TAG, "Error, gatt is null. Fill all callbacks with an error");
-                errorAndClearAllCallbacks("Gatt is null");
-                resetQueuesAndBuffers();
                 return;
             }
 
@@ -1099,8 +1090,15 @@ public class Peripheral extends BluetoothGattCallback {
     private boolean enqueueWrite(final BluetoothGattCharacteristic characteristic, byte[] data, final Callback callback) {
         final byte[] copyOfData = copyOf(data);
         return enqueue(() -> {
-            if (characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                    && callback != null) {
+            final boolean withResponse = characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT;
+            if (!isConnected() || gatt == null) {
+                if (withResponse && callback != null) {
+                    callback.invoke("Device is not connected", null);
+                }
+                completedCommand();
+                return;
+            }
+            if (withResponse && callback != null) {
                 writeCallbacks.addLast(callback);
             }
             doWrite(characteristic, copyOfData);
