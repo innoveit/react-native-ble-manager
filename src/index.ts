@@ -1,7 +1,4 @@
-import {
-  EventSubscription,
-  NativeModules,
-} from 'react-native';
+import { EventSubscription, NativeModules } from 'react-native';
 import {
   BleScanCallbackType,
   BleScanMatchCount,
@@ -439,15 +436,16 @@ class BleManager {
    * @param scanningOptions optional map of properties to fine-tune scan behavior, see DOCS.
    * @returns
    */
-  scan(
-    serviceUUIDs: string[],
-    seconds: number,
-    allowDuplicates?: boolean,
-    scanningOptions: ScanOptions = {}
-  ) {
+  scan(scanningOptions: ScanOptions = {}) {
     return new Promise<void>((fulfill, reject) => {
-      if (allowDuplicates == null) {
-        allowDuplicates = false;
+      if (scanningOptions.serviceUUIDs == null) {
+        scanningOptions.serviceUUIDs = [];
+      }
+      if (scanningOptions.seconds == null) {
+        scanningOptions.seconds = 0;
+      }
+      if (scanningOptions.allowDuplicates == null) {
+        scanningOptions.allowDuplicates = false;
       }
 
       // (ANDROID) Match as many advertisement per filter as hw could allow
@@ -491,19 +489,13 @@ class BleManager {
         }
       }
 
-      BleManagerModule.scan(
-        serviceUUIDs,
-        seconds,
-        allowDuplicates,
-        scanningOptions,
-        (error: string | null) => {
-          if (error) {
-            reject(error);
-          } else {
-            fulfill();
-          }
+      BleManagerModule.scan(scanningOptions, (error: string | null) => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
         }
-      );
+      });
     });
   }
 

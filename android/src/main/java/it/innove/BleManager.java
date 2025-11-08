@@ -310,7 +310,7 @@ class BleManager extends NativeBleManagerSpec {
     }
 
     @ReactMethod
-    public void scan(ReadableArray serviceUUIDs, double timeoutSeconds, boolean allowDuplicates, ReadableMap scanningOptions,
+    public void scan(ReadableMap scanningOptions,
                      Callback callback) {
         Log.d(LOG_TAG, "scan");
         if (getBluetoothAdapter() == null) {
@@ -333,7 +333,7 @@ class BleManager extends NativeBleManagerSpec {
         }
 
         if (scanManager != null)
-            scanManager.scan(serviceUUIDs, (int) timeoutSeconds, scanningOptions, callback);
+            scanManager.scan(scanningOptions, callback);
     }
 
     @SuppressLint("NewApi") // NOTE: constructor checks the API version.

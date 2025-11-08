@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Peripheral, PeripheralInfo } from 'react-native-ble-manager';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { PeripheralInfo } from 'react-native-ble-manager';
+import { RootStackParamList } from '../types/navigation';
 
 // Define interfaces for your peripheral's properties
 interface Characteristic {
@@ -14,14 +16,10 @@ interface Service {
   // Add any other service properties you need
 }
 
-// Props expected by PeripheralDetails component
-interface PeripheralDetailsProps {
-  route: {
-    params: {
-      peripheralData: PeripheralInfo;
-    };
-  };
-}
+type PeripheralDetailsProps = NativeStackScreenProps<
+  RootStackParamList,
+  'PeripheralDetails'
+>;
 
 const PeripheralDetailsScreen = ({ route }: PeripheralDetailsProps) => {
   const peripheralData = route.params.peripheralData;

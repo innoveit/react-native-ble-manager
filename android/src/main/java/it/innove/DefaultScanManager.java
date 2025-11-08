@@ -36,6 +36,7 @@ import com.facebook.react.bridge.WritableMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @SuppressLint("MissingPermission")
 public class DefaultScanManager extends ScanManager {
@@ -65,7 +66,7 @@ public class DefaultScanManager extends ScanManager {
     }
 
     @Override
-    public void scan(ReadableArray serviceUUIDs, final int scanSeconds, ReadableMap options, Callback callback) {
+    public void scan(ReadableMap options, Callback callback) {
         ScanSettings.Builder scanSettingsBuilder = new ScanSettings.Builder();
         List<ScanFilter> filters = new ArrayList<>();
 
@@ -77,16 +78,14 @@ public class DefaultScanManager extends ScanManager {
             scanSettingsBuilder.setScanMode(options.getInt("scanMode"));
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (options.hasKey("numberOfMatches")) {
-                scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
-            }
-            if (options.hasKey("matchMode")) {
-                scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
-            }
-            if (options.hasKey("callbackType")) {
-                scanSettingsBuilder.setCallbackType(options.getInt("callbackType"));
-            }
+        if (options.hasKey("numberOfMatches")) {
+            scanSettingsBuilder.setNumOfMatches(options.getInt("numberOfMatches"));
+        }
+        if (options.hasKey("matchMode")) {
+            scanSettingsBuilder.setMatchMode(options.getInt("matchMode"));
+        }
+        if (options.hasKey("callbackType")) {
+            scanSettingsBuilder.setCallbackType(options.getInt("callbackType"));
         }
 
         if (options.hasKey("reportDelay")) {
@@ -103,9 +102,10 @@ public class DefaultScanManager extends ScanManager {
             }
         }
 
-        if (serviceUUIDs.size() > 0) {
+        ReadableArray serviceUUIDs = options.getArray("serviceUUIDs");
+        if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
             for (int i = 0; i < serviceUUIDs.size(); i++) {
-                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)))).build();
+                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(Objects.requireNonNull(serviceUUIDs.getString(i))))).build();
                 filters.add(filter);
                 Log.d(BleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
             }
@@ -221,6 +221,7 @@ public class DefaultScanManager extends ScanManager {
 
         isScanning = true;
 
+        long scanSeconds = (long) options.getDouble("seconds");
         if (scanSeconds > 0) {
             Thread thread = new Thread() {
                 private final int currentScanSession = scanSessionId.incrementAndGet();
@@ -337,7 +338,9 @@ public class DefaultScanManager extends ScanManager {
         if (scanner != null) {
             try {
                 if (scanningWithIntent && scanPendingIntent != null) {
-                    scanner.stopScan(scanPendingIntent);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        scanner.stopScan(scanPendingIntent);
+                    }
                 } else {
                     scanner.stopScan(mScanCallback);
                 }

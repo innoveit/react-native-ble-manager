@@ -184,17 +184,9 @@ RCT_EXPORT_MODULE()
                            callback:callback];
 }
 
-- (void)scan:(NSArray *)serviceUUIDStrings
-     timeoutSeconds:(double)timeoutSeconds
-    allowDuplicates:(BOOL)allowDuplicates
-    scanningOptions:(NSDictionary *)scanningOptions
-           callback:(RCTResponseSenderBlock)callback {
-    NSNumber *timeoutNumber = @(timeoutSeconds);
-    [_swBleManager scan:serviceUUIDStrings
-         timeoutSeconds:timeoutNumber
-        allowDuplicates:allowDuplicates
-        scanningOptions:scanningOptions
-               callback:callback];
+- (void)scan:(NSDictionary *)scanningOptions
+    callback:(RCTResponseSenderBlock)callback {
+    [_swBleManager scan:scanningOptions callback:callback];
 }
 
 - (void)setName:(NSString *)name {
