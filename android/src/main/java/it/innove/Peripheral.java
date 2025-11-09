@@ -1134,6 +1134,7 @@ public class Peripheral extends BluetoothGattCallback {
                     }
                     callback.invoke("Write failed");
                     completedCommand();
+                    return;
                 } else if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
                     callback.invoke();
                 }
@@ -1165,6 +1166,7 @@ public class Peripheral extends BluetoothGattCallback {
                         writeCallbacks.remove(callback);
                         callback.invoke("Write failed");
                         completedCommand();
+                        return;
                     }
                 } else {
                     try {
@@ -1189,13 +1191,17 @@ public class Peripheral extends BluetoothGattCallback {
                         }
                         if (writeError) {
                             completedCommand();
+                            return;
                         }
                     } catch (InterruptedException e) {
                         callback.invoke("Error during writing");
                         completedCommand();
+                        return;
                     }
                 }
             }
+
+            completedCommand();
         });
     }
 
