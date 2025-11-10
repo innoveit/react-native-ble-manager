@@ -917,9 +917,8 @@ public class Peripheral extends BluetoothGattCallback {
                     writeCallback.invoke("writeDescriptor failed for descriptor: " + descriptor.getUuid(), null);
                 }
                 writeDescriptorCallbacks.clear();
+                completedCommand();
             }
-
-            completedCommand();
         });
     }
 
@@ -960,14 +959,6 @@ public class Peripheral extends BluetoothGattCallback {
             final Runnable nextCommand = commandQueue.peek();
             if (nextCommand == null) {
                 Log.d(BleManager.LOG_TAG, "Command queue empty");
-                return;
-            }
-
-            // Check if we still have a valid gatt object
-            if (gatt == null) {
-                Log.d(BleManager.LOG_TAG, "Error, gatt is null. Fill all callbacks with an error");
-                errorAndClearAllCallbacks("Gatt is null");
-                resetQueuesAndBuffers();
                 return;
             }
 
@@ -1103,10 +1094,18 @@ public class Peripheral extends BluetoothGattCallback {
 
     private boolean enqueueWrite(final BluetoothGattCharacteristic characteristic, byte[] data, final Callback callback) {
         final byte[] copyOfData = copyOf(data);
+        final boolean withResponse = characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT;
+        if (withResponse && callback != null) {
+            writeCallbacks.addLast(callback);
+        }
         return enqueue(() -> {
-            if (characteristic.getWriteType() == BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                    && callback != null) {
-                writeCallbacks.addLast(callback);
+            if (!isConnected() || gatt == null) {
+                if (withResponse && callback != null) {
+                    writeCallbacks.removeLastOccurrence(callback);
+                    callback.invoke("Device is not connected", null);
+                }
+                completedCommand();
+                return;
             }
             doWrite(characteristic, copyOfData);
         });
@@ -1135,11 +1134,14 @@ public class Peripheral extends BluetoothGattCallback {
 
             if (data.length <= maxByteSize) {
                 if (!enqueueWrite(characteristic, data, callback)) {
-                    callback.invoke("Write failed");
-                } else {
-                    if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
-                        callback.invoke();
+                    if (BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT == writeType) {
+                        writeCallbacks.removeLastOccurrence(callback);
                     }
+                    callback.invoke("Write failed");
+                    completedCommand();
+                    return;
+                } else if (BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE == writeType) {
+                    callback.invoke();
                 }
             } else {
                 int dataLength = data.length;
@@ -1166,7 +1168,10 @@ public class Peripheral extends BluetoothGattCallback {
                     writeQueue.addAll(splittedMessage);
                     if (!enqueueWrite(characteristic, firstMessage, callback)) {
                         writeQueue.clear();
+                        writeCallbacks.remove(callback);
                         callback.invoke("Write failed");
+                        completedCommand();
+                        return;
                     }
                 } else {
                     try {
@@ -1189,8 +1194,14 @@ public class Peripheral extends BluetoothGattCallback {
                                 callback.invoke();
                             }
                         }
+                        if (writeError) {
+                            completedCommand();
+                            return;
+                        }
                     } catch (InterruptedException e) {
                         callback.invoke("Error during writing");
+                        completedCommand();
+                        return;
                     }
                 }
             }
