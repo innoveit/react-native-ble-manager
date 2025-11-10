@@ -162,10 +162,10 @@ public class Peripheral extends BluetoothGattCallback {
     // bt_btif : Register with GATT stack failed.
 
     public void disconnect(final Callback callback, final boolean force) {
+        connected = false;
         mainHandler.post(() -> {
             errorAndClearAllCallbacks("Disconnect called before the command completed");
             resetQueuesAndBuffers();
-            connected = false;
 
             if (gatt != null) {
                 try {
@@ -393,6 +393,13 @@ public class Peripheral extends BluetoothGattCallback {
         Log.d(BleManager.LOG_TAG, "onConnectionStateChange to " + newState + " on peripheral: " + device.getAddress()
                 + " with status " + status);
 
+        // We immediately update the internal connection status
+        if (newState == BluetoothProfile.STATE_CONNECTED && status == BluetoothGatt.GATT_SUCCESS) {
+            connected = true;
+        } else if (newState == BluetoothProfile.STATE_DISCONNECTED || status != BluetoothGatt.GATT_SUCCESS) {
+            connected = false;
+        }
+
         mainHandler.post(() -> {
             gatt = gatta;
 
@@ -402,8 +409,6 @@ public class Peripheral extends BluetoothGattCallback {
 
             connecting = false;
             if (newState == BluetoothProfile.STATE_CONNECTED && status == BluetoothGatt.GATT_SUCCESS) {
-                connected = true;
-
                 sendConnectionEvent(device, status);
 
                 Log.d(BleManager.LOG_TAG, "Connected to: " + device.getAddress());
