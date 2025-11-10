@@ -9,15 +9,15 @@ nav_order: 100
 
 To read all the details go to the [Github Releases section](https://github.com/innoveit/react-native-ble-manager/releases).
 
-## Rekease v12.4.x
+## Release v12.4.x
 - Refactor `scan` method.
 - Added `isStarted` method.
 
-## Rekease v12.3.x
+## Release v12.3.x
 
 - [Android only] Added `useScanIntent` scan option to receive results via `PendingIntent` on API 26+.
 
-## Rekease v12.2.x
+## Release v12.2.x
 
 - [iOS only] Feature start notification with buffer.
 
