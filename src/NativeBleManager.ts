@@ -176,18 +176,18 @@ export interface Spec extends TurboModule {
 
   setName(name: string): void;
 
-  getAssociatedPeripherals(
+  getAssociatedDevices(
     callback: (error: CallbackError, peripherals: Peripheral[] | null) => void
   ): void;
 
-  removeAssociatedPeripheral(
+  removeAssociatedDevice(
     peripheralUUID: string,
     callback: (error: CallbackError) => void
   ): void;
 
-  supportsCompanion(callback: (supports: boolean) => void): void;
+  supportsDeviceSetup(callback: (supports: boolean) => void): void;
 
-  companionScan(
+  deviceSetupScan(
     serviceUUIDs: string[],
     option: Object,
     callback: (error: CallbackError, peripheral: Peripheral | null) => void
@@ -205,8 +205,8 @@ export interface Spec extends TurboModule {
   readonly onPeripheralDidBond: EventEmitter<EventPeripheralDidBond>;
   readonly onCentralManagerWillRestoreState: EventEmitter<EventCentralManagerWillRestoreState>;
   readonly onDidUpdateNotificationStateFor: EventEmitter<EventDidUpdateNotificationStateFor>;
-  readonly onCompanionPeripheral: EventEmitter<EventCompanionPeripheral>;
-  readonly onCompanionFailure: EventEmitter<EventCompanionFailure>;
+  readonly onDeviceSetupSelected: EventEmitter<EventDeviceSetupSelected>;
+  readonly onDeviceSetupFailure: EventEmitter<EventDeviceSetupFailure>;
 }
 
 export default TurboModuleRegistry.get<Spec>('BleManager') as Spec;
@@ -360,7 +360,7 @@ export type EventDidUpdateNotificationStateFor = {
   code?: number | null;
 };
 
-export type EventCompanionPeripheral = {
+export type EventDeviceSetupSelected = {
   id: string;
   name: string;
   rssi: number;
@@ -374,4 +374,4 @@ export type EventCompanionPeripheral = {
   };
 };
 
-export type EventCompanionFailure = { error: string };
+export type EventDeviceSetupFailure = { error: string };
