@@ -1,7 +1,7 @@
 // @ts-ignore
 import {
   EventSubscription,
-  NativeModules, Platform,
+  NativeModules
 } from 'react-native';
 import {
   BleScanCallbackType,
@@ -827,14 +827,14 @@ class BleManager {
   /**
    * [iOS +18 only]
    */
-  accessoriesScan(displayItems: IOSAccessoryDisplayItem[]): Promise<[IOSAccessoryDisplayItem[], string]> {
+  accessoriesScan(displayItems: IOSAccessoryDisplayItem[]): Promise<[IOSAccessory[], string]> {
     return BleManagerModule.accessoriesScan(displayItems);
   }
 
   /**
    * [iOS +18 only]
    */
-  getConnectedAccessories(): Promise<[IOSAccessoryDisplayItem[], string]> {
+  getConnectedAccessories(): Promise<[IOSAccessory[], string]> {
     return BleManagerModule.getConnectedAccessories();
   }
 
