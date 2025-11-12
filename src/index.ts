@@ -737,7 +737,7 @@ class BleManager {
       BleManagerModule.removeAssociatedPeripheral(
         peripheralId,
         (error: string | null) => {
-          if (error !== null) {
+          if (error) {
             reject(error);
           } else {
             fulfill();
