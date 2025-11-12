@@ -993,4 +993,23 @@ class BleManager extends NativeBleManagerSpec {
         }
     }
 
+    @ReactMethod
+    public boolean getAccessoryKitSupported() {
+        return false;
+    }
+
+    @ReactMethod
+    public void stopAccessoriesScan() {
+        promise.reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.");
+    }
+
+    @ReactMethod
+    public void getConnectedAccessories(Promise promise) {
+        promise.reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.");
+    }
+
+    @ReactMethod
+    public void accessoriesScan(ReadableArray displayItems, Promise promise) {
+        promise.reject("NOT_SUPPORTED", "requires iOS 18.0 or newer.");
+    }
 }

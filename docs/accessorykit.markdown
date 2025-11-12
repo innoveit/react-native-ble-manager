@@ -2,7 +2,6 @@
 layout: page
 title: AccessoryKit
 permalink: /accessory-kit/
-nav_order: 1
 parent: Usage
 ---
 
@@ -35,7 +34,7 @@ To be able to find devices using Accessory Kit you need to supply three things p
 * Drag your image file (PNG or JPG.) into the Assets catalog. It will create an image set with the same name as the file.
 * Give it a name, <b>keep that name in mind since you should pass exactly the same name when using "accessoriesScan" method.</b>
 
-### 2.1) Expo
+### 2.1 Expo
 
 Find your <b>app.config.js</b> file and add these entries varying by your needs:
 ```js
@@ -59,7 +58,7 @@ After adding your own entries make sure to prebuild your expo project again. Tha
 npx expo prebuild --clean
 ```
 
-### 2.2) React-native
+### 2.2 React-native
 
 Find your <b>Info.plist</b> file and add these entries varying by your needs:
 ```plist
@@ -86,7 +85,7 @@ First, since only iOS 18 and later are supported, you should check whether the d
     const supported = await BleManager.getAccessoryKitSupported(); // returns true or false
 ```
 
-Since devices already connected via AccessoryKit don’t appear in the accessory picker again, it’s a better user experience to first check if there’s a device ready to use, like this:
+Because devices connected via AccessoryKit no longer show up in the picker, it’s better to first check if one is already available, like this:
 ```js
 
     async function getAccessoriesKitDevices() {

@@ -2,7 +2,7 @@
 layout: page
 title: Changelog
 permalink: /changelog/
-nav_order: 100
+nav_order: 6
 ---
 
 # Changelog
