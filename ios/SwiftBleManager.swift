@@ -90,6 +90,7 @@ import AccessorySetupKit
             serialQueue.sync {
                 if let session = self.session as? ASAccessorySession {
                     session.invalidate()
+                    self.session = nil
                 }
             }
         }
