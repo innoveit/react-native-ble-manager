@@ -360,7 +360,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
 
         var serviceUUIDs = [CBUUID]()
-        if let serviceUUIDStrings = scanningOptions["serviceUUIDStrings"]
+        if let serviceUUIDStrings = scanningOptions["serviceUUIDs"]
             as? [String]
         {
             serviceUUIDs = serviceUUIDStrings.map { CBUUID(string: $0) }
