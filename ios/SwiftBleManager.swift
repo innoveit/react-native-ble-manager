@@ -1,5 +1,7 @@
+import AccessorySetupKit
 import CoreBluetooth
 import Foundation
+import UIKit
 
 @objc
 public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
@@ -36,6 +38,66 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
     static var verboseLogging = false
 
+    private var accessorySession: AnyObject?
+
+    private func invalidateAccessorySessionIfNeeded() {
+        if #available(iOS 18.0, *),
+            let session = accessorySession as? ASAccessorySession
+        {
+            session.invalidate()
+        }
+        accessorySession = nil
+    }
+
+    private func teardownCentralManager() {
+        if let scanTimer = scanTimer {
+            scanTimer.invalidate()
+            self.scanTimer = nil
+        }
+
+        manager?.stopScan()
+        manager?.delegate = nil
+
+        serialQueue.sync {
+            for peripheral in peripherals.values {
+                peripheral.instance.delegate = nil
+            }
+            peripherals.removeAll()
+        }
+
+        manager = nil
+        SwiftBleManager.sharedManager = nil
+    }
+
+    @available(iOS 18.0, *)
+    private func deviceSetupPayload(
+        from accessory: ASAccessory,
+        serviceUUIDs: [String]
+    ) -> [String: Any] {
+        let identifier =
+            accessory.bluetoothIdentifier?.uuidString.lowercased()
+            ?? accessory.ssid
+            ?? accessory.displayName
+
+        var payload: [String: Any] = [
+            "id": identifier,
+            "name": accessory.displayName,
+            "rssi": 0,
+        ]
+
+        var advertising: [String: Any] = [:]
+        advertising["isConnectable"] = true
+        advertising["serviceUUIDs"] = serviceUUIDs.map { $0.lowercased() }
+        advertising["manufacturerData"] = [NSNumber]()
+        advertising["serviceData"] = [NSNumber]()
+        advertising["txPowerLevel"] = 0
+        advertising["rawData"] = NSNull()
+
+        payload["advertising"] = advertising
+
+        return payload
+    }
+
     @objc public init(bleManager: BleManager) {
         peripherals = [:]
         connectCallbacks = [:]
@@ -53,6 +115,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         characteristicsLatches = [:]
         exactAdvertisingName = []
         connectedPeripherals = []
+        accessorySession = nil
         self.bleManager = bleManager
 
         super.init()
@@ -1917,30 +1980,172 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         // Not supported
     }
 
-    @objc public func getAssociatedPeripherals(
+    @objc public func getAssociatedDevices(
         _ callback: @escaping RCTResponseSenderBlock
     ) {
         callback(["Not supported"])
     }
 
-    @objc public func removeAssociatedPeripheral(
+    @objc public func removeAssociatedDevice(
         _ peripheralUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
         callback(["Not supported"])
     }
 
-    @objc public func supportsCompanion(
+    @objc public func supportsDeviceSetup(
         _ callback: @escaping RCTResponseSenderBlock
     ) {
-        callback([NSNull(), false])
+        if #available(iOS 18.0, *) {
+            callback([NSNull(), true])
+        } else {
+            callback([NSNull(), false])
+        }
     }
 
-    @objc public func companionScan(
+    @objc public func stop(_ callback: RCTResponseSenderBlock) {
+        if let scanTimer = scanTimer {
+            scanTimer.invalidate()
+            self.scanTimer = nil
+        }
+        manager?.stopScan()
+        manager?.delegate = nil
+
+        serialQueue.sync {
+            for p in peripherals.values { p.instance.delegate = nil }
+            peripherals.removeAll()
+        }
+
+        manager = nil
+        SwiftBleManager.sharedManager = nil
+        invalidateAccessorySessionIfNeeded()
+        callback([])
+    }
+
+    @objc public func deviceSetupScan(
         _ serviceUUIDs: [Any],
         option: NSDictionary,
-        callback: RCTResponseSenderBlock
+        callback: @escaping RCTResponseSenderBlock
     ) {
-        callback(["Not supported"])
+        guard #available(iOS 18.0, *) else {
+            callback(["Device setup requires iOS 18"])
+            return
+        }
+
+        // AccessorySetupKit conflicts with an active CBCentralManager, so
+        // tear down any existing central before starting the accessory session.
+        teardownCentralManager()
+
+        let session = ASAccessorySession()
+        accessorySession = session
+
+        if let verboseLogging = option["verboseLogging"] as? Bool {
+            SwiftBleManager.verboseLogging = verboseLogging
+        }
+
+        var normalizedServiceUUIDs: [String] = []
+        var items: [ASPickerDisplayItem] = []
+        let fallbackImage =
+            UIImage(
+                systemName: "antenna.radiowaves.left.and.right"
+            ) ?? UIImage()
+
+        for case let uuidString as String in serviceUUIDs {
+            let normalizedUUID = uuidString.trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+            guard !normalizedUUID.isEmpty else { continue }
+
+            normalizedServiceUUIDs.append(normalizedUUID)
+
+            let descriptor = ASDiscoveryDescriptor()
+            descriptor.bluetoothServiceUUID =
+                CBUUID(string: normalizedUUID)
+            let displayName =
+                option["pickerTitle"] as? String ?? normalizedUUID
+            let item = ASPickerDisplayItem(
+                name: displayName,
+                productImage: fallbackImage,
+                descriptor: descriptor
+            )
+            items.append(item)
+        }
+
+        var didResolveResult = false
+        var pendingSelection: [String: Any]?
+        let deliverSelection: ([String: Any]?) -> Void = { [weak self] value in
+            guard let self = self else { return }
+            if didResolveResult {
+                return
+            }
+
+            didResolveResult = true
+            if let peripheral = value {
+                callback([NSNull(), peripheral])
+                self.bleManager?.emit(onDeviceSetupSelected: peripheral)
+            } else {
+                callback([NSNull(), NSNull()])
+                self.bleManager?.emit(onDeviceSetupSelected: nil)
+            }
+            self.invalidateAccessorySessionIfNeeded()
+        }
+
+        let deliverError: (String) -> Void = { [weak self] message in
+            guard let self = self else { return }
+            if didResolveResult {
+                return
+            }
+
+            didResolveResult = true
+            callback([message])
+            self.bleManager?.emit(onDeviceSetupFailure: ["error": message])
+            self.invalidateAccessorySessionIfNeeded()
+        }
+
+        guard !items.isEmpty else {
+            deliverError("Error: invalid service UUIDs")
+            return
+        }
+
+        session.activate(on: DispatchQueue.main) { [weak self] event in
+            guard let self = self else { return }
+
+            if SwiftBleManager.verboseLogging {
+                NSLog("ASAccessorySession event: \(event.eventType)")
+            }
+
+            switch event.eventType {
+            case .accessoryAdded, .accessoryChanged:
+                guard let accessory = event.accessory else { return }
+                pendingSelection = self.deviceSetupPayload(
+                    from: accessory,
+                    serviceUUIDs: normalizedServiceUUIDs
+                )
+            case .pickerDidDismiss:
+                deliverSelection(pendingSelection)
+            case .pickerSetupFailed:
+                let message =
+                    event.error?.localizedDescription
+                    ?? "Accessory setup failed"
+                deliverError(message)
+            default:
+                break
+            }
+        }
+
+        session.showPicker(for: items) { error in
+            if let error {
+                if SwiftBleManager.verboseLogging {
+                    NSLog(
+                        "ASPicker showPicker error: \(error.localizedDescription)"
+                    )
+                }
+                deliverError(
+                    "Device setup error: \(error.localizedDescription)"
+                )
+            } else {
+                // Picker completed without explicit error; do nothing here.
+            }
+        }
     }
 }

@@ -344,7 +344,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @SuppressLint("NewApi") // NOTE: constructor checks the API version.
     @ReactMethod
-    public void companionScan(ReadableArray serviceUUIDs, ReadableMap options, Callback callback) {
+    public void deviceSetupScan(ReadableArray serviceUUIDs, ReadableMap options, Callback callback) {
         if (this.companionScanner == null) {
             callback.invoke("not supported");
         } else {
@@ -353,7 +353,7 @@ public class BleManager extends NativeBleManagerSpec {
     }
 
     @ReactMethod
-    public void supportsCompanion(Callback callback) {
+    public void supportsDeviceSetup(Callback callback) {
         callback.invoke(companionScanner != null);
     }
 
@@ -885,7 +885,7 @@ public class BleManager extends NativeBleManagerSpec {
     }
 
     @ReactMethod
-    public void getAssociatedPeripherals(Callback callback) {
+    public void getAssociatedDevices(Callback callback) {
         Log.d(LOG_TAG, "Get associated peripherals");
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
             callback.invoke("Not supported");
@@ -901,7 +901,7 @@ public class BleManager extends NativeBleManagerSpec {
     }
 
     @ReactMethod
-    public void removeAssociatedPeripheral(String address, Callback callback) {
+    public void removeAssociatedDevice(String address, Callback callback) {
         Log.d(LOG_TAG, "Remove associated peripheral: " + address);
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
             callback.invoke("Not supported");
