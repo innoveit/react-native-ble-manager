@@ -76,7 +76,7 @@ const ScanDevicesScreen = () => {
         console.debug('[startScan] starting scan...');
         setIsScanning(true);
         BleManager.scan({
-          serviceUUIDStrings: SERVICE_UUIDS,
+          serviceUUIDs: SERVICE_UUIDS,
           seconds: SECONDS_TO_SCAN_FOR,
           allowDuplicates: ALLOW_DUPLICATES,
           matchMode: BleScanMatchMode.Sticky,
