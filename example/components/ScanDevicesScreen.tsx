@@ -286,6 +286,23 @@ const ScanDevicesScreen = () => {
     }
   };
 
+  const removeAssociatedPeripherals = async () => {
+    try {
+      const associatedPeripherals = await BleManager.getAssociatedPeripherals();
+      for (const peripheral of associatedPeripherals) {
+        await BleManager.removeAssociatedPeripheral(peripheral.id);
+      }
+      console.debug(
+        '[removeAssociatedPeripherals] associated peripherals removed'
+      );
+    } catch (error) {
+      console.error(
+        '[removeAssociatedPeripherals] unable to remove associated peripherals.',
+        error
+      );
+    }
+  }
+
   const connectPeripheral = async (peripheral: Peripheral) => {
     try {
       if (peripheral) {
@@ -578,7 +595,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     backgroundColor: '#0a398a',
-    margin: 10,
+    margin: 5,
     borderRadius: 12,
     flex: 1,
     ...boxShadow,

@@ -10,7 +10,7 @@ nav_order: 100
 To read all the details go to the [Github Releases section](https://github.com/innoveit/react-native-ble-manager/releases).
 
 ## Release v12.4.x
-- Refactor `scan` method.
+- **BREAKING CHANGE** - Refactor `scan` method.
 - Added `isStarted` method.
 
 ## Release v12.3.x
