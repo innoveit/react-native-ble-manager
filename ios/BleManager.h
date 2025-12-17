@@ -16,8 +16,8 @@
 - (void)emitOnPeripheralDidBond:(NSDictionary *)value;
 - (void)emitOnCentralManagerWillRestoreState:(NSDictionary *)value;
 - (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
-- (void)emitOnCompanionPeripheral:(NSDictionary *)value;
-- (void)emitOnCompanionFailure:(NSDictionary *)value;
+- (void)emitOnDeviceSetupSelected:(NSDictionary *)value;
+- (void)emitOnDeviceSetupFailure:(NSDictionary *)value;
 + (nullable CBCentralManager *)getCentralManager;
 + (nullable SwiftBleManager *)getInstance;
 @end
@@ -34,8 +34,8 @@
 - (void)emitOnPeripheralDidBond:(NSDictionary *)value;
 - (void)emitOnCentralManagerWillRestoreState:(NSDictionary *)value;
 - (void)emitOnDidUpdateNotificationStateFor:(NSDictionary *)value;
-- (void)emitOnCompanionPeripheral:(NSDictionary *)value;
-- (void)emitOnCompanionFailure:(NSDictionary *)value;
+- (void)emitOnDeviceSetupSelected:(NSDictionary *)value;
+- (void)emitOnDeviceSetupFailure:(NSDictionary *)value;
 @end
 
 #endif

@@ -29,8 +29,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { RootStackParamList } from '../types/navigation';
 
-const SECONDS_TO_SCAN_FOR = 3;
-const SERVICE_UUIDS: string[] = [];
+const SECONDS_TO_SCAN_FOR = 5;
+const SERVICE_UUIDS: string[] = ['C219DA19-A018-405F-AF8E-BC98AD9FFAEC'];
 const ALLOW_DUPLICATES = true;
 
 declare module 'react-native-ble-manager' {
@@ -54,7 +54,20 @@ const ScanDevicesScreen = () => {
 
   //console.debug('peripherals map updated', [...peripherals.entries()]);
 
-  const startScan = () => {
+  const startScan = async () => {
+    if (!(await BleManager.isStarted())) {
+      try {
+        BleManager.start({ showAlert: false })
+          .then(() => console.debug('BleManager started.'))
+          .catch((error: any) =>
+            console.error('BeManager could not be started.', error)
+          );
+      } catch (error) {
+        console.error('unexpected error starting BleManager.', error);
+        return;
+      }
+    }
+
     if (!isScanning) {
       // reset found peripherals before scan
       setPeripherals(new Map<Peripheral['id'], Peripheral>());
@@ -63,7 +76,7 @@ const ScanDevicesScreen = () => {
         console.debug('[startScan] starting scan...');
         setIsScanning(true);
         BleManager.scan({
-          serviceUUIDs: SERVICE_UUIDS,
+          serviceUUIDStrings: SERVICE_UUIDS,
           seconds: SECONDS_TO_SCAN_FOR,
           allowDuplicates: ALLOW_DUPLICATES,
           matchMode: BleScanMatchMode.Sticky,
@@ -82,14 +95,14 @@ const ScanDevicesScreen = () => {
     }
   };
 
-  const startCompanionScan = () => {
+  const deviceSetupScan = () => {
     setPeripherals(new Map<Peripheral['id'], Peripheral>());
     try {
-      console.debug('[startCompanionScan] starting companion scan...');
-      BleManager.companionScan(SERVICE_UUIDS, { single: false })
+      console.debug('[deviceSetupScan] starting device setup scan...');
+      BleManager.deviceSetupScan(SERVICE_UUIDS, { single: false, verboseLogging: true })
         .then((peripheral: Peripheral | null) => {
           console.debug(
-            '[startCompanionScan] scan promise returned successfully.',
+            '[deviceSetupScan] scan promise returned successfully.',
             peripheral
           );
           if (peripheral != null) {
@@ -99,10 +112,10 @@ const ScanDevicesScreen = () => {
           }
         })
         .catch((err: any) => {
-          console.debug('[startCompanionScan] ble scan cancel', err);
+          console.debug('[deviceSetupScan] ble scan cancel', err);
         });
     } catch (error) {
-      console.error('[startCompanionScan] ble scan error thrown', error);
+      console.error('[deviceSetupScan] ble scan error thrown', error);
     }
   };
 
@@ -254,7 +267,7 @@ const ScanDevicesScreen = () => {
 
   const getAssociatedPeripherals = async () => {
     try {
-      const associatedPeripherals = await BleManager.getAssociatedPeripherals();
+      const associatedPeripherals = await BleManager.getAssociatedDevices();
       console.debug(
         '[getAssociatedPeripherals] associatedPeripherals',
         associatedPeripherals
@@ -382,17 +395,6 @@ const ScanDevicesScreen = () => {
   }
 
   useEffect(() => {
-    try {
-      BleManager.start({ showAlert: false })
-        .then(() => console.debug('BleManager started.'))
-        .catch((error: any) =>
-          console.error('BeManager could not be started.', error)
-        );
-    } catch (error) {
-      console.error('unexpected error starting BleManager.', error);
-      return;
-    }
-
     const listeners: any[] = [
       BleManager.onDiscoverPeripheral(handleDiscoverPeripheral),
       BleManager.onStopScan(handleStopScan),
@@ -477,6 +479,8 @@ const ScanDevicesScreen = () => {
     );
   };
 
+  const supportEnableBluetooth = Platform.OS === 'android';
+
   return (
     <>
       <StatusBar />
@@ -504,29 +508,27 @@ const ScanDevicesScreen = () => {
           </Pressable>
         </View>
 
-        {Platform.OS === 'android' && (
-          <>
-            <View style={styles.buttonGroup}>
-              <Pressable style={styles.scanButton} onPress={startCompanionScan}>
-                <Text style={styles.scanButtonText}>Scan Companion</Text>
-              </Pressable>
+        <View style={styles.buttonGroup}>
+          <Pressable style={styles.scanButton} onPress={deviceSetupScan}>
+            <Text style={styles.scanButtonText}>Device Setup Scan</Text>
+          </Pressable>
 
-              <Pressable
-                style={styles.scanButton}
-                onPress={getAssociatedPeripherals}
-              >
-                <Text style={styles.scanButtonText}>
-                  Get Associated Peripherals
-                </Text>
-              </Pressable>
-            </View>
+          <Pressable
+            style={styles.scanButton}
+            onPress={getAssociatedPeripherals}
+          >
+            <Text style={styles.scanButtonText}>
+              Get Associated Peripherals
+            </Text>
+          </Pressable>
+        </View>
 
-            <View style={styles.buttonGroup}>
-              <Pressable style={styles.scanButton} onPress={enableBluetooth}>
-                <Text style={styles.scanButtonText}>Enable Bluetooth</Text>
-              </Pressable>
-            </View>
-          </>
+        {supportEnableBluetooth && (
+          <View style={styles.buttonGroup}>
+            <Pressable style={styles.scanButton} onPress={enableBluetooth}>
+              <Text style={styles.scanButtonText}>Enable Bluetooth</Text>
+            </Pressable>
+          </View>
         )}
 
         {Array.from(peripherals.values()).length === 0 && (

@@ -44,10 +44,10 @@ RCT_EXPORT_MODULE()
     [_swBleManager checkState:callback];
 }
 
-- (void)companionScan:(NSArray *)serviceUUIDs
+- (void)deviceSetupScan:(NSArray *)serviceUUIDs
                option:(NSDictionary *)option
              callback:(RCTResponseSenderBlock)callback {
-    [_swBleManager companionScan:serviceUUIDs option:option callback:callback];
+    [_swBleManager deviceSetupScan:serviceUUIDs option:option callback:callback];
 }
 
 - (void)connect:(NSString *)peripheralUUID
@@ -74,8 +74,8 @@ RCT_EXPORT_MODULE()
     [_swBleManager enableBluetooth:callback];
 }
 
-- (void)getAssociatedPeripherals:(RCTResponseSenderBlock)callback {
-    [_swBleManager getAssociatedPeripherals:callback];
+- (void)getAssociatedDevices:(RCTResponseSenderBlock)callback {
+    [_swBleManager getAssociatedDevices:callback];
 }
 
 - (void)getBondedPeripherals:(RCTResponseSenderBlock)callback {
@@ -147,9 +147,9 @@ RCT_EXPORT_MODULE()
     [_swBleManager refreshCache:peripheralUUID callback:callback];
 }
 
-- (void)removeAssociatedPeripheral:(NSString *)peripheralUUID
+- (void)removeAssociatedDevice:(NSString *)peripheralUUID
                           callback:(RCTResponseSenderBlock)callback {
-    [_swBleManager removeAssociatedPeripheral:peripheralUUID callback:callback];
+    [_swBleManager removeAssociatedDevice:peripheralUUID callback:callback];
 }
 
 - (void)removeBond:(NSString *)peripheralUUID
@@ -238,8 +238,8 @@ RCT_EXPORT_MODULE()
     [_swBleManager stopScan:callback];
 }
 
-- (void)supportsCompanion:(RCTResponseSenderBlock)callback {
-    [_swBleManager supportsCompanion:callback];
+- (void)supportsDeviceSetup:(RCTResponseSenderBlock)callback {
+    [_swBleManager supportsDeviceSetup:callback];
 }
 
 - (void)write:(NSString *)peripheralUUID
