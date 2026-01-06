@@ -12,6 +12,17 @@ import {
   PeripheralInfo,
   ScanOptions,
   StartOptions,
+  EventCallback,
+  BleConnectPeripheralEvent,
+  BleDiscoverPeripheralEvent,
+  BleStopScanEvent,
+  BleManagerDidUpdateStateEvent,
+  BleDisconnectPeripheralEvent,
+  BleManagerDidUpdateValueForCharacteristicEvent,
+  BleBondedPeripheralEvent,
+  BleManagerCentralManagerWillRestoreState,
+  BleManagerDidUpdateNotificationStateForEvent,
+  BleManagerCompanionPeripheral,
 } from './types';
 import { CallbackError } from './NativeBleManager';
 export * from './types';
@@ -831,52 +842,44 @@ class BleManager {
     });
   }
 
-  onDiscoverPeripheral(callback: any): EventSubscription {
+  onDiscoverPeripheral(callback: EventCallback<BleDiscoverPeripheralEvent>): EventSubscription {
     return BleManagerModule.onDiscoverPeripheral(callback);
   }
 
-  onStopScan(callback: any): EventSubscription {
+  onStopScan(callback: EventCallback<BleStopScanEvent>): EventSubscription {
     return BleManagerModule.onStopScan(callback);
   }
 
-  onDidUpdateState(callback: any): EventSubscription {
+  onDidUpdateState(callback: EventCallback<BleManagerDidUpdateStateEvent>): EventSubscription {
     return BleManagerModule.onDidUpdateState(callback);
   }
 
-  onCentralManagerDidUpdateState(callback: any): EventSubscription {
-    return BleManagerModule.onCentralManagerDidUpdateState(callback);
-  }
-
-  onConnectPeripheral(callback: any): EventSubscription {
+  onConnectPeripheral(callback: EventCallback<BleConnectPeripheralEvent>): EventSubscription {
     return BleManagerModule.onConnectPeripheral(callback);
   }
 
-  onDisconnectPeripheral(callback: any): EventSubscription {
+  onDisconnectPeripheral(callback: EventCallback<BleDisconnectPeripheralEvent>): EventSubscription {
     return BleManagerModule.onDisconnectPeripheral(callback);
   }
 
-  onDidUpdateValueForCharacteristic(callback: any): EventSubscription {
+  onDidUpdateValueForCharacteristic(callback: EventCallback<BleManagerDidUpdateValueForCharacteristicEvent>): EventSubscription {
     return BleManagerModule.onDidUpdateValueForCharacteristic(callback);
   }
 
-  onPeripheralDidBond(callback: any): EventSubscription {
+  onPeripheralDidBond(callback: EventCallback<BleBondedPeripheralEvent>): EventSubscription {
     return BleManagerModule.onPeripheralDidBond(callback);
   }
 
-  onCentralManagerWillRestoreState(callback: any): EventSubscription {
+  onCentralManagerWillRestoreState(callback: EventCallback<BleManagerCentralManagerWillRestoreState>): EventSubscription {
     return BleManagerModule.onCentralManagerWillRestoreState(callback);
   }
 
-  onDidUpdateNotificationStateFor(callback: any): EventSubscription {
+  onDidUpdateNotificationStateFor(callback: EventCallback<BleManagerDidUpdateNotificationStateForEvent>): EventSubscription {
     return BleManagerModule.onDidUpdateNotificationStateFor(callback);
   }
 
-  onCompanionPeripheral(callback: any): EventSubscription {
+  onCompanionPeripheral(callback: EventCallback<BleManagerCompanionPeripheral>): EventSubscription {
     return BleManagerModule.onCompanionPeripheral(callback);
-  }
-
-  onCompanionAvailability(callback: any): EventSubscription {
-    return BleManagerModule.onCompanionAvailability(callback);
   }
 }
 
