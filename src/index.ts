@@ -447,9 +447,6 @@ class BleManager {
 
   /**
    *
-   * @param serviceUUIDs
-   * @param seconds amount of seconds to scan. if set to 0 or less, will scan until you call stopScan() or the OS stops the scan (background etc).
-   * @param allowDuplicates [iOS only]
    * @param scanningOptions optional map of properties to fine-tune scan behavior, see DOCS.
    * @returns
    */

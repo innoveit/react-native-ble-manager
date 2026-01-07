@@ -72,7 +72,7 @@ Returns a `Promise` object.
 
 **Arguments**
 - `scanningOptions` - `JSON` - user can control specific ble scan behaviors:
-  - `serviceUUIDs` - `Array of String` - the UUIDs of the services to looking for.
+  - `serviceUUIDs` - `Array of String` - the UUIDs of the services to look for.
   - `seconds` - `Integer` - the amount of seconds to scan.
   - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
   - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>). Defaults to `ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
@@ -93,7 +93,7 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.scan([], 5, true).then(() => {
+BleManager.scan({ serviceUUIDs: [], seconds: 5 }).then(() => {
   // Success code
   console.log("Scan started");
 });
