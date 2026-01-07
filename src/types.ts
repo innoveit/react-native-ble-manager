@@ -289,6 +289,8 @@ export enum BleEventType {
   BleManagerDidUpdateNotificationStateFor = 'BleManagerDidUpdateNotificationStateFor',
 }
 
+export type EventCallback<T> = (event: T) => void | Promise<void>;
+
 export interface BleStopScanEvent {
   /**
    * [iOS only]
