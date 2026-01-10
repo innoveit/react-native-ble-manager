@@ -69,7 +69,7 @@ The scanning found a new peripheral.
 - `rssi` - `Number` - the RSSI value
 - `advertising` - `JSON` - the advertising payload, here are some examples:
   - `isConnectable` - `Boolean`
-  - `serviceUUIDs` - `Array of String`
+  - `serviceUUIDs` - `String[]`
   - `manufacturerData` - `JSON` - contains a json with the company id as field and the custom value as raw `bytes` and `data` (Base64 encoded string)
   - `serviceData` - `JSON` - contains the raw `bytes` and `data` (Base64 encoded string)
   - `txPowerLevel` - `Int`
@@ -81,14 +81,14 @@ The scanning found a new peripheral.
 
 A characteristic notified a new value.
 
+> Event will only be emitted after successful `startNotification`.
+
 **Arguments**
 
-- `value` — `Array` — the read value
+- `value` — `Number[]` — the read value
 - `peripheral` — `String` — the id of the peripheral
 - `characteristic` — `String` — the UUID of the characteristic
 - `service` — `String` — the UUID of the characteristic
-
-> Event will only be emitted after successful `startNotification`.
 
 ---
 
@@ -130,15 +130,15 @@ Object with information about the device.
 
 This is fired when [`centralManager:WillRestoreState:`](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518819-centralmanager) is called (app relaunched in the background to handle a bluetooth event).
 
-**Arguments**
-
-- `peripherals` - `Array` - an array of previously connected peripherals.
-
 _For more on performing long-term bluetooth actions in the background:_
 
 [iOS Bluetooth State Preservation and Restoration](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html#//apple_ref/doc/uid/TP40013257-CH7-SW10)
 
 [iOS Relaunch Conditions](https://developer.apple.com/documentation/technotes/tn3115-bluetooth-state-restoration-app-relaunch-rules/)
+
+**Arguments**
+
+- `peripherals` - `Array` - an array of previously connected peripherals.
 
 ---
 ### onDidUpdateNotificationStateFor [iOS only]

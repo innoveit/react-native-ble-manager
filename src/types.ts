@@ -1,6 +1,6 @@
 /**
- * android states: https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
- * ios states: https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerstate
+ * Android states: https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#EXTRA_STATE
+ * iOS states: https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerstate
  * */
 export enum BleState {
   /**
@@ -19,11 +19,11 @@ export enum BleState {
   On = 'on',
   Off = 'off',
   /**
-   * [android only]
+   * [Android only]
    */
   TurningOn = 'turning_on',
   /**
-   * [android only]
+   * [Android only]
    */
   TurningOff = 'turning_off',
 }
@@ -61,61 +61,84 @@ export interface CustomAdvertisingData {
 
 export interface StartOptions {
   /**
-   * [iOS only]
+   * [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
    */
   showAlert?: boolean;
   /**
-   * [iOS only]
+   * [iOS only] Unique key to use for CoreBluetooth state restoration
    */
   restoreIdentifierKey?: string;
   /**
-   * [iOS only]
+   * [iOS only] Unique key to use for a queue identifier on which CoreBluetooth events will be dispatched
    */
   queueIdentifierKey?: string;
   /**
-   * [android only]
+   * [Android only] Force to use the LegacyScanManager
    */
   forceLegacy?: boolean;
 }
 
 export interface ConnectOptions {
   /**
-   * [android only]
+   * [Android only] whether to directly connect to the remote device (false) or to automatically connect as soon as the remote device becomes available (true) ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
    */
   autoconnect?: boolean;
   /**
-   * [android only]
+   * [Android only] corresponding to the preferred phy channel ([`Android doc`](<https://developer.android.com/reference/android/bluetooth/BluetoothDevice?hl=en#connectGatt(android.content.Context,%20boolean,%20android.bluetooth.BluetoothGattCallback,%20int,%20int)>))
    */
   phy?: BleScanPhyMode;
 }
 
 /**
- * [android only]
+ * [Android only]
  * https://developer.android.com/reference/android/bluetooth/le/ScanSettings
  */
 export interface ScanOptions {
+  /**
+   * The UUIDs of the services to look for.
+   */
   serviceUUIDs?: string[];
+  /**
+   * The amount of seconds to scan. If not set or set to `0`, scans until `stopScan()` is called.
+   */
   seconds?: number;
   /**
-   *  iOS only: whether to allow duplicate peripheral during a scan
+   * In Android this is a ScanFilter, if present it restricts scan results to devices with a specific advertising name.
+   * This is a whole word match, not a partial search.
+   * Use with caution, it's behavior is tricky and seems to be the following:
+   * if `callbackType` is set to `AllMatches`, only the completeLocalName will be used for filtering.
+   * if `callbackType` is set to `FirstMatch`, the shortenedLocalName will be used for filtering.
+   * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
+   * 
+   * In iOS, this is a whole word match, not a partial search.
+   */
+  exactAdvertisingName?: string | string[];
+  /**
+   * [iOS only] whether to allow duplicate peripheral during a scan
    */
   allowDuplicates?: boolean;
   /**
-   * This will only works if a ScanFilter is active. Otherwise, may not retrieve any result.
+   * [Android only] This will only work if a ScanFilter is active. Otherwise, may not retrieve any result.
    * See https://developer.android.com/reference/android/bluetooth/le/ScanSettings#MATCH_NUM_FEW_ADVERTISEMENT.
    * */
   numberOfMatches?: BleScanMatchCount;
+  /**
+   * [Android only] Defaults to `aggressive`.
+   */
   matchMode?: BleScanMatchMode;
   /**
-   * This will only works if a ScanFilter is active. Otherwise, may not retrieve any result.
+   * [Android only] This will only work if a ScanFilter is active. Otherwise, may not retrieve any result.
    * See https://developer.android.com/reference/android/bluetooth/le/ScanSettings#CALLBACK_TYPE_FIRST_MATCH.
    * Also read [this issue](https://github.com/dariuszseweryn/RxAndroidBle/issues/561#issuecomment-532295346) for a deeper understanding
-   * of the very brittle stability of ScanSettings on android.
+   * of the very brittle stability of ScanSettings on Android. Defaults to `allMatches`. 
    * */
   callbackType?: BleScanCallbackType;
+  /**
+   * [Android only] Defaults to `lowPower`.
+   */
   scanMode?: BleScanMode;
   /**
-   * This is supposed to push results after a certain delay.
+   * [Android only] This is supposed to push results after a certain delay.
    * In practice it is tricky, use with caution.
    * Do not set something below 5000ms as it will wait that long anyway before pushing the first results,
    * or on some phones it will ignore that setting and behave just like it was set to 0.
@@ -124,29 +147,20 @@ export interface ScanOptions {
    */
   reportDelay?: number;
   /**
-   * Does not work in conjunction with legacy scans. Setting an unsupported PHY will result in a failure to scan,
+   * [Android only] Does not work in conjunction with legacy scans. Setting an unsupported PHY will result in a failure to scan,
    * use with caution.
    * https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int)
    */
   phy?: BleScanPhyMode;
   /**
-   * true by default for compatibility with older apps.
+   * [Android only] true by default for compatibility with older apps.
    * In that mode, scan will only retrieve advertisements data as specified by BLE 4.2 and below.
    * Change this if you want to benefit from the extended BLE 5 advertisement spec.
    * https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean)
    */
   legacy?: boolean;
   /**
-   * an android ScanFilter, used if present to restrict scan results to devices with a specific advertising name.
-   * This is a whole word match, not a partial search.
-   * Use with caution, it's behavior is tricky and seems to be the following:
-   * if `callbackType` is set to `AllMatches`, only the completeLocalName will be used for filtering.
-   * if `callbackType` is set to `FirstMatch`, the shortenedLocalName will be used for filtering.
-   * https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)
-   */
-  exactAdvertisingName?: string | string[];
-  /**
-   * Android only. Filters scan results by manufacturer id and data.
+   * [Android only] Filters scan results by manufacturer id and data.
    * `manufacturerId` usually matches the company id, can be given as a hex, e.g. 0xe4f7.
    * `manufacturerData` and `manufacturerDataMask` must have the same length. For any bit in the mask, set it to 1 if
    * it needs to match the one in manufacturer data, otherwise set it to 0.
@@ -158,13 +172,6 @@ export interface ScanOptions {
     manufacturerDataMask?: number[];
   };
   /**
-   * When using compaion mode, only associate single peripheral.
-   *
-   * See: https://developer.android.com/reference/android/companion/AssociationRequest.Builder#setSingleDevice(boolean)
-   */
-  single?: boolean;
-  companion?: boolean;
-  /**
    * [Android O+] Deliver scan results using a PendingIntent instead of the default callback.
    */
   useScanIntent?: boolean;
@@ -172,13 +179,13 @@ export interface ScanOptions {
 
 export interface CompanionScanOptions {
   /**
-   * Scan only for a single peripheral.
+   * Scan only for a single peripheral. See Android's `AssociationRequest.Builder.setSingleDevice`.
    */
   single?: boolean;
 }
 
 /**
- * [android only]
+ * [Android only]
  */
 export enum BleScanMode {
   Opportunistic = -1,
@@ -188,7 +195,7 @@ export enum BleScanMode {
 }
 
 /**
- * [android only]
+ * [Android only]
  */
 export enum BleScanMatchMode {
   Aggressive = 1,
@@ -196,7 +203,7 @@ export enum BleScanMatchMode {
 }
 
 /**
- * [android only]
+ * [Android only]
  */
 export enum BleScanCallbackType {
   AllMatches = 1,
@@ -205,7 +212,7 @@ export enum BleScanCallbackType {
 }
 
 /**
- * [android only]
+ * [Android only]
  */
 export enum BleScanMatchCount {
   OneAdvertisement = 1,
@@ -214,7 +221,7 @@ export enum BleScanMatchCount {
 }
 
 /**
- * [android only]
+ * [Android only]
  */
 export enum BleScanPhyMode {
   LE_1M = 1,
@@ -224,7 +231,7 @@ export enum BleScanPhyMode {
 }
 
 /**
- * [android only API 21+]
+ * [Android only API 21+]
  */
 export enum ConnectionPriority {
   balanced = 0,
@@ -268,37 +275,20 @@ export interface PeripheralInfo extends Peripheral {
   services?: Service[];
 }
 
-export enum BleEventType {
-  BleManagerDidUpdateState = 'BleManagerDidUpdateState',
-  BleManagerStopScan = 'BleManagerStopScan',
-  BleManagerDiscoverPeripheral = 'BleManagerDiscoverPeripheral',
-  BleManagerDidUpdateValueForCharacteristic = 'BleManagerDidUpdateValueForCharacteristic',
-  BleManagerConnectPeripheral = 'BleManagerConnectPeripheral',
-  BleManagerDisconnectPeripheral = 'BleManagerDisconnectPeripheral',
-  /**
-   * [Android only]
-   */
-  BleManagerPeripheralDidBond = 'BleManagerPeripheralDidBond',
-  /**
-   * [iOS only]
-   */
-  BleManagerCentralManagerWillRestoreState = 'BleManagerCentralManagerWillRestoreState',
-  /**
-   * [iOS only]
-   */
-  BleManagerDidUpdateNotificationStateFor = 'BleManagerDidUpdateNotificationStateFor',
-}
-
 export type EventCallback<T> = (event: T) => void | Promise<void>;
 
 export interface BleStopScanEvent {
   /**
-   * [iOS only]
+   * [iOS] The reason for stopping the scan. Error code 10 is used for timeouts, 0 covers everything else.
+   * [Android] The reason for stopping the scan (<https://developer.android.com/reference/android/bluetooth/le/ScanCallback#constants_1>). Error code 10 is used for timeouts
    */
   status?: number;
 }
 
 export interface BleManagerDidUpdateStateEvent {
+  /**
+   * The new BLE state
+   */
   state: BleState;
 }
 
@@ -308,7 +298,9 @@ export interface BleConnectPeripheralEvent {
    */
   readonly peripheral: string;
   /**
-   * [android only]
+   * [Android only]
+   * 
+   * Connect reason.
    */
   readonly status?: number;
 }
@@ -326,7 +318,7 @@ export interface BleDisconnectPeripheralEvent {
    */
   readonly peripheral: string;
   /**
-   * [android only] disconnect reason.
+   * [Android only] disconnect reason.
    */
   readonly status?: number;
   /**

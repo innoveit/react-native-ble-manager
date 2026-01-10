@@ -68,12 +68,18 @@ BleManager.isStarted().then((started) => {
 ### scan(scanningOptions)
 
 Scan for available peripherals.
+
+See `onDiscoverPeripheral` to get live updates of devices being discovered.
+
+See `getDiscoveredPeripherals` to get a list of discovered devices after a scan is completed.
+
 Returns a `Promise` object.
 
 **Arguments**
 - `scanningOptions` - `JSON` - user can control specific ble scan behaviors:
-  - `serviceUUIDs` - `Array of String` - the UUIDs of the services to look for.
-  - `seconds` - `Integer` - the amount of seconds to scan.
+  - `serviceUUIDs` - `String[]` - the UUIDs of the services to look for.
+  - `seconds` - `Integer` - the amount of seconds to scan. If not set or set to `0`, scans until `stopScan()` is called.
+  - `exactAdvertisingName` - `String[]` - In Android corresponds to the `ScanFilter` [deviceName](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)>). In iOS the filter is done manually before sending the peripheral.
   - `allowDuplicates` - `Boolean` - [iOS only] allow duplicates in device scanning
   - `numberOfMatches` - `Number` - [Android only] corresponding to [`setNumOfMatches`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setNumOfMatches(int)>). Defaults to `ScanSettings.MATCH_NUM_MAX_ADVERTISEMENT`. /!\ anything other than default may only work when a `ScanFilter` is active /!\
   - `matchMode` - `Number` - [Android only] corresponding to [`setMatchMode`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setMatchMode(int)>). Defaults to `ScanSettings.MATCH_MODE_AGGRESSIVE`.
@@ -82,11 +88,10 @@ Returns a `Promise` object.
   - `reportDelay` - `Number` - [Android only] corresponding to [`setReportDelay`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder.html#setReportDelay(long)>). Defaults to `0ms`.
   - `phy` - `Number` - [Android only] corresponding to [`setPhy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setPhy(int)>)
   - `legacy` - `Boolean` - [Android only] corresponding to [`setLegacy`](<https://developer.android.com/reference/android/bluetooth/le/ScanSettings.Builder#setLegacy(boolean)>)
-  - `exactAdvertisingName` - `string[]` - In Android corresponds to the `ScanFilter` [deviceName](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setDeviceName(java.lang.String)>). In iOS the filter is done manually before sending the peripheral.
-  - `manufacturerData` - `object` - [Android only] corresponding to [`setManufacturerData`](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])>). Filter by manufacturer id or data.
-    - `manufacturerId` - `number` - Manufacturer / company id to filter for.
-    - `manufacturerData` - `number[]` - Additional manufacturer data filter.
-    - `manufacturerDataMask` - `number[]` - Mask for manufacturer data, must have the same length as `manufacturerData`.
+  - `manufacturerData` - `Object` - [Android only] corresponding to [`setManufacturerData`](<https://developer.android.com/reference/android/bluetooth/le/ScanFilter.Builder#setManufacturerData(int,%20byte[],%20byte[])>). Filter by manufacturer id or data.
+    - `manufacturerId` - `Number` - Manufacturer / company id to filter for.
+    - `manufacturerData` - `Number[]` - Additional manufacturer data filter.
+    - `manufacturerDataMask` - `Number[]` - Mask for manufacturer data, must have the same length as `manufacturerData`.
       For any bit in the mask, set it to 1 if it needs to match the one in manufacturer data, otherwise set it to 0.
   - `useScanIntent` - `Boolean` - [Android only, API 26+] deliver scan results through a `PendingIntent` instead of the default callback. Any ongoing callback scan is automatically stopped before switching to this mode.
 
@@ -156,13 +161,12 @@ Returns a `Promise` object.
 **Arguments**
 
 - `peripheralId` - `String` - the id/mac address of the peripheral to disconnect.
-- `force` - `boolean` - [Android only] defaults to true, if true force closes gatt
-  connection and send the BleManagerDisconnectPeripheral
-  event immediately to Javascript, else disconnects the
+- `force` - `boolean` - [Android only] defaults to true. If true force closes gatt
+  connection and send the event to `onDisconnectPeripheral`
+  immediately, else disconnects the
   connection and waits for [`disconnected state`](https://developer.android.com/reference/android/bluetooth/BluetoothProfile#STATE_DISCONNECTED) to
   [`close the gatt connection`](<https://developer.android.com/reference/android/bluetooth/BluetoothGatt#close()>)
-  and then sends the BleManagerDisconnectPeripheral to the
-  Javascript
+  and then sends the event to `onDisconnectPeripheral`
 
 **Examples**
 
@@ -198,6 +202,9 @@ BleManager.checkState().then((state) =>
 ### startNotification(peripheralId, serviceUUID, characteristicUUID)
 
 Start the notification on the specified characteristic, you need to call `retrieveServices` method before.
+
+Events will be send to `onDidUpdateValueForCharacteristic` when the peripheral notifies a new value for the characteristic. 
+
 Returns a `Promise` object.
 
 **Arguments**
@@ -300,17 +307,17 @@ You can create a buffer from files, numbers or strings easily (see examples bell
 // https://github.com/feross/buffer
 import { Buffer } from 'buffer';
 
- * // Creates a Buffer containing the bytes [0x01, 0x02, 0x03].
- * const buffer = Buffer.from([1, 2, 3]);
- *
- * // Creates a Buffer containing the bytes [0x01, 0x01, 0x01, 0x01] – the entries
- * // are all truncated using `(value & 255)` to fit into the range 0–255.
- * const buffer = Buffer.from([257, 257.5, -255, '1']);
- *
- * // Creates a Buffer containing the UTF-8-encoded bytes for the string 'tést':
- * // [0x74, 0xc3, 0xa9, 0x73, 0x74] (in hexadecimal notation)
- * // [116, 195, 169, 115, 116] (in decimal notation)
- * const buffer = Buffer.from('tést');
+// Creates a Buffer containing the bytes [0x01, 0x02, 0x03].
+const buffer = Buffer.from([1, 2, 3]);
+
+// Creates a Buffer containing the bytes [0x01, 0x01, 0x01, 0x01] – the entries
+// are all truncated using `(value & 255)` to fit into the range 0–255.
+const buffer = Buffer.from([257, 257.5, -255, '1']);
+
+// Creates a Buffer containing the UTF-8-encoded bytes for the string 'tést':
+// [0x74, 0xc3, 0xa9, 0x73, 0x74] (in hexadecimal notation)
+// [116, 195, 169, 115, 116] (in decimal notation)
+const buffer = Buffer.from('tést');
 ```
 
 Feel free to use other packages or google how to convert into byte array if your data has other format.
@@ -507,7 +514,7 @@ Returns a `Promise` object.
 
 **Arguments**
 
-- `serviceUUIDs` - `Array of String` - the UUIDs of the services to look for.
+- `serviceUUIDs` - `String[]` - [iOS only] Optional, only retrieve peripherals with these services. Ignored in Android.
 
 **Examples**
 
@@ -528,7 +535,7 @@ Returns a `Promise` object.
 **Examples**
 
 ```js
-BleManager.getDiscoveredPeripherals([]).then((peripheralsArray) => {
+BleManager.getDiscoveredPeripherals().then((peripheralsArray) => {
   // Success code
   console.log("Discovered peripherals: " + peripheralsArray.length);
 });
@@ -540,6 +547,11 @@ BleManager.getDiscoveredPeripherals([]).then((peripheralsArray) => {
 
 Check whether a specific peripheral is connected and return `true` or `false`.
 Returns a `Promise` object.
+
+**Arguments**
+
+- `peripheralId` - `String` - The id/mac address of the peripheral.
+- `serviceUUIDs` - `String[]` - [iOS only] Optional, only retrieve peripherals with these services. Ignored in Android.
 
 **Examples**
 
@@ -585,7 +597,7 @@ APIs that require Android; many expose platform concepts like ScanSettings, bond
 
 Scan for companion devices.
 
-If companion device manager is not supported on this (android) device rejects.
+Rejects if the companion device manager is not supported on this device.
 
 The promise it will eventually resolve with either:
 
@@ -601,12 +613,12 @@ See: https://developer.android.com/develop/connectivity/bluetooth/companion-devi
 - `serviceUUIDs` - `String[]` - List of service UUIDs to use as a filter
 - `options` - `JSON` - Additional options
 
-  - `single` - `String?` - Scan only for single peripheral. See Android's `AssocationRequest.Builder.setSingleDevice`.
+  - `single` - `String?` - Scan only for single peripheral. See Android's `AssociationRequest.Builder.setSingleDevice`.
 
 **Examples**
 
 ```js
-BleManager.compationScan([]).then(peripheral => {
+BleManager.companionScan([]).then(peripheral => {
   console.log('Associated peripheral', peripheral);
 });
 ```
@@ -636,7 +648,19 @@ BleManager.enableBluetooth()
 
 ### supportsCompanion() [Android only]
 
-Check if current device supports companion device manager.
+Check if current device supports the companion device manager.
+
+**Examples**
+
+```js
+BleManager.supportsCompanion().then((isSupported) => {
+  if (isSupported) {
+    console.log("Companion device manager is supported!");
+  } else {
+    console.log("Companion device manager is NOT supported!");
+  }
+});
+```
 
 ---
 
@@ -775,6 +799,12 @@ Rejects if no association is found.
 Start the bonding (pairing) process with the remote device. If you pass peripheralPin (optional), bonding will be auto (without manually entering the pin).
 Returns a `Promise` object that will resolve if the bond is successfully created, otherwise it will be rejected with the appropriate error message.
 > In Android, Ensure to make one bond request at a time.
+
+**Arguments**
+
+- `peripheralId` - `String` - The id/mac address of the peripheral.
+- `peripheralPin` - `String` - Optional, will be used to auto-bond if possible.
+
 **Examples**
 
 ```js
@@ -793,6 +823,10 @@ BleManager.createBond(peripheralId)
 
 Remove a paired device.
 Returns a `Promise` object.
+
+**Arguments**
+
+- `peripheralId` - `String` - The id/mac address of the peripheral.
 
 **Examples**
 
