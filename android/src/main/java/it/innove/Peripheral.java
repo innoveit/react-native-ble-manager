@@ -1099,15 +1099,34 @@ public class Peripheral extends BluetoothGattCallback {
             writeCallbacks.addLast(callback);
         }
         return enqueue(() -> {
-            if (!isConnected() || gatt == null) {
-                if (withResponse && callback != null) {
-                    writeCallbacks.removeLastOccurrence(callback);
-                    callback.invoke("Device is not connected", null);
-                }
-                completedCommand();
-                return;
-            }
-            doWrite(characteristic, copyOfData);
+            try {
+                 if (!isConnected() || gatt == null) {
+                     if (withResponse && callback != null) {
+                         if (writeCallbacks.removeLastOccurrence(callback)) {
+                             try {
+                                 callback.invoke("Device is not connected", null);
+                             } catch (Exception callbackException) {
+                                 Log.e(BleManager.LOG_TAG, "Error invoking write callback for disconnected device", callbackException);
+                             }
+                         }
+                     }
+                     completedCommand();
+                     return;
+                 }
+                 doWrite(characteristic, copyOfData);
+             } catch (Exception e) {
+                 Log.e(BleManager.LOG_TAG, "Error in enqueueWrite lambda", e);
+                 if (withResponse && callback != null) {
+                     if (writeCallbacks.removeLastOccurrence(callback)) {
+                         try {
+                             callback.invoke("Write failed: " + e.getMessage(), null);
+                         } catch (Exception callbackException) {
+                             Log.e(BleManager.LOG_TAG, "Error invoking write callback", callbackException);
+                         }
+                     }
+                 }
+                 completedCommand();
+             }
         });
     }
 
