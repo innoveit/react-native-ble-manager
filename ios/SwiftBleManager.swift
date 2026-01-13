@@ -191,6 +191,21 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         prop: CBCharacteristicProperties,
         callback: @escaping RCTResponseSenderBlock
     ) -> BLECommandContext? {
+        // Validate UUID formats to prevent CBUUID(string:) crash
+        guard Helper.isValidBLEUUID(serviceUUIDString) else {
+            let error = "Invalid service UUID format: \(serviceUUIDString)"
+            NSLog(error)
+            callback([error])
+            return nil
+        }
+        
+        guard Helper.isValidBLEUUID(characteristicUUIDString) else {
+            let error = "Invalid characteristic UUID format: \(characteristicUUIDString)"
+            NSLog(error)
+            callback([error])
+            return nil
+        }
+        
         let serviceUUID = CBUUID(string: serviceUUIDString)
         let characteristicUUID = CBUUID(string: characteristicUUIDString)
 
@@ -363,7 +378,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let serviceUUIDStrings = scanningOptions["serviceUUIDs"]
             as? [String]
         {
-            serviceUUIDs = serviceUUIDStrings.map { CBUUID(string: $0) }
+            // Validate UUID formats to prevent CBUUID(string:) crash
+            for uuidString in serviceUUIDStrings {
+                if Helper.isValidBLEUUID(uuidString) {
+                    serviceUUIDs.append(CBUUID(string: uuidString))
+                } else {
+                    NSLog("Warning: Invalid UUID format in scan options: \(uuidString), skipping")
+                }
+            }
         }
 
         var options: [String: Any]?
@@ -528,8 +550,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
             var uuids: [CBUUID] = []
             for string in services {
-                let uuid = CBUUID(string: string)
-                uuids.append(uuid)
+                // Validate UUID format to prevent CBUUID(string:) crash
+                guard Helper.isValidBLEUUID(string) else {
+                    let error = "Invalid service UUID format: \(string)"
+                    NSLog(error)
+                    callback([error])
+                    return
+                }
+                uuids.append(CBUUID(string: string))
             }
 
             if !uuids.isEmpty {
@@ -587,6 +615,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let peripheral = context.peripheral
         let characteristic = context.characteristic
 
+        // Validate UUID format to prevent CBUUID(string:) crash
+        guard Helper.isValidBLEUUID(descriptorUUID) else {
+            let error = "Invalid descriptor UUID format: \(descriptorUUID)"
+            NSLog(error)
+            callback([error])
+            return
+        }
+
         guard
             let descriptor = Helper.findDescriptor(
                 fromUUID: CBUUID(string: descriptorUUID),
@@ -641,6 +677,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         let peripheral = context.peripheral
         let characteristic = context.characteristic
+
+        // Validate UUID format to prevent CBUUID(string:) crash
+        guard Helper.isValidBLEUUID(descriptorUUID) else {
+            let error = "Invalid descriptor UUID format: \(descriptorUUID)"
+            NSLog(error)
+            callback([error])
+            return
+        }
 
         guard
             let descriptor = Helper.findDescriptor(
