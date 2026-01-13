@@ -109,15 +109,29 @@ public class CompanionScanner {
         AssociationRequest.Builder builder = new AssociationRequest.Builder()
                 .setSingleDevice(options.hasKey("single") && options.getBoolean("single")) ;
 
+        int validUUIDCount = 0;
         for (int i = 0; i < serviceUUIDs.size(); i++) {
-            final ParcelUuid uuid = new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
+            String uuidString = serviceUUIDs.getString(i);
+            // Validate UUID format to prevent crash
+            if (!UUIDHelper.isValidBLEUUID(uuidString)) {
+                Log.w(LOG_TAG, "Warning: Invalid UUID format in scan options: " + uuidString + ", skipping");
+                continue;
+            }
+            final ParcelUuid uuid = new ParcelUuid(UUIDHelper.uuidFromString(uuidString));
             Log.d(LOG_TAG, "Filter service: " + uuid);
+            validUUIDCount++;
 
             builder = builder
                     // Add LE filter.
                     .addDeviceFilter(new BluetoothLeDeviceFilter.Builder()
                             .setScanFilter(new ScanFilter.Builder().setServiceUuid(uuid).build())
                             .build());
+        }
+        
+        // If serviceUUIDs were provided but none were valid, return error
+        if (serviceUUIDs.size() > 0 && validUUIDCount == 0) {
+            callback.invoke("Invalid UUID format in serviceUUIDs: all UUIDs are invalid");
+            return;
         }
 
         AssociationRequest pairingRequest = builder.build();

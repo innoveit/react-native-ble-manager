@@ -104,10 +104,23 @@ public class DefaultScanManager extends ScanManager {
 
         ReadableArray serviceUUIDs = options.getArray("serviceUUIDs");
         if (serviceUUIDs != null && serviceUUIDs.size() > 0) {
+            int validUUIDCount = 0;
             for (int i = 0; i < serviceUUIDs.size(); i++) {
-                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(Objects.requireNonNull(serviceUUIDs.getString(i))))).build();
+                String uuidString = Objects.requireNonNull(serviceUUIDs.getString(i));
+                // Validate UUID format to prevent crash
+                if (!UUIDHelper.isValidBLEUUID(uuidString)) {
+                    Log.w(BleManager.LOG_TAG, "Warning: Invalid UUID format in scan options: " + uuidString + ", skipping");
+                    continue;
+                }
+                ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(uuidString))).build();
                 filters.add(filter);
-                Log.d(BleManager.LOG_TAG, "Filter service: " + serviceUUIDs.getString(i));
+                validUUIDCount++;
+                Log.d(BleManager.LOG_TAG, "Filter service: " + uuidString);
+            }
+            // If serviceUUIDs were provided but none were valid, return error
+            if (validUUIDCount == 0) {
+                callback.invoke("Invalid UUID format in serviceUUIDs: all UUIDs are invalid");
+                return;
             }
         }
 
