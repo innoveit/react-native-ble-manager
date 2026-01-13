@@ -43,11 +43,12 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param serviceUUID
-   * @param characteristicUUID
-   * @returns data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
+   * Read the current value of the specified characteristic, you need to call `retrieveServices` method before.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @returns Data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
    */
   read(peripheralId: string, serviceUUID: string, characteristicUUID: string) {
     return new Promise<number[]>((fulfill, reject) => {
@@ -67,11 +68,12 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param serviceUUID
-   * @param characteristicUUID
-   * @param descriptorUUID
+   * Read the current value of the specified descriptor, you need to call `retrieveServices` method before.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @param descriptorUUID The UUID of the descriptor.
    * @returns data as an array of numbers (which can be converted back to a Uint8Array (ByteArray) using something like [Buffer.from()](https://github.com/feross/buffer))
    */
   readDescriptor(
@@ -98,12 +100,13 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param serviceUUID
-   * @param characteristicUUID
-   * @param descriptorUUID
-   * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
+   * Write a value to the specified descriptor, you need to call `retrieveServices` method before.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @param descriptorUUID The UUID of the descriptor.
+   * @param data Data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
    * @returns
    */
   writeDescriptor(
@@ -132,9 +135,10 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @returns a promise resolving with the updated RSSI (`number`) if it succeeds.
+   * Read the current value of the RSSI.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @returns A promise resolving with the updated RSSI (`number`) if it succeeds.
    */
   readRSSI(peripheralId: string) {
     return new Promise<number>((fulfill, reject) => {
@@ -153,8 +157,11 @@ class BleManager {
 
   /**
    * [Android only]
-   * @param peripheralId
-   * @returns a promise that resolves to a boolean indicating if gatt was successfully refreshed or not.
+   * 
+   * Refreshes the peripheral's services and characteristics cache.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @returns A promise that resolves to a boolean indicating if gatt was successfully refreshed or not.
    */
   refreshCache(peripheralId: string) {
     return new Promise<boolean>((fulfill, reject) => {
@@ -172,9 +179,10 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param serviceUUIDs [iOS only] optional filter of services to retrieve.
+   * Retrieve the peripheral's services and characteristics.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUIDs [iOS only] Optional filter of services to retrieve.
    * @returns
    */
   retrieveServices(peripheralId: string, serviceUUIDs: string[] = []) {
@@ -194,12 +202,13 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param serviceUUID
-   * @param characteristicUUID
-   * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
-   * @param maxByteSize optional, defaults to 20
+   * Write with response to the specified characteristic, you need to call `retrieveServices` method before.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @param data Data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
+   * @param maxByteSize Optional, defaults to 20
    * @returns
    */
   write(
@@ -228,13 +237,14 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param serviceUUID
-   * @param characteristicUUID
-   * @param data data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
-   * @param maxByteSize optional, defaults to 20
-   * @param queueSleepTime optional, defaults to 10. Only useful if data length is greater than maxByteSize.
+   * Write without response to the specified characteristic, you need to call `retrieveServices` method before.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @param data Data to write as an array of numbers (which can be converted from a Uint8Array (ByteArray) using something like [Buffer.toJSON().data](https://github.com/feross/buffer))
+   * @param maxByteSize Optional, defaults to 20
+   * @param queueSleepTime Optional, defaults to 10. Only useful if data length is greater than maxByteSize.
    * @returns
    */
   writeWithoutResponse(
@@ -264,6 +274,11 @@ class BleManager {
     });
   }
 
+  /**
+   * Attempts to connect to a peripheral. In many case if you can't connect you have to scan for the peripheral before.
+   * 
+   * > In iOS, attempts to connect to a peripheral do not time out (please see [Apple's doc](https://developer.apple.com/documentation/corebluetooth/cbcentralmanager/1518766-connect)), so you might need to set a timer explicitly if you don't want this behavior.
+   */
   connect(peripheralId: string, options?: ConnectOptions) {
     return new Promise<void>((fulfill, reject) => {
       if (!options) {
@@ -285,8 +300,13 @@ class BleManager {
 
   /**
    * [Android only]
-   * @param peripheralId
-   * @param peripheralPin optional. will be used to auto-bond if possible.
+   * 
+   * Start the bonding (pairing) process with the remote device.
+   * If you pass peripheralPin (optional), bonding will be auto (without manually entering the pin).
+   * > Ensure to make one bond request at a time.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param peripheralPin Optional. will be used to auto-bond if possible.
    * @returns
    */
   createBond(peripheralId: string, peripheralPin: string | null = null) {
@@ -307,7 +327,10 @@ class BleManager {
 
   /**
    * [Android only]
-   * @param peripheralId
+   * 
+   * Remove a paired device.
+   * 
+   * @param peripheralId The id/mac address of the peripheral
    * @returns
    */
   removeBond(peripheralId: string) {
@@ -323,9 +346,10 @@ class BleManager {
   }
 
   /**
-   *
-   * @param peripheralId
-   * @param force [Android only] defaults to true.
+   * Disconnect from a peripheral.
+   * 
+   * @param peripheralId The id/mac address of the peripheral to disconnect.
+   * @param force [Android only] Defaults to true. Don't wait for the disconnect state to close the Gatt client.
    * @returns
    */
   disconnect(peripheralId: string, force: boolean = true) {
@@ -344,6 +368,16 @@ class BleManager {
     });
   }
 
+  /**
+   * Start the notification on the specified characteristic, you need to call `retrieveServices` method before.
+   * 
+   * Events will be send to `onDidUpdateValueForCharacteristic` when the peripheral notifies a new value for the characteristic. 
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @returns 
+   */
   startNotification(
     peripheralId: string,
     serviceUUID: string,
@@ -367,10 +401,15 @@ class BleManager {
 
   /**
    * [Android only]
-   * @param peripheralId
-   * @param serviceUUID
-   * @param characteristicUUID
-   * @param buffer
+   * 
+   * Start the notification on the specified characteristic, you need to call `retrieveServices` method before.
+   * The buffer collect messages until the buffer of messages bytes reaches the limit defined with the `buffer` argument and then emit all the collected data.
+   * Useful to reduce the number of calls between the native and the react-native part in case of many messages.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @param buffer The capacity of the buffer (bytes) stored before emitting the data for the characteristic.
    * @returns
    */
   startNotificationWithBuffer(
@@ -396,6 +435,14 @@ class BleManager {
     });
   }
 
+  /**
+   * Stop the notification on the specified characteristic.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUID The UUID of the service.
+   * @param characteristicUUID The UUID of the characteristic.
+   * @returns 
+   */
   stopNotification(
     peripheralId: string,
     serviceUUID: string,
@@ -417,6 +464,10 @@ class BleManager {
     });
   }
 
+  /**
+   * Force the module to check the state of the native BLE manager and trigger an event for `onDidUpdateState`.
+   * @returns A promise containing the current BleState
+   */
   checkState() {
     return new Promise<BleState>((fulfill, _) => {
       BleManagerModule.checkState((state: BleState) => {
@@ -425,6 +476,9 @@ class BleManager {
     });
   }
 
+  /**
+   * Init the module. Don't call this multiple times.
+   */
   start(options?: StartOptions) {
     return new Promise<void>((fulfill, reject) => {
       if (options == null) {
@@ -457,8 +511,13 @@ class BleManager {
   }
 
   /**
-   *
-   * @param scanningOptions optional map of properties to fine-tune scan behavior, see DOCS.
+   * Scan for available peripherals.
+   * 
+   * See `onDiscoverPeripheral` to get live updates of devices being discovered.
+   * 
+   * See `getDiscoveredPeripherals` to get a list of discovered devices after a scan is completed.
+   * 
+   * @param scanningOptions Optional map of properties to fine-tune scan behavior, see DOCS.
    * @returns
    */
   scan(scanningOptions: ScanOptions = {}) {
@@ -524,6 +583,9 @@ class BleManager {
     });
   }
 
+  /**
+   * Stop the scanning.
+   */
   stopScan() {
     return new Promise<void>((fulfill, reject) => {
       BleManagerModule.stopScan((error: string | null) => {
@@ -553,8 +615,13 @@ class BleManager {
   }
 
   /**
-   *
-   * @param serviceUUIDs [optional] not used on android, optional on ios.
+   * Return the connected peripherals.
+   * 
+   * > In Android, Peripherals "advertising" property can be not set!
+   * > Will be available if peripheral was found through scan before connect.
+   * > This matches to current Android Bluetooth design specification.
+   * 
+   * @param serviceUUIDs [iOS only] Optional, only retrieve peripherals with these services. Ignored in Android.
    * @returns
    */
   getConnectedPeripherals(serviceUUIDs: string[] = []) {
@@ -578,6 +645,9 @@ class BleManager {
 
   /**
    * [Android only]
+   * 
+   * Return the bonded peripherals.
+   * 
    * @returns
    */
   getBondedPeripherals() {
@@ -598,6 +668,9 @@ class BleManager {
     });
   }
 
+  /**
+   * Return the discovered peripherals after a scan.
+   */
   getDiscoveredPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
       BleManagerModule.getDiscoveredPeripherals(
@@ -618,7 +691,11 @@ class BleManager {
 
   /**
    * [Android only]
-   * @param peripheralId
+   * 
+   * Removes a disconnected peripheral from the cached list.
+   * It is useful if the device is turned off, because it will be re-discovered upon turning on again.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
    * @returns
    */
   removePeripheral(peripheralId: string) {
@@ -637,8 +714,10 @@ class BleManager {
   }
 
   /**
-   * @param peripheralId
-   * @param serviceUUIDs [optional] not used on android, optional on ios.
+   * Check whether a specific peripheral is connected and return `true` or `false`.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param serviceUUIDs [iOS only] Optional, only retrieve peripherals with these services. Ignored in Android.
    * @returns
    */
   isPeripheralConnected(peripheralId: string, serviceUUIDs: string[] = []) {
@@ -652,8 +731,7 @@ class BleManager {
   }
 
   /**
-   * @param peripheralId
-   * @param serviceUUIDs [optional] not used on android, optional on ios.
+   * Checks whether the scan is in progress and return `true` or `false`.
    * @returns
    */
   isScanning() {
@@ -670,9 +748,9 @@ class BleManager {
 
   /**
    * [Android only, API 21+]
-   * @param peripheralId
-   * @param connectionPriority
-   * @returns a promise that resolves with a boolean indicating of the connection priority was changed successfully, or rejects with an error message.
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param connectionPriority The connection priority to be requested
+   * @returns A promise that resolves with a boolean indicating of the connection priority was changed successfully, or rejects with an error message.
    */
   requestConnectionPriority(
     peripheralId: string,
@@ -695,9 +773,12 @@ class BleManager {
 
   /**
    * [Android only, API 21+]
-   * @param peripheralId
-   * @param mtu size to be requested, in bytes.
-   * @returns a promise resolving with the negotiated MTU if it succeeded. Beware that it might not be the one requested due to device's BLE limitations on both side of the negotiation.
+   * 
+   * Request an MTU size used for a given connection.
+   * 
+   * @param peripheralId The id/mac address of the peripheral.
+   * @param mtu Size to be requested, in bytes.
+   * @returns A promise resolving with the negotiated MTU if it succeeded. Beware that it might not be the one requested due to device's BLE limitations on both side of the negotiation.
    */
   requestMTU(peripheralId: string, mtu: number) {
     return new Promise<number>((fulfill, reject) => {
@@ -717,6 +798,8 @@ class BleManager {
 
   /**
    * [Android only, API 26+]
+   * 
+   * Retrieve associated peripherals (from companion manager).
    *
    * @returns
    */
@@ -736,6 +819,9 @@ class BleManager {
 
   /**
    * [Android only, API 26+]
+   * 
+   * Remove an associated peripheral.
+   * 
    * @param peripheralId Peripheral to remove
    * @returns Promise that resolves once the peripheral has been removed. Rejects
    *          if no association is found.
@@ -758,7 +844,7 @@ class BleManager {
   /**
    * [Android only]
    *
-   * Check if current device supports companion device manager.
+   * Check if current device supports the companion device manager.
    *
    * @return Promise resolving to a boolean.
    */
@@ -773,7 +859,20 @@ class BleManager {
   /**
    * [Android only, API 26+]
    *
-   * Start companion scan.
+   * Scan for companion devices.
+   * 
+   * Rejects if the companion device manager is not supported on this device.
+   * 
+   * The promise it will eventually resolve with either:
+   * 
+   * 1.  peripheral if user selects one
+   * 2.  null if user "cancels" (i.e. doesn't select anything)
+   * 
+   * See `BleManager.supportsCompanion`.
+   * 
+   * See: https://developer.android.com/develop/connectivity/bluetooth/companion-device-pairing
+   * 
+   * @param serviceUUIDs List of service UUIDs to use as a filter
    */
   companionScan(serviceUUIDs: string[], options: CompanionScanOptions = {}) {
     return new Promise<Peripheral | null>((fulfill, reject) => {
@@ -793,6 +892,9 @@ class BleManager {
 
   /**
    * [Android only]
+   * 
+   * Create the request to set the name of the bluetooth adapter. (https://developer.android.com/reference/android/bluetooth/BluetoothAdapter#setName(java.lang.String))
+   * 
    * @param name
    */
   setName(name: string) {
@@ -801,7 +903,7 @@ class BleManager {
 
   /**
    * [iOS only]
-   * @param peripheralId
+   * @param peripheralId The id/mac address of the peripheral.
    * @returns
    */
   getMaximumWriteValueLengthForWithoutResponse(peripheralId: string) {
@@ -821,7 +923,7 @@ class BleManager {
 
   /**
    * [iOS only]
-   * @param peripheralId
+   * @param peripheralId The id/mac address of the peripheral.
    * @returns
    */
   getMaximumWriteValueLengthForWithResponse(peripheralId: string) {
@@ -839,42 +941,86 @@ class BleManager {
     });
   }
 
+  /**
+   * The scanning found a new peripheral.
+   */
   onDiscoverPeripheral(callback: EventCallback<BleDiscoverPeripheralEvent>): EventSubscription {
     return BleManagerModule.onDiscoverPeripheral(callback);
   }
 
+  /**
+   * The scanning for peripherals is ended.
+   */
   onStopScan(callback: EventCallback<BleStopScanEvent>): EventSubscription {
     return BleManagerModule.onStopScan(callback);
   }
 
+  /**
+   * The BLE state changed.
+   */
   onDidUpdateState(callback: EventCallback<BleManagerDidUpdateStateEvent>): EventSubscription {
     return BleManagerModule.onDidUpdateState(callback);
   }
 
+  /**
+   * A peripheral was connected.
+   */
   onConnectPeripheral(callback: EventCallback<BleConnectPeripheralEvent>): EventSubscription {
     return BleManagerModule.onConnectPeripheral(callback);
   }
 
+  /**
+   * A peripheral was disconnected.
+   */
   onDisconnectPeripheral(callback: EventCallback<BleDisconnectPeripheralEvent>): EventSubscription {
     return BleManagerModule.onDisconnectPeripheral(callback);
   }
 
+  /**
+   * A characteristic notified a new value.
+   * 
+   * > Event will only be emitted after successful `startNotification`.
+   */
   onDidUpdateValueForCharacteristic(callback: EventCallback<BleManagerDidUpdateValueForCharacteristicEvent>): EventSubscription {
     return BleManagerModule.onDidUpdateValueForCharacteristic(callback);
   }
 
+  /**
+   * A bond with a peripheral was established.
+   */
   onPeripheralDidBond(callback: EventCallback<BleBondedPeripheralEvent>): EventSubscription {
     return BleManagerModule.onPeripheralDidBond(callback);
   }
 
+  /**
+   * [iOS only]
+   * 
+   * This is fired when [`centralManager:WillRestoreState:`](https://developer.apple.com/documentation/corebluetooth/cbcentralmanagerdelegate/1518819-centralmanager) is called (app relaunched in the background to handle a bluetooth event).
+   * 
+   * _For more on performing long-term bluetooth actions in the background:_
+   * 
+   * [iOS Bluetooth State Preservation and Restoration](https://developer.apple.com/library/archive/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothBackgroundProcessingForIOSApps/PerformingTasksWhileYourAppIsInTheBackground.html#//apple_ref/doc/uid/TP40013257-CH7-SW10)
+   * 
+   * [iOS Relaunch Conditions](https://developer.apple.com/documentation/technotes/tn3115-bluetooth-state-restoration-app-relaunch-rules/)
+   */
   onCentralManagerWillRestoreState(callback: EventCallback<BleManagerCentralManagerWillRestoreState>): EventSubscription {
     return BleManagerModule.onCentralManagerWillRestoreState(callback);
   }
 
+  /**
+   * [iOS only]
+   * 
+   * The peripheral received a request to start or stop providing notifications for a specified characteristic's value.
+   */
   onDidUpdateNotificationStateFor(callback: EventCallback<BleManagerDidUpdateNotificationStateForEvent>): EventSubscription {
     return BleManagerModule.onDidUpdateNotificationStateFor(callback);
   }
 
+  /**
+   * User picked a device to associate with.
+   * 
+   * Null if the request was cancelled by the user.
+   */
   onCompanionPeripheral(callback: EventCallback<BleManagerCompanionPeripheral>): EventSubscription {
     return BleManagerModule.onCompanionPeripheral(callback);
   }
