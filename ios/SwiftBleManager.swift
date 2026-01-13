@@ -696,6 +696,28 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         var serviceUUIDs: [CBUUID] = []
 
         for uuidString in serviceUUIDStrings {
+            // Check for empty string
+            if uuidString.isEmpty {
+                let error = "Invalid UUID: empty string"
+                NSLog(error)
+                callback([error])
+                return
+            }
+            
+            // Validate BLE UUID format to prevent CBUUID(string:) crash
+            // BLE supports both 16-bit (4 hex chars) and 128-bit (standard UUID) formats
+            let hexCharacterSet = CharacterSet(charactersIn: "0123456789ABCDEFabcdef")
+            let isValid16Bit = uuidString.count == 4 && uuidString.rangeOfCharacter(from: hexCharacterSet.inverted) == nil
+            let isValid128Bit = UUID(uuidString: uuidString) != nil
+            
+            guard isValid16Bit || isValid128Bit else {
+                let error = "Invalid UUID format: \(uuidString)"
+                NSLog(error)
+                callback([error])
+                return
+            }
+            
+            // Create CBUUID only with validated UUID string (prevents crash)
             serviceUUIDs.append(CBUUID(string: uuidString))
         }
 
