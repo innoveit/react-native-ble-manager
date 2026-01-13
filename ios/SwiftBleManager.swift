@@ -386,6 +386,13 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     NSLog("Warning: Invalid UUID format in scan options: \(uuidString), skipping")
                 }
             }
+            // If serviceUUIDs were provided but none were valid, return error
+            if !serviceUUIDStrings.isEmpty && serviceUUIDs.isEmpty {
+                let error = "Invalid UUID format in serviceUUIDs: all UUIDs are invalid"
+                NSLog(error)
+                callback([error])
+                return
+            }
         }
 
         var options: [String: Any]?
