@@ -274,6 +274,24 @@ class Helper {
         return nil  // Characteristic not found on this service
     }
 
+    // Validate BLE UUID format (16-bit or 128-bit)
+    // Returns true if the string is a valid BLE UUID format
+    static func isValidBLEUUID(_ uuidString: String) -> Bool {
+        // Check for empty string
+        if uuidString.isEmpty {
+            return false
+        }
+        
+        // Validate 16-bit UUID (4 hex characters)
+        let hexCharacterSet = CharacterSet(charactersIn: "0123456789ABCDEFabcdef")
+        let isValid16Bit = uuidString.count == 4 && uuidString.rangeOfCharacter(from: hexCharacterSet.inverted) == nil
+        
+        // Validate 128-bit UUID (standard UUID format)
+        let isValid128Bit = UUID(uuidString: uuidString) != nil
+        
+        return isValid16Bit || isValid128Bit
+    }
+
 }
 
 class Peripheral: Hashable {
