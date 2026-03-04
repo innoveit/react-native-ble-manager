@@ -1457,6 +1457,11 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         if let error = error {
             NSLog("Error: \(error)")
+            invokeAndClearDictionary(
+                &retrieveServicesCallbacks,
+                withKey: peripheral.uuidAsString(),
+                usingParameters: [error.localizedDescription]
+            )
             return
         }
         if SwiftBleManager.verboseLogging {
@@ -1500,21 +1505,44 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         if let error = error {
             NSLog("Error: \(error)")
-            return
         }
         if SwiftBleManager.verboseLogging {
             NSLog("Characteristics For Service Discover")
         }
 
+        let peripheralUUIDString = peripheral.uuidAsString()
+        let characteristics = (error == nil) ? (service.characteristics ?? []) : []
+
+        if characteristics.isEmpty {
+            if var servicesLatch = retrieveServicesLatches[peripheralUUIDString] {
+                servicesLatch.remove(service)
+                retrieveServicesLatches[peripheralUUIDString] = servicesLatch
+
+                if servicesLatch.isEmpty {
+                    if let peripheral = peripherals[peripheralUUIDString] {
+                        invokeAndClearDictionary(
+                            &retrieveServicesCallbacks,
+                            withKey: peripheralUUIDString,
+                            usingParameters: [
+                                NSNull(), peripheral.servicesInfo(),
+                            ]
+                        )
+                    }
+                    retrieveServicesLatches.removeValue(
+                        forKey: peripheralUUIDString
+                    )
+                }
+            }
+            return
+        }
+
         var characteristicsForService = Set<CBCharacteristic>()
-        characteristicsForService.formUnion(service.characteristics ?? [])
+        characteristicsForService.formUnion(characteristics)
         characteristicsLatches[service.uuid.uuidString] =
             characteristicsForService
 
-        if let characteristics = service.characteristics {
-            for characteristic in characteristics {
-                peripheral.discoverDescriptors(for: characteristic)
-            }
+        for characteristic in characteristics {
+            peripheral.discoverDescriptors(for: characteristic)
         }
     }
 
@@ -1525,7 +1553,6 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         if let error = error {
             NSLog("Error: \(error)")
-            return
         }
         let peripheralUUIDString: String = peripheral.uuidAsString()
         let serviceUUIDString: String =
