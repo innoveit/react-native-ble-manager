@@ -32,6 +32,15 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
     private let serialQueue = DispatchQueue(label: "BleManager.serialQueue")
 
+    // Structured error payload so JS can detect specific failures by (domain, code).
+    private static func errorPayload(_ error: Error) -> [String: Any] {
+        return [
+            "code": error._code,
+            "domain": error._domain,
+            "message": error.localizedDescription,
+        ]
+    }
+
     private var exactAdvertisingName: [String]
 
     static var verboseLogging = false
@@ -1241,14 +1250,17 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didFailToConnect peripheral: CBPeripheral,
         error: Error?
     ) {
-        let errorStr =
+        NSLog(
             "Peripheral connection failure: \(peripheral.uuidAsString() ) (\(error?.localizedDescription ?? "")"
-        NSLog(errorStr)
+        )
 
+        let errorParam: Any =
+            error.map(SwiftBleManager.errorPayload)
+            ?? "Peripheral connection failure: \(peripheral.uuidAsString())"
         invokeAndClearDictionary(
             &connectCallbacks,
             withKey: peripheral.uuidAsString(),
-            usingParameters: [errorStr]
+            usingParameters: [errorParam]
         )
     }
 
@@ -1460,7 +1472,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &retrieveServicesCallbacks,
                 withKey: peripheral.uuidAsString(),
-                usingParameters: [error.localizedDescription]
+                usingParameters: [SwiftBleManager.errorPayload(error)]
             )
             return
         }
@@ -1612,7 +1624,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &readRSSICallbacks,
                 withKey: peripheral.uuidAsString(),
-                usingParameters: [error.localizedDescription, RSSI]
+                usingParameters: [SwiftBleManager.errorPayload(error), RSSI]
             )
         } else {
             invokeAndClearDictionary(
@@ -1641,7 +1653,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &readDescriptorCallbacks,
                 withKey: key,
-                usingParameters: [error.localizedDescription, NSNull()]
+                usingParameters: [SwiftBleManager.errorPayload(error), NSNull()]
             )
             return
         }
@@ -1723,7 +1735,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &readCallbacks,
                 withKey: key,
-                usingParameters: [error.localizedDescription, NSNull()]
+                usingParameters: [SwiftBleManager.errorPayload(error), NSNull()]
             )
             return
         }
@@ -1880,7 +1892,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 invokeAndClearDictionary(
                     &writeDescriptorCallbacks,
                     withKey: key,
-                    usingParameters: [error.localizedDescription]
+                    usingParameters: [SwiftBleManager.errorPayload(error)]
                 )
             } else {
                 invokeAndClearDictionary(
@@ -1911,7 +1923,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 invokeAndClearDictionary(
                     &writeCallbacks,
                     withKey: key,
-                    usingParameters: [error.localizedDescription]
+                    usingParameters: [SwiftBleManager.errorPayload(error)]
                 )
                 serialQueue.sync {
                     writeQueues.removeValue(forKey: key)
