@@ -118,51 +118,74 @@ public class Peripheral extends BluetoothGattCallback {
     }
 
     public void connect(final Callback callback, Activity activity, ReadableMap options) {
-        mainHandler.post(() -> {
-            if (!connected) {
-                BluetoothDevice device = getDevice();
-                this.connectCallbacks.addLast(callback);
-                this.connecting = true;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    Log.d(BleManager.LOG_TAG, " Is Or Greater than M $mBluetoothDevice");
-                    boolean autoconnect = false;
-                    if (options.hasKey("autoconnect")) {
-                        autoconnect = options.getBoolean("autoconnect");
-                    }
-                    if (!autoconnect && options.hasKey("phy") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        int phy = options.getInt("phy");
-                        gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE, phy);
-                    } else {
-                        gatt = device.connectGatt(activity, autoconnect, this, BluetoothDevice.TRANSPORT_LE);
-                    }
+    mainHandler.post(() -> {
+        if (connected) {
+            if (gatt != null) {
+                callback.invoke();
+            } else {
+                callback.invoke("BluetoothGatt is null");
+            }
+            return;
+        }
+
+        this.connectCallbacks.addLast(callback);
+
+        if (connecting) {
+            return;
+        }
+
+        BluetoothDevice device = getDevice();
+        this.connecting = true;
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Log.d(BleManager.LOG_TAG, " Is Or Greater than M $mBluetoothDevice");
+                boolean autoconnect = false;
+                if (options.hasKey("autoconnect")) {
+                    autoconnect = options.getBoolean("autoconnect");
+                }
+                if (!autoconnect && options.hasKey("phy") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    int phy = options.getInt("phy");
+                    gatt = device.connectGatt(activity, false, this, BluetoothDevice.TRANSPORT_LE, phy);
                 } else {
-                    Log.d(BleManager.LOG_TAG, " Less than M");
-                    try {
-                        Log.d(BleManager.LOG_TAG, " Trying TRANPORT LE with reflection");
-                        Method m = device.getClass().getDeclaredMethod("connectGatt", Context.class, Boolean.class,
-                                BluetoothGattCallback.class, Integer.class);
-                        m.setAccessible(true);
-                        Integer transport = device.getClass().getDeclaredField("TRANSPORT_LE").getInt(null);
-                        gatt = (BluetoothGatt) m.invoke(device, activity, false, this, transport);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Log.d(TAG, " Catch to call normal connection");
-                        gatt = device.connectGatt(activity, false, this);
-                    }
+                    gatt = device.connectGatt(activity, autoconnect, this, BluetoothDevice.TRANSPORT_LE);
                 }
             } else {
-                if (gatt != null) {
-                    callback.invoke();
-                } else {
-                    callback.invoke("BluetoothGatt is null");
+                Log.d(BleManager.LOG_TAG, " Less than M");
+                try {
+                    Log.d(BleManager.LOG_TAG, " Trying TRANPORT LE with reflection");
+                    Method m = device.getClass().getDeclaredMethod("connectGatt", Context.class, Boolean.class,
+                            BluetoothGattCallback.class, Integer.class);
+                    m.setAccessible(true);
+                    Integer transport = device.getClass().getDeclaredField("TRANSPORT_LE").getInt(null);
+                    gatt = (BluetoothGatt) m.invoke(device, activity, false, this, transport);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Log.d(TAG, " Catch to call normal connection");
+                    gatt = device.connectGatt(activity, false, this);
                 }
             }
-        });
-    }
+
+            // connectGatt() may return null if the adapter is not ready
+            if (gatt == null) {
+                throw new Exception("connectGatt returned null");
+            }
+        } catch (Exception e) {
+            Log.e(BleManager.LOG_TAG, "[ON CONNECT][NATIVE] connectGatt failed for " + device.getAddress(), e);
+            this.connecting = false;
+            this.gatt = null;
+            for (Callback connectCallback : connectCallbacks) {
+                connectCallback.invoke("Connection failed to start: " + e.getMessage());
+            }
+            connectCallbacks.clear();
+        }
+    });
+}
     // bt_btif : Register with GATT stack failed.
 
     public void disconnect(final Callback callback, final boolean force) {
         connected = false;
+        connecting = false;
         mainHandler.post(() -> {
             errorAndClearAllCallbacks("Disconnect called before the command completed");
             resetQueuesAndBuffers();
@@ -384,6 +407,7 @@ public class Peripheral extends BluetoothGattCallback {
         commandQueue.clear();
         commandQueueBusy = false;
         connected = false;
+        connecting = false;
         clearBuffers();
     }
 
