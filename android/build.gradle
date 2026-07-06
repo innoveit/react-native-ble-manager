@@ -9,7 +9,8 @@ buildscript {
         }
 
         dependencies {
-            classpath "com.android.tools.build:gradle:7.2.1"
+            classpath "com.android.tools.build:gradle:8.6.1"
+            classpath "com.facebook.react:react-native-gradle-plugin"
             // noinspection DifferentKotlinGradleVersion
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         }
@@ -28,10 +29,7 @@ def isNewArchitectureEnabled() {
 
 apply plugin: 'com.android.library'
 apply plugin: "kotlin-android"
-
-if (isNewArchitectureEnabled()) {
-    apply plugin: 'com.facebook.react'
-}
+apply plugin: 'com.facebook.react'
 
 def safeExtGet(prop, fallback) {
     rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
@@ -116,17 +114,12 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-    // For < 0.71, this will be from the local maven repo
-    // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
-    //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"
+    implementation "com.facebook.react:react-android:0.81.5"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
 
-if (isNewArchitectureEnabled()) {
-    react {
-        jsRootDir = file("../src/")
-        libraryName = "BleManager"
-        codegenJavaPackageName = "it.innove"
-    }
+react {
+    jsRootDir = file("../src/")
+    libraryName = "BleManager"
+    codegenJavaPackageName = "it.innove"
 }
