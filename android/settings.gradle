@@ -1,2 +1,3 @@
 rootProject.name = 'react-native-ble-manager'
 
+includeBuild('../node_modules/@react-native/gradle-plugin')
