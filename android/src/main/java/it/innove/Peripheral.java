@@ -451,7 +451,7 @@ public class Peripheral extends BluetoothGattCallback {
                 }
 
                 gatt = null;
-                sendDisconnectionEvent(device, BluetoothGatt.GATT_SUCCESS);
+                sendDisconnectionEvent(device, status);
             }
 
         });
