@@ -28,7 +28,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     private var connectedPeripherals: Set<String>
 
     private var retrieveServicesLatches: [String: Set<CBService>]
-    private var characteristicsLatches: [String: Set<CBCharacteristic>]
+    private var characteristicsLatches: [CBService: Set<CBCharacteristic>]
 
     private let serialQueue = DispatchQueue(label: "BleManager.serialQueue")
 
@@ -1550,8 +1550,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         var characteristicsForService = Set<CBCharacteristic>()
         characteristicsForService.formUnion(characteristics)
-        characteristicsLatches[service.uuid.uuidString] =
-            characteristicsForService
+        // Keyed by the CBService instance, not its UUID: peripherals of the
+        // same model share service UUIDs and may be discovered concurrently.
+        characteristicsLatches[service] = characteristicsForService
 
         for characteristic in characteristics {
             peripheral.discoverDescriptors(for: characteristic)
@@ -1568,7 +1569,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
         let peripheralUUIDString: String = peripheral.uuidAsString()
         let serviceUUIDString: String =
-            (characteristic.service?.uuid.uuidString)!
+            characteristic.service?.uuid.uuidString ?? "unknown"
 
         if SwiftBleManager.verboseLogging {
             NSLog(
@@ -1576,16 +1577,19 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             )
         }
 
-        if var servicesLatch = retrieveServicesLatches[peripheralUUIDString],
-            var characteristicsLatch = characteristicsLatches[serviceUUIDString]
+        if let service = characteristic.service,
+            var servicesLatch = retrieveServicesLatches[peripheralUUIDString],
+            var characteristicsLatch = characteristicsLatches[service]
         {
 
             characteristicsLatch.remove(characteristic)
-            characteristicsLatches[serviceUUIDString] = characteristicsLatch
 
-            if characteristicsLatch.isEmpty {
+            if !characteristicsLatch.isEmpty {
+                characteristicsLatches[service] = characteristicsLatch
+            } else {
                 // All characteristics for this service have been checked
-                servicesLatch.remove(characteristic.service!)
+                characteristicsLatches.removeValue(forKey: service)
+                servicesLatch.remove(service)
                 retrieveServicesLatches[peripheralUUIDString] = servicesLatch
 
                 if servicesLatch.isEmpty {
@@ -1599,9 +1603,6 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                             ]
                         )
                     }
-                    characteristicsLatches.removeValue(
-                        forKey: serviceUUIDString
-                    )
                     retrieveServicesLatches.removeValue(
                         forKey: peripheralUUIDString
                     )
