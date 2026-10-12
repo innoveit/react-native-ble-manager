@@ -87,8 +87,10 @@ export interface StartOptions {
    * call restarts the timeout for its peripheral, and calls pending on the
    * same peripheral settle together. A discovery that times out is abandoned
    * rather than finished in the background, so allow enough time for a full
-   * discovery and call `retrieveServices` again to retry. By default there
-   * is no timeout and the call waits for CoreBluetooth to finish discovery.
+   * discovery and call `retrieveServices` again to retry. A retry made while
+   * the timed-out call's reply is still outstanding waits for it before
+   * sending its own request, within its own timeout. By default there is no
+   * timeout and the call waits for CoreBluetooth to finish discovery.
    */
   retrieveServicesTimeout?: number;
   /**
@@ -308,9 +310,10 @@ export const BleManagerErrorDomain = 'BleManagerErrorDomain';
 export enum BleManagerErrorCode {
   /**
    * `retrieveServices` found that the attribute table iOS cached for the
-   * peripheral no longer matches the device. Discovering again on the same
-   * connection gives the same result; iOS reads the table again after
-   * Bluetooth is turned off and on.
+   * peripheral no longer matches the device. Later calls on the same
+   * connection fail the same way without contacting the peripheral, until it
+   * disconnects or reports that its services changed. Turning Bluetooth off
+   * and on disconnects it and makes iOS read the table again.
    */
   StaleGattCache = 1,
   /**

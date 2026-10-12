@@ -107,6 +107,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     // hold also ends when a held retry's own timeout passes, or on a
     // disconnect. Kept under serialQueue.
     private var heldServicesRequests = [String: Set<CBUUID>]()
+    // Peripherals whose attribute tree failed as a stale GATT cache on the
+    // current connection. Discovering again on it reads the same tree, and
+    // every request sent to that tree is another chance for CoreBluetooth to
+    // route a reply to the wrong attribute and abort, so later calls fail at
+    // once with the same error. Cleared on a disconnect, which turning
+    // Bluetooth off and on causes, or when the peripheral reports that its
+    // services changed. Kept under serialQueue.
+    private var staleConnections = Set<String>()
 
     @objc public init(bleManager: BleManager) {
         peripherals = [:]
@@ -549,6 +557,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 intoDictionary: &connectCallbacks,
                 withKey: peripheral.instance.uuidAsString()
             )
+            resetConnectionBookkeeping(for: peripheral.instance)
             manager?.connect(peripheral.instance)
         } else {
             // Try to retrieve the peripheral
@@ -572,6 +581,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                         intoDictionary: &connectCallbacks,
                         withKey: retrievedPeripheral.uuidAsString()
                     )
+                    resetConnectionBookkeeping(for: retrievedPeripheral)
                     manager?.connect(retrievedPeripheral, options: nil)
                 } else {
                     let error = "Could not find peripheral \(peripheralUUID)."
@@ -582,6 +592,26 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 let error = "Wrong UUID format \(peripheralUUID)"
                 callback([error, NSNull()])
             }
+        }
+    }
+
+    // A new connection starts with no discovery bookkeeping from an earlier
+    // one, including one whose end the library never saw, such as a
+    // connection restored at launch that ended when Bluetooth was turned
+    // off. Skipped while the peripheral is connected, since connecting again
+    // then reuses the live connection, and while it is disconnecting, since
+    // that connection's replies can still arrive and its end is always
+    // reported to didDisconnectPeripheral, which clears everything.
+    private func resetConnectionBookkeeping(for peripheral: CBPeripheral) {
+        let key = peripheral.uuidAsString()
+        serialQueue.sync {
+            guard peripheral.state == .disconnected
+                || peripheral.state == .connecting
+            else { return }
+            _ = staleConnections.remove(key)
+            _ = unansweredServicesRequests.removeValue(forKey: key)
+            _ = owedServicesReplies.removeValue(forKey: key)
+            _ = heldServicesRequests.removeValue(forKey: key)
         }
     }
 
@@ -643,11 +673,19 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             }
 
             let key = peripheral.instance.uuidAsString()
-            // Queued and numbered in one step, so a timeout armed for an
-            // earlier call can tell that this one has started. While a
-            // timed-out call's services reply is still owed, the request is
-            // held back (see heldServicesRequests).
-            let (attempt, sendNow): (Int, Bool) = serialQueue.sync {
+            // Admitted, queued and numbered in one step, so a timeout armed
+            // for an earlier call can tell that this one has started, and a
+            // disconnect handled meanwhile either fails it or is seen here.
+            // While a timed-out call's services reply is still owed, the
+            // request is held back (see heldServicesRequests).
+            enum Admission {
+                case notConnected, stale, held(Int), sent(Int)
+            }
+            let admission: Admission = serialQueue.sync {
+                guard peripheral.instance.state == .connected else {
+                    return .notConnected
+                }
+                if staleConnections.contains(key) { return .stale }
                 retrieveServicesCallbacks[key, default: []].append(callback)
                 let next = (retrieveServicesAttempts[key] ?? 0) + 1
                 retrieveServicesAttempts[key] = next
@@ -655,17 +693,52 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     heldServicesRequests[key] = SwiftBleManager.mergedServices(
                         heldServicesRequests[key], uuids
                     )
-                    return (next, false)
+                    return .held(next)
                 }
                 unansweredServicesRequests[key, default: 0] += 1
-                return (next, true)
+                return .sent(next)
             }
 
-            if sendNow {
-                if !uuids.isEmpty {
-                    peripheral.instance.discoverServices(uuids)
-                } else {
-                    peripheral.instance.discoverServices(nil)
+            let attempt: Int
+            switch admission {
+            case .notConnected:
+                callback(["Peripheral not found or not connected"])
+                return
+            case .stale:
+                let message =
+                    "Stale GATT cache: an earlier discovery on this connection found that the attribute table iOS cached for peripheral \(key) no longer matches the device; iOS reads it again after Bluetooth is turned off and on"
+                NSLog("%@", message)
+                callback([
+                    SwiftBleManager.errorPayload(
+                        .staleGattCache, message: message
+                    )
+                ])
+                return
+            case .held(let next):
+                attempt = next
+            case .sent(let next):
+                attempt = next
+                // A stale failure on an overlapping call can land between the
+                // admission and here. The request is then neither sent nor
+                // counted, since the call has already been failed with it, and
+                // nor is its reply owed, if the stale path counted it.
+                let isStillLive: Bool = serialQueue.sync {
+                    guard staleConnections.contains(key) else { return true }
+                    if let unanswered = unansweredServicesRequests[key] {
+                        unansweredServicesRequests[key] =
+                            unanswered > 1 ? unanswered - 1 : nil
+                    }
+                    if let owed = owedServicesReplies[key] {
+                        owedServicesReplies[key] = owed > 1 ? owed - 1 : nil
+                    }
+                    return false
+                }
+                if isStillLive {
+                    if !uuids.isEmpty {
+                        peripheral.instance.discoverServices(uuids)
+                    } else {
+                        peripheral.instance.discoverServices(nil)
+                    }
                 }
             }
 
@@ -704,8 +777,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     // request held back until then, or until the retry's own timeout passes.
     // This relies on CoreBluetooth answering a peripheral's discovery
     // requests in the order they were sent: then all of its late replies
-    // arrive before a retry's services reply and find no latch to settle. If
-    // a retry were answered ahead of them, they could still settle it, as
+    // arrive before a retry's services reply and find no latch to resolve.
+    // One that shows the table is stale still fails the retry as stale. If a
+    // retry were answered ahead of them, they could still resolve it, as
     // with overlapping calls.
     private func armRetrieveServicesTimeout(
         forKey key: String,
@@ -1445,12 +1519,20 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         let errorStr = "Peripheral did disconnect: \(peripheralUUIDString)"
 
-        // A disconnect ends the outstanding requests, so nothing is owed on
-        // the next connection.
+        // A disconnect ends the outstanding requests and the stale tree, so
+        // nothing carries over to the next connection. The pending calls fail
+        // in the same step, so a call admitted meanwhile is either failed
+        // here or sees the peripheral disconnected.
         serialQueue.sync {
             _ = unansweredServicesRequests.removeValue(forKey: peripheralUUIDString)
             _ = owedServicesReplies.removeValue(forKey: peripheralUUIDString)
             _ = heldServicesRequests.removeValue(forKey: peripheralUUIDString)
+            _ = staleConnections.remove(peripheralUUIDString)
+            invokeAndClearDictionary_THREAD_UNSAFE(
+                &retrieveServicesCallbacks,
+                withKey: peripheralUUIDString,
+                usingParameters: [errorStr]
+            )
         }
 
         invokeAndClearDictionary(
@@ -1460,11 +1542,6 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         )
         invokeAndClearDictionary(
             &readRSSICallbacks,
-            withKey: peripheralUUIDString,
-            usingParameters: [errorStr]
-        )
-        invokeAndClearDictionary(
-            &retrieveServicesCallbacks,
             withKey: peripheralUUIDString,
             usingParameters: [errorStr]
         )
@@ -1690,8 +1767,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     // wrong table and an array holds an attribute of the wrong class. Reads
     // and writes against that tree would land on the wrong handles, so the
     // pending retrieveServices fails instead. Discovering again on the same
-    // connection returns the same tree; iOS reads the table again after
-    // Bluetooth is turned off and on.
+    // connection returns the same tree, so later calls on it fail at once
+    // (see staleConnections); iOS reads the table again after Bluetooth is
+    // turned off and on.
     private func failRetrieveServicesForStaleGattCache(
         _ peripheral: CBPeripheral,
         location: String,
@@ -1710,13 +1788,40 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let message =
             "Stale GATT cache: \(foreignClassNames.count) attribute(s) of unexpected type [\(foreignClassNames.joined(separator: ", "))] in \(location) of peripheral \(key); iOS reads the device's attribute table again after Bluetooth is turned off and on"
         NSLog("%@", message)
-        invokeAndClearDictionary(
-            &retrieveServicesCallbacks,
-            withKey: key,
-            usingParameters: [
-                SwiftBleManager.errorPayload(.staleGattCache, message: message)
-            ]
-        )
+        serialQueue.sync {
+            _ = staleConnections.insert(key)
+            _ = heldServicesRequests.removeValue(forKey: key)
+            // As the timer does: with a timeout set, replies still owed to the
+            // calls failed here are dropped as they arrive, so once the mark
+            // clears they can't settle a retry. Without one nothing would end
+            // a hold whose owed reply is lost, so they are left to the
+            // abandoned mark.
+            if retrieveServicesTimeout != nil,
+                let unanswered = unansweredServicesRequests[key], unanswered > 0
+            {
+                owedServicesReplies[key] = unanswered
+            }
+            invokeAndClearDictionary_THREAD_UNSAFE(
+                &retrieveServicesCallbacks,
+                withKey: key,
+                usingParameters: [
+                    SwiftBleManager.errorPayload(
+                        .staleGattCache, message: message
+                    )
+                ]
+            )
+        }
+    }
+
+    // The peripheral reported that its services changed and CoreBluetooth
+    // invalidated them, so the connection is no longer known to be stale. A
+    // table that still is fails again on the next discovery.
+    public func peripheral(
+        _ peripheral: CBPeripheral,
+        didModifyServices invalidatedServices: [CBService]
+    ) {
+        let key = peripheral.uuidAsString()
+        serialQueue.sync { _ = staleConnections.remove(key) }
     }
 
     // CoreBluetooth passes each discovery delegate the attribute it resolved
