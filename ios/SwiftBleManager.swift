@@ -93,6 +93,20 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     // One token per retrieveServices call, per peripheral, so a timer armed
     // for an earlier call never fails a later one. Kept under serialQueue.
     private var retrieveServicesAttempts = [String: Int]()
+    // discoverServices requests sent and not yet answered, per peripheral.
+    // Kept under serialQueue.
+    private var unansweredServicesRequests = [String: Int]()
+    // Services replies owed to calls that timed out with their requests
+    // still unanswered, per peripheral. Each is dropped when it arrives,
+    // error and all, so it can't settle or fail a retry in its place. Kept
+    // under serialQueue.
+    private var owedServicesReplies = [String: Int]()
+    // The services retries asked for while replies were still owed; an
+    // empty set asks for all of them. Their request is held back until the
+    // owed replies have arrived, so the next replies are the owed ones. A
+    // hold also ends when a held retry's own timeout passes, or on a
+    // disconnect. Kept under serialQueue.
+    private var heldServicesRequests = [String: Set<CBUUID>]()
 
     @objc public init(bleManager: BleManager) {
         peripherals = [:]
@@ -630,18 +644,29 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
             let key = peripheral.instance.uuidAsString()
             // Queued and numbered in one step, so a timeout armed for an
-            // earlier call can tell that this one has started.
-            let attempt: Int = serialQueue.sync {
+            // earlier call can tell that this one has started. While a
+            // timed-out call's services reply is still owed, the request is
+            // held back (see heldServicesRequests).
+            let (attempt, sendNow): (Int, Bool) = serialQueue.sync {
                 retrieveServicesCallbacks[key, default: []].append(callback)
                 let next = (retrieveServicesAttempts[key] ?? 0) + 1
                 retrieveServicesAttempts[key] = next
-                return next
+                guard (owedServicesReplies[key] ?? 0) == 0 else {
+                    heldServicesRequests[key] = SwiftBleManager.mergedServices(
+                        heldServicesRequests[key], uuids
+                    )
+                    return (next, false)
+                }
+                unansweredServicesRequests[key, default: 0] += 1
+                return (next, true)
             }
 
-            if !uuids.isEmpty {
-                peripheral.instance.discoverServices(uuids)
-            } else {
-                peripheral.instance.discoverServices(nil)
+            if sendNow {
+                if !uuids.isEmpty {
+                    peripheral.instance.discoverServices(uuids)
+                } else {
+                    peripheral.instance.discoverServices(nil)
+                }
             }
 
             if let timeout = retrieveServicesTimeout {
@@ -657,6 +682,15 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
     }
 
+    // One held request covering every retry that asked while a reply was
+    // owed: all services if any of them asked for all.
+    private static func mergedServices(
+        _ held: Set<CBUUID>?, _ uuids: [CBUUID]
+    ) -> Set<CBUUID> {
+        guard let held = held else { return Set(uuids) }
+        return held.isEmpty || uuids.isEmpty ? [] : held.union(uuids)
+    }
+
     // Rejects the retrieveServices calls still pending on a peripheral when
     // the timeout armed by the latest of them runs out, so the JS promise
     // settles instead of waiting on a discovery CoreBluetooth never
@@ -665,11 +699,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     // timer runs on the delegate queue, ordered with the discovery replies,
     // and retires the timed-out discovery the way a stale failure does: its
     // latch is dropped and it is marked abandoned, so it sends no further
-    // requests and is not finished in the background. This relies on
-    // CoreBluetooth answering a peripheral's discovery requests in the order
-    // they were sent: then all of its late replies arrive before a retry's
-    // services reply and find no latch to settle. If a retry were answered
-    // ahead of them, they could still settle it, as with overlapping calls.
+    // requests and is not finished in the background. Services replies it
+    // was still waiting for are dropped when they arrive, with a retry's
+    // request held back until then, or until the retry's own timeout passes.
+    // This relies on CoreBluetooth answering a peripheral's discovery
+    // requests in the order they were sent: then all of its late replies
+    // arrive before a retry's services reply and find no latch to settle. If
+    // a retry were answered ahead of them, they could still settle it, as
+    // with overlapping calls.
     private func armRetrieveServicesTimeout(
         forKey key: String,
         attempt: Int,
@@ -690,6 +727,17 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 else { return }
                 self.retrieveServicesLatches.removeValue(forKey: key)
                 self.abandonedDiscoveries.insert(key)
+                if self.heldServicesRequests.removeValue(forKey: key) != nil {
+                    // These calls never sent their request: a whole timeout
+                    // passed with earlier replies still owed, so they are
+                    // taken to be lost and nothing is owed any more.
+                    self.owedServicesReplies.removeValue(forKey: key)
+                    self.unansweredServicesRequests.removeValue(forKey: key)
+                } else if let unanswered = self.unansweredServicesRequests[key],
+                    unanswered > 0
+                {
+                    self.owedServicesReplies[key] = unanswered
+                }
                 NSLog("%@", message)
                 self.invokeAndClearDictionary_THREAD_UNSAFE(
                     &self.retrieveServicesCallbacks,
@@ -1397,6 +1445,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         let errorStr = "Peripheral did disconnect: \(peripheralUUIDString)"
 
+        // A disconnect ends the outstanding requests, so nothing is owed on
+        // the next connection.
+        serialQueue.sync {
+            _ = unansweredServicesRequests.removeValue(forKey: peripheralUUIDString)
+            _ = owedServicesReplies.removeValue(forKey: peripheralUUIDString)
+            _ = heldServicesRequests.removeValue(forKey: peripheralUUIDString)
+        }
+
         invokeAndClearDictionary(
             &connectCallbacks,
             withKey: peripheralUUIDString,
@@ -1693,6 +1749,34 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ peripheral: CBPeripheral,
         didDiscoverServices error: Error?
     ) {
+        let key = peripheral.uuidAsString()
+        // A reply owed to a timed-out call is dropped, error and all. Once the
+        // last owed reply is in, a retry held back meanwhile sends its request.
+        let (isOwed, held): (Bool, Set<CBUUID>?) = serialQueue.sync {
+            if let unanswered = unansweredServicesRequests[key] {
+                unansweredServicesRequests[key] =
+                    unanswered > 1 ? unanswered - 1 : nil
+            }
+            guard let owed = owedServicesReplies[key], owed > 0 else {
+                return (false, nil)
+            }
+            owedServicesReplies[key] = owed > 1 ? owed - 1 : nil
+            guard owed == 1,
+                let held = heldServicesRequests.removeValue(forKey: key),
+                retrieveServicesCallbacks[key] != nil
+            else { return (true, nil) }
+            unansweredServicesRequests[key, default: 0] += 1
+            return (true, held)
+        }
+        if isOwed {
+            NSLog(
+                "Dropped the services reply owed to a retrieveServices call that timed out: \(key)"
+            )
+            if let held = held {
+                peripheral.discoverServices(held.isEmpty ? nil : Array(held))
+            }
+            return
+        }
         if let error = error {
             NSLog("Error: \(error)")
             invokeAndClearDictionary(
@@ -1706,7 +1790,6 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             NSLog("Services Discover")
         }
 
-        let key = peripheral.uuidAsString()
         if abandonedDiscoveries.contains(key) {
             // This peripheral's last discovery was abandoned, as stale or
             // timed out. A services reply no pending call is waiting for
