@@ -1595,8 +1595,27 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             )
         }
 
-        if let service = characteristic.service,
-            var servicesLatch = retrieveServicesLatches[peripheralUUIDString],
+        // characteristic.service is weak; if it's gone, recover the owning
+        // service from the latch, otherwise fail retrieveServices instead of
+        // leaving it pending.
+        guard
+            let service = characteristic.service
+                ?? characteristicsLatches.first(where: {
+                    $0.value.contains(characteristic)
+                })?.key
+        else {
+            invokeAndClearDictionary(
+                &retrieveServicesCallbacks,
+                withKey: peripheralUUIDString,
+                usingParameters: [
+                    "Service for characteristic \(characteristic.uuid.uuidString) is no longer available"
+                ]
+            )
+            clearDiscoveryLatches(for: peripheral)
+            return
+        }
+
+        if var servicesLatch = retrieveServicesLatches[peripheralUUIDString],
             var characteristicsLatch = characteristicsLatches[service]
         {
 
