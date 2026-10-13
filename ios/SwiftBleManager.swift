@@ -1560,6 +1560,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         var characteristicsForService = Set<CBCharacteristic>()
         characteristicsForService.formUnion(characteristics)
+        // Only track services still pending for this peripheral's
+        // retrieveServices call (e.g. ignore late included-service callbacks).
+        guard retrieveServicesLatches[peripheralUUIDString]?.contains(service) == true else {
+            for characteristic in characteristics {
+                peripheral.discoverDescriptors(for: characteristic)
+            }
+            return
+        }
         // Keyed by the CBService instance, not its UUID: peripherals of the
         // same model share service UUIDs and may be discovered concurrently.
         characteristicsLatches[service] = characteristicsForService
