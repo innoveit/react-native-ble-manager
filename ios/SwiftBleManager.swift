@@ -142,6 +142,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
     }
 
+    private func clearDiscoveryLatches(for peripheral: CBPeripheral) {
+        retrieveServicesLatches.removeValue(forKey: peripheral.uuidAsString())
+        for service in Array(characteristicsLatches.keys)
+        where service.peripheral?.identifier == peripheral.identifier {
+            characteristicsLatches.removeValue(forKey: service)
+        }
+    }
+
     private func enqueueSplitMessages(
         _ messages: [Data],
         forKey key: String
@@ -1294,6 +1302,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             withKey: peripheralUUIDString,
             usingParameters: [errorStr]
         )
+        clearDiscoveryLatches(for: peripheral)
 
         for key in readCallbacks.keys {
             if let keyString = key as String?,
@@ -1482,6 +1491,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         var servicesForPeripheral = Set<CBService>()
         servicesForPeripheral.formUnion(peripheral.services ?? [])
+        clearDiscoveryLatches(for: peripheral)
         retrieveServicesLatches[peripheral.uuidAsString()] =
             servicesForPeripheral
 
