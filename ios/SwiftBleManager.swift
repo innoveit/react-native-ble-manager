@@ -115,6 +115,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     // Bluetooth off and on causes, or when the peripheral reports that its
     // services changed. Kept under serialQueue.
     private var staleConnections = Set<String>()
+    // Bumped whenever a peripheral's connection ends or a new one starts, so
+    // a services request queued for one connection never goes out on the
+    // next. Kept under serialQueue.
+    private var connectionGenerations = [String: Int]()
 
     @objc public init(bleManager: BleManager) {
         peripherals = [:]
@@ -612,6 +616,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             _ = unansweredServicesRequests.removeValue(forKey: key)
             _ = owedServicesReplies.removeValue(forKey: key)
             _ = heldServicesRequests.removeValue(forKey: key)
+            connectionGenerations[key, default: 0] += 1
         }
     }
 
@@ -622,6 +627,12 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         if let peripheral = peripherals[peripheralUUID] {
             NSLog("Disconnecting from peripheral with UUID: \(peripheralUUID)")
+
+            // A services request still queued for this connection must not
+            // go out on whatever connection comes next.
+            serialQueue.sync {
+                connectionGenerations[peripheral.instance.uuidAsString(), default: 0] += 1
+            }
 
             for service in peripheral.instance.safeServices.attributes {
                 for characteristic in service.safeCharacteristics.attributes
@@ -679,7 +690,8 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             // While a timed-out call's services reply is still owed, the
             // request is held back (see heldServicesRequests).
             enum Admission {
-                case notConnected, stale, held(Int), sent(Int)
+                case notConnected, stale, held(Int)
+                case sent(attempt: Int, generation: Int)
             }
             let admission: Admission = serialQueue.sync {
                 guard peripheral.instance.state == .connected else {
@@ -696,7 +708,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     return .held(next)
                 }
                 unansweredServicesRequests[key, default: 0] += 1
-                return .sent(next)
+                return .sent(
+                    attempt: next,
+                    generation: connectionGenerations[key] ?? 0
+                )
             }
 
             let attempt: Int
@@ -716,24 +731,39 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 return
             case .held(let next):
                 attempt = next
-            case .sent(let next):
+            case .sent(let next, let generation):
                 attempt = next
-                // A stale failure on an overlapping call can land between the
-                // admission and here. The request is then neither sent nor
-                // counted, since the call has already been failed with it, and
-                // nor is its reply owed, if the stale path counted it.
-                let isStillLive: Bool = serialQueue.sync {
-                    guard staleConnections.contains(key) else { return true }
-                    if let unanswered = unansweredServicesRequests[key] {
-                        unansweredServicesRequests[key] =
-                            unanswered > 1 ? unanswered - 1 : nil
+                // Checked and sent on the delegate queue, where a stale
+                // failure is decided, so none can land between the check and
+                // the send. One on an overlapping call that landed since the
+                // admission has already failed this call too: the request is
+                // then neither sent nor counted, and nor is its reply owed, if
+                // the stale path counted it. A request queued for a connection
+                // that has since ended is dropped, so it can't go out on the
+                // next one; its disconnect clears the counts.
+                let delegateQueue =
+                    SwiftBleManager.sharedManagerQueue ?? DispatchQueue.main
+                delegateQueue.async { [weak self] in
+                    guard let self = self else { return }
+                    let isStillLive: Bool = self.serialQueue.sync {
+                        guard (self.connectionGenerations[key] ?? 0) == generation
+                        else { return false }
+                        guard self.staleConnections.contains(key) else {
+                            return true
+                        }
+                        if let unanswered = self.unansweredServicesRequests[key] {
+                            self.unansweredServicesRequests[key] =
+                                unanswered > 1 ? unanswered - 1 : nil
+                        }
+                        if let owed = self.owedServicesReplies[key] {
+                            self.owedServicesReplies[key] =
+                                owed > 1 ? owed - 1 : nil
+                        }
+                        return false
                     }
-                    if let owed = owedServicesReplies[key] {
-                        owedServicesReplies[key] = owed > 1 ? owed - 1 : nil
-                    }
-                    return false
-                }
-                if isStillLive {
+                    guard isStillLive,
+                        peripheral.instance.state == .connected
+                    else { return }
                     if !uuids.isEmpty {
                         peripheral.instance.discoverServices(uuids)
                     } else {
@@ -1528,6 +1558,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             _ = owedServicesReplies.removeValue(forKey: peripheralUUIDString)
             _ = heldServicesRequests.removeValue(forKey: peripheralUUIDString)
             _ = staleConnections.remove(peripheralUUIDString)
+            connectionGenerations[peripheralUUIDString, default: 0] += 1
             invokeAndClearDictionary_THREAD_UNSAFE(
                 &retrieveServicesCallbacks,
                 withKey: peripheralUUIDString,
