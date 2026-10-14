@@ -72,6 +72,11 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
     static var verboseLogging = false
 
+    // From the discoverIncludedServices start option. Skipping the
+    // included-services request also skips the second characteristic
+    // discovery didDiscoverIncludedServicesFor starts for every service.
+    private var discoverIncludedServices = true
+
     @objc public init(bleManager: BleManager) {
         peripherals = [:]
         connectCallbacks = [:]
@@ -350,6 +355,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let verboseLogging = options["verboseLogging"] as? Bool {
             SwiftBleManager.verboseLogging = verboseLogging
         }
+
+        discoverIncludedServices =
+            options["discoverIncludedServices"] as? Bool ?? true
 
         var queue: DispatchQueue
         if let queueIdentifierKey = options["queueIdentifierKey"] as? String {
@@ -1653,7 +1661,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     "Service \(service.uuid.uuidString) \(service.description)"
                 )
             }
-            peripheral.discoverIncludedServices(nil, for: service)  // discover included services
+            if discoverIncludedServices {
+                peripheral.discoverIncludedServices(nil, for: service)  // discover included services
+            }
             peripheral.discoverCharacteristics(nil, for: service)  // discover characteristics for service
         }
     }

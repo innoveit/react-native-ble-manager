@@ -73,6 +73,15 @@ export interface StartOptions {
    */
   queueIdentifierKey?: string;
   /**
+   * [iOS only] Whether `retrieveServices` also discovers each service's
+   * included services. Defaults to `true`. The library doesn't report
+   * included services, and with `false` each service's characteristics are
+   * discovered once instead of twice. It also leaves out one of the requests
+   * whose reply CoreBluetooth can deliver to the wrong attribute, and crash
+   * on, when its cached attribute table is stale.
+   */
+  discoverIncludedServices?: boolean;
+  /**
    * [Android only] Force to use the LegacyScanManager
    */
   forceLegacy?: boolean;
