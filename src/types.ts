@@ -82,18 +82,6 @@ export interface StartOptions {
    */
   discoverIncludedServices?: boolean;
   /**
-   * [iOS only] Milliseconds after which a pending `retrieveServices` call is
-   * rejected with {@link BleManagerErrorCode.RetrieveServicesTimeout}. Each
-   * call restarts the timeout for its peripheral, and calls pending on the
-   * same peripheral settle together. A discovery that times out is abandoned
-   * rather than finished in the background, so allow enough time for a full
-   * discovery and call `retrieveServices` again to retry. A retry made while
-   * the timed-out call's reply is still outstanding waits for it before
-   * sending its own request, within its own timeout. By default there is no
-   * timeout and the call waits for CoreBluetooth to finish discovery.
-   */
-  retrieveServicesTimeout?: number;
-  /**
    * [Android only] Force to use the LegacyScanManager
    */
   forceLegacy?: boolean;
@@ -297,10 +285,11 @@ export interface PeripheralInfo extends Peripheral {
 }
 
 /**
- * [iOS only] `domain` of the structured errors the library raises itself, as
- * opposed to errors passed on from CoreBluetooth: objects
- * `{ code, domain, message }` whose `code` is a {@link BleManagerErrorCode}.
- * The library's other errors are plain strings.
+ * [iOS only] `domain` of the structured errors the library raises itself:
+ * objects `{ code, domain, message }` whose `code` is a
+ * {@link BleManagerErrorCode}. Most errors passed on from CoreBluetooth have
+ * the same shape with CoreBluetooth's own domain, and some of the library's
+ * other errors are plain strings.
  */
 export const BleManagerErrorDomain = 'BleManagerErrorDomain';
 
@@ -310,17 +299,11 @@ export const BleManagerErrorDomain = 'BleManagerErrorDomain';
 export enum BleManagerErrorCode {
   /**
    * `retrieveServices` found that the attribute table iOS cached for the
-   * peripheral no longer matches the device. Later calls on the same
-   * connection fail the same way without contacting the peripheral, until it
-   * disconnects or reports that its services changed. Turning Bluetooth off
-   * and on disconnects it and makes iOS read the table again.
+   * peripheral no longer matches the device. Discovering again on the same
+   * connection reads the same table, so turn Bluetooth off and on first,
+   * which makes iOS read it again.
    */
   StaleGattCache = 1,
-  /**
-   * `retrieveServices` was still pending when the `retrieveServicesTimeout`
-   * start option ran out.
-   */
-  RetrieveServicesTimeout = 2,
 }
 
 export type EventCallback<T> = (event: T) => void | Promise<void>;
