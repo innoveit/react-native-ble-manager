@@ -210,7 +210,7 @@ class Helper {
                 "Looking for descriptor \(UUID) on characteristic \(characteristic.uuid)"
             )
         }
-        for descriptor in characteristic.descriptors ?? [] {
+        for descriptor in characteristic.safeDescriptors.attributes {
             if descriptor.uuid.isEqual(UUID) {
                 if SwiftBleManager.verboseLogging {
                     NSLog("Found descriptor \(UUID)")
@@ -225,7 +225,7 @@ class Helper {
     static func findService(fromUUID UUID: CBUUID, peripheral p: CBPeripheral)
         -> CBService?
     {
-        for service in p.services ?? [] {
+        for service in p.safeServices.attributes {
             if service.uuid.isEqual(UUID) {
                 return service
             }
@@ -243,7 +243,7 @@ class Helper {
         if SwiftBleManager.verboseLogging {
             NSLog("Looking for \(UUID) with properties \(prop.rawValue)")
         }
-        for characteristic in service.characteristics ?? [] {
+        for characteristic in service.safeCharacteristics.attributes {
             if characteristic.properties.contains(prop)
                 && characteristic.uuid.isEqual(UUID)
             {
@@ -263,7 +263,7 @@ class Helper {
         if SwiftBleManager.verboseLogging {
             NSLog("Looking for \(UUID)")
         }
-        for characteristic in service.characteristics ?? [] {
+        for characteristic in service.safeCharacteristics.attributes {
             if characteristic.uuid.isEqual(UUID) {
                 if SwiftBleManager.verboseLogging {
                     NSLog("Found \(UUID)")
@@ -338,12 +338,12 @@ class Peripheral: Hashable {
         var serviceList = [[String: Any]]()
         var characteristicList = [[String: Any]]()
 
-        for service in instance.services ?? [] {
+        for service in instance.safeServices.attributes {
             var serviceDictionary = [String: Any]()
             serviceDictionary["uuid"] = service.uuid.uuidString.lowercased()
             serviceList.append(serviceDictionary)
 
-            for characteristic in service.characteristics ?? [] {
+            for characteristic in service.safeCharacteristics.attributes {
                 var characteristicDictionary = [String: Any]()
                 characteristicDictionary["service"] = service.uuid.uuidString
                     .lowercased()
@@ -364,7 +364,7 @@ class Peripheral: Hashable {
                     characteristic.isNotifying
 
                 var descriptorList = [[String: Any]]()
-                for descriptor in characteristic.descriptors ?? [] {
+                for descriptor in characteristic.safeDescriptors.attributes {
                     var descriptorDictionary = [String: Any]()
                     descriptorDictionary["uuid"] = descriptor.uuid.uuidString
                         .lowercased()
@@ -433,5 +433,64 @@ extension CBPeripheral {
 
     func uuidAsString() -> String {
         return self.identifier.uuidString.lowercased()
+    }
+}
+
+// CoreBluetooth keeps a per-bond cache of the peripheral's attribute table.
+// When the device's GATT layout changes underneath that cache (for example,
+// after a firmware update that moves attribute handles), CoreBluetooth can
+// build its attribute tree from the wrong table and file an attribute of the
+// wrong class into an array, such as a CBService among a service's
+// characteristics. Swift's typed bridging of that NSArray traps with "NSArray
+// element failed to match the Swift Array Element type" the moment it is
+// iterated, and nothing in JS can catch it. These accessors read the arrays
+// through KVC so no typed bridge runs, keep only the elements of the declared
+// class, and report what was foreign so service discovery can fail with an
+// error instead.
+struct GattAttributeArray<Attribute: CBAttribute> {
+    let attributes: [Attribute]
+    let foreignClassNames: [String]
+
+    var hasForeign: Bool { !foreignClassNames.isEmpty }
+}
+
+extension NSObject {
+    func gattAttributeArray<Attribute: CBAttribute>(
+        forKey key: String
+    ) -> GattAttributeArray<Attribute> {
+        guard let raw = value(forKey: key) as? NSArray else {
+            return GattAttributeArray(attributes: [], foreignClassNames: [])
+        }
+        var attributes: [Attribute] = []
+        var foreignClassNames: [String] = []
+        for item in raw {
+            if let attribute = item as? Attribute {
+                attributes.append(attribute)
+            } else {
+                foreignClassNames.append(String(describing: type(of: item)))
+            }
+        }
+        return GattAttributeArray(
+            attributes: attributes,
+            foreignClassNames: foreignClassNames
+        )
+    }
+}
+
+extension CBPeripheral {
+    var safeServices: GattAttributeArray<CBService> {
+        gattAttributeArray(forKey: "services")
+    }
+}
+
+extension CBService {
+    var safeCharacteristics: GattAttributeArray<CBCharacteristic> {
+        gattAttributeArray(forKey: "characteristics")
+    }
+}
+
+extension CBCharacteristic {
+    var safeDescriptors: GattAttributeArray<CBDescriptor> {
+        gattAttributeArray(forKey: "descriptors")
     }
 }

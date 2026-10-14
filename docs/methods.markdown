@@ -492,6 +492,12 @@ Returns a `Promise` object.
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUIDs` - `String[]` - [iOS only] only retrieve these services.
 
+**Errors**
+
+[iOS only] Besides errors passed on from CoreBluetooth and plain-string errors, the promise can reject with a structured error the library raises itself: an object `{ code, domain, message }` whose `domain` is `BleManagerErrorDomain`.
+
+- `code` `1` (`BleManagerErrorCode.StaleGattCache`) - the attribute table iOS cached for the peripheral no longer matches the device, for example after a firmware update changed the device's attribute layout. Discovering again on the same connection reads the same table, so turn Bluetooth off and on first, which makes iOS read it again.
+
 **Examples**
 
 ```js
