@@ -1712,8 +1712,11 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
 
         let peripheralUUIDString = peripheral.uuidAsString()
+        // Checked even for an errored reply, which leaves the array as it
+        // was: a foreign element in it still shows the table is stale, and
+        // failing now stops the discovery from sending more requests.
         let discovered = service.safeCharacteristics
-        if error == nil && discovered.hasForeign {
+        if discovered.hasForeign {
             failRetrieveServicesForStaleGattCache(
                 peripheral,
                 location:
