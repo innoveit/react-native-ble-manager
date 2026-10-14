@@ -596,12 +596,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let peripheral = peripherals[peripheralUUID],
             peripheral.instance.state == .connected
         {
-            insertCallback(
-                callback,
-                intoDictionary: &retrieveServicesCallbacks,
-                withKey: peripheral.instance.uuidAsString()
-            )
-
+            // Validated before the callback is queued: a call rejected here
+            // but left queued would be called again when the next discovery
+            // on this peripheral settles, and React Native's TurboModule
+            // bridge treats a second call as fatal.
             var uuids: [CBUUID] = []
             for string in services {
                 // Validate UUID format to prevent CBUUID(string:) crash
@@ -613,6 +611,12 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 }
                 uuids.append(CBUUID(string: string))
             }
+
+            insertCallback(
+                callback,
+                intoDictionary: &retrieveServicesCallbacks,
+                withKey: peripheral.instance.uuidAsString()
+            )
 
             if !uuids.isEmpty {
                 peripheral.instance.discoverServices(uuids)
