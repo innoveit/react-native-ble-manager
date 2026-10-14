@@ -37,6 +37,7 @@ The parameter is optional the configuration keys are:
 - `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
 - `restoreIdentifierKey` - `String` - [iOS only] Unique key to use for CoreBluetooth state restoration
 - `queueIdentifierKey` - `String` - [iOS only] Unique key to use for a queue identifier on which CoreBluetooth events will be dispatched
+- `discoverIncludedServices` - `Boolean` - [iOS only] Whether `retrieveServices` also discovers each service's included services. Defaults to `true`. The library doesn't report included services, and with `false` each service's characteristics are discovered once instead of twice. It also leaves out one of the requests whose reply CoreBluetooth can deliver to the wrong attribute, and crash on, when its cached attribute table is stale.
 - `forceLegacy` - `Boolean` - [Android only] Force to use the LegacyScanManager
 
 **Examples**
@@ -491,6 +492,12 @@ Returns a `Promise` object.
 
 - `peripheralId` - `String` - the id/mac address of the peripheral.
 - `serviceUUIDs` - `String[]` - [iOS only] only retrieve these services.
+
+**Errors**
+
+[iOS only] Besides errors passed on from CoreBluetooth and plain-string errors, the promise can reject with a structured error the library raises itself: an object `{ code, domain, message }` whose `domain` is `BleManagerErrorDomain`.
+
+- `code` `1` (`BleManagerErrorCode.StaleGattCache`) - the attribute table iOS cached for the peripheral no longer matches the device, for example after a firmware update changed the device's attribute layout. Discovering again on the same connection reads the same table, so turn Bluetooth off and on first, which makes iOS read it again.
 
 **Examples**
 
