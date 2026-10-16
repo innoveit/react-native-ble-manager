@@ -205,16 +205,12 @@ class Helper {
         fromUUID UUID: CBUUID,
         characteristic: CBCharacteristic
     ) -> CBDescriptor? {
-        if SwiftBleManager.verboseLogging {
-            NSLog(
-                "Looking for descriptor \(UUID) on characteristic \(characteristic.uuid)"
-            )
-        }
+        SwiftBleManager.logVerbose(
+            "Looking for descriptor \(UUID) on characteristic \(characteristic.uuid)"
+        )
         for descriptor in characteristic.descriptors ?? [] {
             if descriptor.uuid.isEqual(UUID) {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Found descriptor \(UUID)")
-                }
+                SwiftBleManager.logVerbose("Found descriptor \(UUID)")
                 return descriptor
             }
         }
@@ -240,16 +236,12 @@ class Helper {
         service: CBService,
         prop: CBCharacteristicProperties
     ) -> CBCharacteristic? {
-        if SwiftBleManager.verboseLogging {
-            NSLog("Looking for \(UUID) with properties \(prop.rawValue)")
-        }
+        SwiftBleManager.logVerbose("Looking for \(UUID) with properties \(prop.rawValue)")
         for characteristic in service.characteristics ?? [] {
             if characteristic.properties.contains(prop)
                 && characteristic.uuid.isEqual(UUID)
             {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Found \(UUID)")
-                }
+                SwiftBleManager.logVerbose("Found \(UUID)")
                 return characteristic
             }
         }
@@ -260,14 +252,10 @@ class Helper {
     static func findCharacteristic(fromUUID UUID: CBUUID, service: CBService)
         -> CBCharacteristic?
     {
-        if SwiftBleManager.verboseLogging {
-            NSLog("Looking for \(UUID)")
-        }
+        SwiftBleManager.logVerbose("Looking for \(UUID)")
         for characteristic in service.characteristics ?? [] {
             if characteristic.uuid.isEqual(UUID) {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Found \(UUID)")
-                }
+                SwiftBleManager.logVerbose("Found \(UUID)")
                 return characteristic
             }
         }

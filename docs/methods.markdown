@@ -38,6 +38,8 @@ The parameter is optional the configuration keys are:
 - `restoreIdentifierKey` - `String` - [iOS only] Unique key to use for CoreBluetooth state restoration
 - `queueIdentifierKey` - `String` - [iOS only] Unique key to use for a queue identifier on which CoreBluetooth events will be dispatched
 - `forceLegacy` - `Boolean` - [Android only] Force to use the LegacyScanManager
+- `logLevel` - `String` - Native log level: `'none'` (no logs), `'normal'` (events, errors and warnings, without data payloads) or `'verbose'` (also logs data such as read/write bytes). Default `'normal'`.
+- `verboseLogging` - `Boolean` - **Deprecated**, use `logLevel: 'verbose'` instead.
 
 **Examples**
 
