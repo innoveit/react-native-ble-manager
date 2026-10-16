@@ -21,7 +21,6 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.ParcelUuid;
-import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -109,13 +108,13 @@ public class DefaultScanManager extends ScanManager {
                 String uuidString = Objects.requireNonNull(serviceUUIDs.getString(i));
                 // Validate UUID format to prevent crash
                 if (!UUIDHelper.isValidBLEUUID(uuidString)) {
-                    Log.w(BleManager.LOG_TAG, "Warning: Invalid UUID format in scan options: " + uuidString + ", skipping");
+                    BleLog.w(BleManager.LOG_TAG, "Warning: Invalid UUID format in scan options: " + uuidString + ", skipping");
                     continue;
                 }
                 ScanFilter filter = new ScanFilter.Builder().setServiceUuid(new ParcelUuid(UUIDHelper.uuidFromString(uuidString))).build();
                 filters.add(filter);
                 validUUIDCount++;
-                Log.d(BleManager.LOG_TAG, "Filter service: " + uuidString);
+                BleLog.d(BleManager.LOG_TAG, "Filter service: " + uuidString);
             }
             // If serviceUUIDs were provided but none were valid, return error
             if (validUUIDCount == 0) {
@@ -128,11 +127,11 @@ public class DefaultScanManager extends ScanManager {
         if (options.hasKey("exactAdvertisingName")) {
             ReadableArray exactAdvertisingNameArray = options.getArray("exactAdvertisingName");
             if (exactAdvertisingNameArray == null) {
-                Log.w(BleManager.LOG_TAG, "exactAdvertisingName key present but array is null");
+                BleLog.w(BleManager.LOG_TAG, "exactAdvertisingName key present but array is null");
             }
             if (exactAdvertisingNameArray != null) {
                 ArrayList<Object> expectedNames = exactAdvertisingNameArray.toArrayList();
-                Log.d(BleManager.LOG_TAG, "Filter on advertising names:" + expectedNames);
+                BleLog.d(BleManager.LOG_TAG, "Filter on advertising names:" + expectedNames);
                 for (Object name : expectedNames) {
                     ScanFilter filter = new ScanFilter.Builder().setDeviceName(name.toString()).build();
                     filters.add(filter);
@@ -164,7 +163,7 @@ public class DefaultScanManager extends ScanManager {
                     callback.invoke("manufacturerData and manufacturerDataMask must have the same length");
                     return;
                 }
-                Log.d(
+                BleLog.data(
                         BleManager.LOG_TAG,
                         String.format(
                                 "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
@@ -205,7 +204,7 @@ public class DefaultScanManager extends ScanManager {
 
         try {
             if (useScanIntent) {
-                Log.i(BleManager.LOG_TAG, "Scan with intent");
+                BleLog.d(BleManager.LOG_TAG, "Scan with intent");
                 ensureScanReceiver();
                 Intent intent = new Intent(ACTION_SCAN_RESULT);
                 intent.setPackage(context.getPackageName());
@@ -285,7 +284,7 @@ public class DefaultScanManager extends ScanManager {
             info = result.toString();
         }
 
-        Log.i(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
+        BleLog.data(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
 
         DefaultPeripheral peripheral = (DefaultPeripheral) bleManager.getPeripheral(result.getDevice());
         if (peripheral == null) {
@@ -358,7 +357,7 @@ public class DefaultScanManager extends ScanManager {
                     scanner.stopScan(mScanCallback);
                 }
             } catch (IllegalArgumentException | IllegalStateException ignored) {
-                Log.w(BleManager.LOG_TAG, "stopScan ignored error: " + ignored.getMessage());
+                BleLog.w(BleManager.LOG_TAG, "stopScan ignored error: " + ignored.getMessage());
             }
         }
         if (scanPendingIntent != null) {
