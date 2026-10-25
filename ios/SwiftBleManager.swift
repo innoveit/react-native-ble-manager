@@ -70,7 +70,34 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
     private var exactAdvertisingName: [String]
 
-    static var verboseLogging = false
+    enum LogLevel: Int {
+        case none = 0
+        case normal = 1
+        case verbose = 2
+    }
+
+    static var logLevel: LogLevel = .normal
+
+    /// Regular message, shown in normal and verbose.
+    static func log(_ message: @autoclosure () -> String) {
+        if logLevel.rawValue >= LogLevel.normal.rawValue {
+            NSLog("%@", message())
+        }
+    }
+
+    /// Message that prints data (bytes/values) or extra detail, shown only in verbose.
+    static func logVerbose(_ message: @autoclosure () -> String) {
+        if logLevel.rawValue >= LogLevel.verbose.rawValue {
+            NSLog("%@", message())
+        }
+    }
+
+    /// Errors and warnings, hidden only in none.
+    static func logError(_ message: @autoclosure () -> String) {
+        if logLevel != .none {
+            NSLog("%@", message())
+        }
+    }
 
     // From the discoverIncludedServices start option. Skipping the
     // included-services request also skips the second characteristic
@@ -98,7 +125,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         super.init()
 
-        NSLog("BleManager created")
+        SwiftBleManager.logVerbose("BleManager created")
 
         SwiftBleManager.shared = self
 
@@ -243,14 +270,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         // Validate UUID formats to prevent CBUUID(string:) crash
         guard Helper.isValidBLEUUID(serviceUUIDString) else {
             let error = "Invalid service UUID format: \(serviceUUIDString)"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return nil
         }
         
         guard Helper.isValidBLEUUID(characteristicUUIDString) else {
             let error = "Invalid characteristic UUID format: \(characteristicUUIDString)"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return nil
         }
@@ -263,7 +290,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 format: "Could not find peripheral with UUID %@",
                 peripheralUUIDString
             )
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return nil
         }
@@ -280,7 +307,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 serviceUUIDString,
                 peripheral.instance.uuidAsString()
             )
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return nil
         }
@@ -316,7 +343,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 serviceUUIDString,
                 peripheral.instance.uuidAsString()
             )
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return nil
         }
@@ -336,9 +363,20 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             callback([])
             return
         }
-        if SwiftBleManager.verboseLogging {
-            NSLog("BleManager initialized")
+
+        if let logLevel = options["logLevel"] as? String {
+            switch logLevel {
+            case "none": SwiftBleManager.logLevel = .none
+            case "verbose": SwiftBleManager.logLevel = .verbose
+            default: SwiftBleManager.logLevel = .normal
+            }
+        } else if let verboseLogging = options["verboseLogging"] as? Bool, verboseLogging {
+            SwiftBleManager.logLevel = .verbose
+        } else {
+            SwiftBleManager.logLevel = .normal
         }
+
+        SwiftBleManager.logVerbose("BleManager initialized")
         if let bluetoothUsageDescription = Bundle.main.object(
             forInfoDictionaryKey: "NSBluetoothAlwaysUsageDescription"
         ) as? String {
@@ -346,7 +384,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         } else {
             let error =
                 "NSBluetoothAlwaysUsageDescription is not set in the infoPlist"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return
         }
@@ -354,10 +392,6 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         if let showAlert = options["showAlert"] as? Bool {
             initOptions[CBCentralManagerOptionShowPowerAlertKey] = showAlert
-        }
-
-        if let verboseLogging = options["verboseLogging"] as? Bool {
-            SwiftBleManager.verboseLogging = verboseLogging
         }
 
         discoverIncludedServices =
@@ -411,9 +445,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         callback: RCTResponseSenderBlock
     ) {
         if Int(truncating: scanningOptions["seconds"] as? NSNumber ?? 0) > 0 {
-            NSLog("scan with timeout \(scanningOptions["seconds"] ?? 0)")
+            SwiftBleManager.log("scan with timeout \(scanningOptions["seconds"] ?? 0)")
         } else {
-            NSLog("scan")
+            SwiftBleManager.log("scan")
         }
 
         // Clear the peripherals before scanning again, otherwise cannot connect again after disconnection
@@ -439,13 +473,13 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 if Helper.isValidBLEUUID(uuidString) {
                     serviceUUIDs.append(CBUUID(string: uuidString))
                 } else {
-                    NSLog("Warning: Invalid UUID format in scan options: \(uuidString), skipping")
+                    SwiftBleManager.logError("Warning: Invalid UUID format in scan options: \(uuidString), skipping")
                 }
             }
             // If serviceUUIDs were provided but none were valid, return error
             if !serviceUUIDStrings.isEmpty && serviceUUIDs.isEmpty {
                 let error = "Invalid UUID format in serviceUUIDs: all UUIDs are invalid"
-                NSLog(error)
+                SwiftBleManager.logError(error)
                 callback([error])
                 return
             }
@@ -487,7 +521,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     }
 
     @objc func stopTimer() {
-        NSLog("Stop scan")
+        SwiftBleManager.log("Stop scan")
         scanTimer = nil
         manager?.stopScan()
         bleManager?.emit(onStopScan: ["status": 10])
@@ -514,7 +548,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         if let peripheral = peripherals[peripheralUUID] {
             // Found the peripheral, connect to it
-            NSLog("Connecting to peripheral with UUID: \(peripheralUUID)")
+            SwiftBleManager.log("Connecting to peripheral with UUID: \(peripheralUUID)")
 
             insertCallback(
                 callback,
@@ -524,7 +558,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             manager?.connect(peripheral.instance)
         } else {
             // Try to retrieve the peripheral
-            NSLog("Retrieving peripheral with UUID: \(peripheralUUID)")
+            SwiftBleManager.log("Retrieving peripheral with UUID: \(peripheralUUID)")
 
             if let uuid = UUID(uuidString: peripheralUUID) {
                 let peripheralArray = manager?.retrievePeripherals(
@@ -534,7 +568,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                         peripherals[retrievedPeripheral.uuidAsString()] =
                             Peripheral(peripheral: retrievedPeripheral)
                     }
-                    NSLog(
+                    SwiftBleManager.log(
                         "Successfully retrieved and connecting to peripheral with UUID: \(peripheralUUID)"
                     )
 
@@ -547,7 +581,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     manager?.connect(retrievedPeripheral, options: nil)
                 } else {
                     let error = "Could not find peripheral \(peripheralUUID)."
-                    NSLog(error)
+                    SwiftBleManager.logError(error)
                     callback([error, NSNull()])
                 }
             } else {
@@ -563,12 +597,12 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         callback: @escaping RCTResponseSenderBlock
     ) {
         if let peripheral = peripherals[peripheralUUID] {
-            NSLog("Disconnecting from peripheral with UUID: \(peripheralUUID)")
+            SwiftBleManager.log("Disconnecting from peripheral with UUID: \(peripheralUUID)")
 
             for service in peripheral.instance.safeServices.attributes {
                 for characteristic in service.safeCharacteristics.attributes
                 where characteristic.isNotifying {
-                    NSLog(
+                    SwiftBleManager.log(
                         "Remove notification from: \(characteristic.uuid)"
                     )
                     peripheral.instance.setNotifyValue(
@@ -583,7 +617,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         } else {
             let error = "Could not find peripheral \(peripheralUUID)."
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
         }
     }
@@ -593,7 +627,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         services: [String],
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("retrieveServices \(services)")
+        SwiftBleManager.log("retrieveServices \(services)")
 
         if let peripheral = peripherals[peripheralUUID],
             peripheral.instance.state == .connected
@@ -607,7 +641,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 // Validate UUID format to prevent CBUUID(string:) crash
                 guard Helper.isValidBLEUUID(string) else {
                     let error = "Invalid service UUID format: \(string)"
-                    NSLog(error)
+                    SwiftBleManager.logError(error)
                     callback([error])
                     return
                 }
@@ -635,7 +669,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ peripheralUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("readRSSI")
+        SwiftBleManager.log("readRSSI")
 
         if let peripheral = peripherals[peripheralUUID],
             peripheral.instance.state == .connected
@@ -658,7 +692,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         descriptorUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("readDescriptor")
+        SwiftBleManager.log("readDescriptor")
 
         guard
             let context = getContext(
@@ -678,7 +712,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         // Validate UUID format to prevent CBUUID(string:) crash
         guard Helper.isValidBLEUUID(descriptorUUID) else {
             let error = "Invalid descriptor UUID format: \(descriptorUUID)"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return
         }
@@ -691,7 +725,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         else {
             let error =
                 "Could not find descriptor with UUID \(descriptorUUID) on characteristic with UUID \(String(describing: characteristic?.uuid.uuidString)) on peripheral with UUID \(peripheralUUID)"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return
         }
@@ -721,7 +755,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         message: [UInt8],
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("writeDescriptor")
+        SwiftBleManager.log("writeDescriptor")
 
         guard
             let context = getContext(
@@ -741,7 +775,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         // Validate UUID format to prevent CBUUID(string:) crash
         guard Helper.isValidBLEUUID(descriptorUUID) else {
             let error = "Invalid descriptor UUID format: \(descriptorUUID)"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return
         }
@@ -754,7 +788,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         else {
             let error =
                 "Could not find descriptor with UUID \(descriptorUUID) on characteristic with UUID \(String(describing: characteristic?.uuid.uuidString)) on peripheral with UUID \(peripheralUUID)"
-            NSLog(error)
+            SwiftBleManager.logError(error)
             callback([error])
             return
         }
@@ -780,7 +814,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     @objc public func getDiscoveredPeripherals(
         _ callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("Get discovered peripherals")
+        SwiftBleManager.log("Get discovered peripherals")
         var discoveredPeripherals: [[String: Any]] = []
 
         serialQueue.sync {
@@ -796,14 +830,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ serviceUUIDStrings: [String],
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("Get connected peripherals")
+        SwiftBleManager.log("Get connected peripherals")
         var serviceUUIDs: [CBUUID] = []
 
         for uuidString in serviceUUIDStrings {
             // Validate BLE UUID format to prevent CBUUID(string:) crash
             guard Helper.isValidBLEUUID(uuidString) else {
                 let error = uuidString.isEmpty ? "Invalid UUID: empty string" : "Invalid UUID format: \(uuidString)"
-                NSLog(error)
+                SwiftBleManager.logError(error)
                 callback([error])
                 return
             }
@@ -887,7 +921,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         maxByteSize: Int,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("write")
+        SwiftBleManager.log("write")
 
         guard
             let context = getContext(
@@ -916,11 +950,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 withKey: key
             )
 
-            if SwiftBleManager.verboseLogging {
-                NSLog(
-                    "Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())"
-                )
-            }
+            SwiftBleManager.logVerbose(
+                "Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())"
+            )
 
             if dataMessage.count > maxByteSize {
                 var count = 0
@@ -950,11 +982,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     forKey: key
                 )
 
-                if SwiftBleManager.verboseLogging {
-                    NSLog(
-                        "Queued splitted message for \(key): \(enqueueResult.remainingCount) chunk(s) pending"
-                    )
-                }
+                SwiftBleManager.logVerbose(
+                    "Queued splitted message for \(key): \(enqueueResult.remainingCount) chunk(s) pending"
+                )
 
                 if let firstMessage = enqueueResult.firstChunk {
                     peripheral.instance.writeValue(
@@ -982,7 +1012,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         queueSleepTime: Int,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("writeWithoutResponse")
+        SwiftBleManager.log("writeWithoutResponse")
 
         guard
             let context = getContext(
@@ -998,11 +1028,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         let dataMessage = Data(message)
 
-        if SwiftBleManager.verboseLogging {
-            NSLog(
-                "Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())"
-            )
-        }
+        SwiftBleManager.logVerbose(
+            "Message to write(\(dataMessage.count)): \(dataMessage.hexadecimalString())"
+        )
 
         if dataMessage.count > maxByteSize {
             var offset = 0
@@ -1046,7 +1074,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         characteristicUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("read")
+        SwiftBleManager.log("read")
 
         guard
             let context = getContext(
@@ -1079,7 +1107,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         bufferLength: NSNumber,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("startNotificationWithBuffer")
+        SwiftBleManager.log("startNotificationWithBuffer")
 
         guard
             let context = getContext(
@@ -1116,7 +1144,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         characteristicUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("startNotification")
+        SwiftBleManager.log("startNotification")
 
         guard
             let context = getContext(
@@ -1152,7 +1180,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         characteristicUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("stopNotification")
+        SwiftBleManager.log("stopNotification")
 
         guard
             let context = getContext(
@@ -1184,9 +1212,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             self.bufferedCharacteristics.removeValue(forKey: key)
 
             peripheral?.instance.setNotifyValue(false, for: characteristic)
-            NSLog("Characteristic stopped notifying")
+            SwiftBleManager.log("Characteristic stopped notifying")
         } else {
-            NSLog("Characteristic is not notifying")
+            SwiftBleManager.log("Characteristic is not notifying")
             callback([])
         }
     }
@@ -1195,7 +1223,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ peripheralUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("getMaximumWriteValueLengthForWithoutResponse")
+        SwiftBleManager.log("getMaximumWriteValueLengthForWithoutResponse")
 
         guard let peripheral = peripherals[peripheralUUID] else {
             callback(["Peripheral not found or not connected"])
@@ -1218,7 +1246,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ peripheralUUID: String,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        NSLog("getMaximumWriteValueLengthForWithResponse")
+        SwiftBleManager.log("getMaximumWriteValueLengthForWithResponse")
 
         guard let peripheral = peripherals[peripheralUUID] else {
             callback(["Peripheral not found or not connected"])
@@ -1263,7 +1291,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ central: CBCentralManager,
         didConnect peripheral: CBPeripheral
     ) {
-        NSLog("Peripheral Connected: \(peripheral.uuidAsString() )")
+        SwiftBleManager.log("Peripheral Connected: \(peripheral.uuidAsString() )")
         peripheral.delegate = self
 
         /*
@@ -1294,7 +1322,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didFailToConnect peripheral: CBPeripheral,
         error: Error?
     ) {
-        NSLog(
+        SwiftBleManager.logError(
             "Peripheral connection failure: \(peripheral.uuidAsString() ) (\(error?.localizedDescription ?? "")"
         )
 
@@ -1315,10 +1343,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         error: Error?
     ) {
         let peripheralUUIDString: String = peripheral.uuidAsString()
-        NSLog("Peripheral Disconnected: \(peripheralUUIDString)")
+        SwiftBleManager.log("Peripheral Disconnected: \(peripheralUUIDString)")
 
         if let error = error {
-            NSLog("Error: \(error)")
+            SwiftBleManager.logError("Error: \(error)")
         }
 
         let errorStr = "Peripheral did disconnect: \(peripheralUUIDString)"
@@ -1447,9 +1475,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         advertisementData: [String: Any],
         rssi: NSNumber
     ) {
-        if SwiftBleManager.verboseLogging {
-            NSLog("Discover peripheral: \(peripheral.name ?? "NO NAME")")
-        }
+        SwiftBleManager.logVerbose("Discover peripheral: \(peripheral.name ?? "NO NAME")")
 
         var cp: Peripheral? = nil
         serialQueue.sync {
@@ -1578,7 +1604,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         abandonedDiscoveries.insert(key)
         let message =
             "Stale GATT cache: \(foreignClassNames.count) attribute(s) of unexpected type [\(foreignClassNames.joined(separator: ", "))] in \(location) of peripheral \(key); iOS reads the device's attribute table again after Bluetooth is turned off and on"
-        NSLog("%@", message)
+        SwiftBleManager.logError(message)
         invokeAndClearDictionary(
             &retrieveServicesCallbacks,
             withKey: key,
@@ -1619,7 +1645,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didDiscoverServices error: Error?
     ) {
         if let error = error {
-            NSLog("Error: \(error)")
+            SwiftBleManager.logError("Error: \(error)")
             invokeAndClearDictionary(
                 &retrieveServicesCallbacks,
                 withKey: peripheral.uuidAsString(),
@@ -1627,9 +1653,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             )
             return
         }
-        if SwiftBleManager.verboseLogging {
-            NSLog("Services Discover")
-        }
+        SwiftBleManager.logVerbose("Services Discover")
 
         let key = peripheral.uuidAsString()
         if abandonedDiscoveries.contains(key) {
@@ -1662,11 +1686,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             servicesForPeripheral
 
         for service in services.attributes {
-            if SwiftBleManager.verboseLogging {
-                NSLog(
-                    "Service \(service.uuid.uuidString) \(service.description)"
-                )
-            }
+            SwiftBleManager.logVerbose(
+                "Service \(service.uuid.uuidString) \(service.description)"
+            )
             if discoverIncludedServices {
                 peripheral.discoverIncludedServices(nil, for: service)  // discover included services
             }
@@ -1686,7 +1708,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             return
         }
         if let error = error {
-            NSLog("Error: \(error)")
+            SwiftBleManager.logError("Error: \(error)")
             return
         }
         if abandonedDiscoveries.contains(peripheral.uuidAsString()) {
@@ -1707,11 +1729,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             return
         }
         if let error = error {
-            NSLog("Error: \(error)")
+            SwiftBleManager.logError("Error: \(error)")
         }
-        if SwiftBleManager.verboseLogging {
-            NSLog("Characteristics For Service Discover")
-        }
+        SwiftBleManager.logVerbose("Characteristics For Service Discover")
 
         let peripheralUUIDString = peripheral.uuidAsString()
         // Checked even for an errored reply, which leaves the array as it
@@ -1790,7 +1810,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             return
         }
         if let error = error {
-            NSLog("Error: \(error)")
+            SwiftBleManager.logError("Error: \(error)")
         }
         let peripheralUUIDString: String = peripheral.uuidAsString()
         // While the discovery is marked abandoned, a reply here belongs to
@@ -1803,11 +1823,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let serviceUUIDString: String =
             characteristic.service?.uuid.uuidString ?? "unknown"
 
-        if SwiftBleManager.verboseLogging {
-            NSLog(
-                "Descriptor For Characteristic Discover \(serviceUUIDString) \(characteristic.uuid.uuidString)"
-            )
-        }
+        SwiftBleManager.logVerbose(
+            "Descriptor For Characteristic Discover \(serviceUUIDString) \(characteristic.uuid.uuidString)"
+        )
 
         // characteristic.service is weak; if it's gone, recover the owning
         // service from the latch, otherwise fail retrieveServices instead of
@@ -1871,9 +1889,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didReadRSSI RSSI: NSNumber,
         error: Error?
     ) {
-        if SwiftBleManager.verboseLogging {
-            print("didReadRSSI \(RSSI)")
-        }
+        SwiftBleManager.logVerbose("didReadRSSI \(RSSI)")
 
         if let error = error {
             invokeAndClearDictionary(
@@ -1902,7 +1918,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         )
 
         if let error = error {
-            NSLog(
+            SwiftBleManager.logError(
                 "Error reading descriptor value for \(descriptor.uuid) on characteristic \(descriptor.characteristic!.uuid) :\(error)"
             )
             invokeAndClearDictionary(
@@ -1914,11 +1930,11 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
 
         if let descriptorValue = descriptor.value as? Data {
-            NSLog(
+            SwiftBleManager.logVerbose(
                 "Read value [descriptor: \(descriptor.uuid), characteristic: \(descriptor.characteristic!.uuid)]: (\(descriptorValue.count)) \(descriptorValue.hexadecimalString())"
             )
         } else {
-            NSLog(
+            SwiftBleManager.logVerbose(
                 "Read value [descriptor: \(descriptor.uuid), characteristic: \(descriptor.characteristic!.uuid)]: \(String(describing: descriptor.value))"
             )
         }
@@ -1927,18 +1943,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             // The most future proof way of doing this that I could find, other option would be running strcmp on CBUUID strings
             // https://developer.apple.com/documentation/corebluetooth/cbuuid/characteristic_descriptors
             if let descriptorValue = descriptor.value as? Data {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Descriptor value is Data")
-                }
+                SwiftBleManager.logVerbose("Descriptor value is Data")
                 invokeAndClearDictionary(
                     &readDescriptorCallbacks,
                     withKey: key,
                     usingParameters: [NSNull(), descriptorValue.toArray()]
                 )
             } else if let descriptorValue = descriptor.value as? NSNumber {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Descriptor value is NSNumber")
-                }
+                SwiftBleManager.logVerbose("Descriptor value is NSNumber")
                 var value = descriptorValue.uint64Value
                 let byteData = Data(
                     bytes: &value,
@@ -1950,9 +1962,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     usingParameters: [NSNull(), byteData.toArray()]
                 )
             } else if let descriptorValue = descriptor.value as? String {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Descriptor value is String")
-                }
+                SwiftBleManager.logVerbose("Descriptor value is String")
                 if let byteData = descriptorValue.data(using: .utf8) {
                     invokeAndClearDictionary(
                         &readDescriptorCallbacks,
@@ -1961,7 +1971,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     )
                 }
             } else {
-                NSLog(
+                SwiftBleManager.logVerbose(
                     "Unrecognized type of descriptor: (UUID: \(descriptor.uuid), value type: \(type(of: descriptor.value)), value: \(String(describing: descriptor.value)))"
                 )
                 if let descriptorValue = descriptor.value as? Data {
@@ -1986,7 +1996,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         )
 
         if let error = error {
-            NSLog("Error \(characteristic.uuid) :\(error)")
+            SwiftBleManager.logError("Error \(characteristic.uuid) :\(error)")
             invokeAndClearDictionary(
                 &readCallbacks,
                 withKey: key,
@@ -1995,8 +2005,8 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             return
         }
 
-        if SwiftBleManager.verboseLogging, let value = characteristic.value {
-            NSLog(
+        if let value = characteristic.value {
+            SwiftBleManager.logVerbose(
                 "Read value [\(characteristic.uuid)]: \( value.hexadecimalString())"
             )
         }
@@ -2054,7 +2064,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         error: Error?
     ) {
         if let error = error {
-            NSLog(
+            SwiftBleManager.logError(
                 "Error in didUpdateNotificationStateForCharacteristic: \(error)"
             )
 
@@ -2102,9 +2112,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             }
         } else {
             if characteristic.isNotifying {
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Notification began on \(characteristic.uuid)")
-                }
+                SwiftBleManager.logVerbose("Notification began on \(characteristic.uuid)")
                 if notificationCallbacks[key] != nil {
                     invokeAndClearDictionary(
                         &notificationCallbacks,
@@ -2114,9 +2122,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 }
             } else {
                 // Notification has stopped
-                if SwiftBleManager.verboseLogging {
-                    NSLog("Notification ended on \(characteristic.uuid)")
-                }
+                SwiftBleManager.logVerbose("Notification ended on \(characteristic.uuid)")
                 if stopNotificationCallbacks[key] != nil {
                     invokeAndClearDictionary(
                         &stopNotificationCallbacks,
@@ -2133,7 +2139,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didWriteValueFor descriptor: CBDescriptor,
         error: Error?
     ) {
-        NSLog("didWrite descriptor")
+        SwiftBleManager.log("didWrite descriptor")
 
         let key = Helper.key(
             forPeripheral: peripheral,
@@ -2143,7 +2149,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let callbacks = writeDescriptorCallbacks[key]
         if callbacks != nil {
             if let error = error {
-                NSLog("\(error)")
+                SwiftBleManager.logError("\(error)")
                 invokeAndClearDictionary(
                     &writeDescriptorCallbacks,
                     withKey: key,
@@ -2164,7 +2170,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didWriteValueFor characteristic: CBCharacteristic,
         error: Error?
     ) {
-        NSLog("didWrite")
+        SwiftBleManager.log("didWrite")
 
         let key = Helper.key(
             forPeripheral: peripheral,
@@ -2174,7 +2180,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         if peripheralWriteCallbacks != nil {
             if let error = error {
-                NSLog("\(error)")
+                SwiftBleManager.logError("\(error)")
                 invokeAndClearDictionary(
                     &writeCallbacks,
                     withKey: key,
@@ -2185,7 +2191,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 }
             } else {
                 if let message = dequeueNextSplitMessage(forKey: key) {
-                    NSLog("Message to write \(message.hexadecimalString())")
+                    SwiftBleManager.logVerbose("Message to write \(message.hexadecimalString())")
                     peripheral.writeValue(
                         message,
                         for: characteristic,

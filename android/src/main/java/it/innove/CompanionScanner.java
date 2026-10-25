@@ -15,7 +15,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Build;
 import android.os.ParcelUuid;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,7 +43,7 @@ public class CompanionScanner {
     private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
-            Log.d(LOG_TAG, "onActivityResult");
+            BleLog.d(LOG_TAG, "onActivityResult");
             if (requestCode != SELECT_DEVICE_REQUEST_CODE) {
                 super.onActivityResult(activity, requestCode, resultCode, intent);
                 return;
@@ -56,7 +55,7 @@ public class CompanionScanner {
 
             if (resultCode == RESULT_OK) {
                 // Have device?
-                Log.d(LOG_TAG, "Ok activity result");
+                BleLog.d(LOG_TAG, "Ok activity result");
 
                 Object result = intent.getParcelableExtra(CompanionDeviceManager.EXTRA_DEVICE);
                 if (result != null) {
@@ -65,7 +64,7 @@ public class CompanionScanner {
                     } else if (result instanceof ScanResult) {
                         peripheral = bleManager.savePeripheral(((ScanResult) result).getDevice());
                     } else {
-                        Log.wtf(LOG_TAG, "Unexpected AssociationInfo device!");
+                        BleLog.wtf(LOG_TAG, "Unexpected AssociationInfo device!");
                     }
 
                     if (peripheral != null && scanCallback != null) {
@@ -80,7 +79,7 @@ public class CompanionScanner {
                 }
             } else {
                 // No device, user cancelled?
-                Log.d(LOG_TAG, "Non-ok activity result");
+                BleLog.d(LOG_TAG, "Non-ok activity result");
             }
 
 
@@ -99,7 +98,7 @@ public class CompanionScanner {
     }
 
     public void scan(ReadableArray serviceUUIDs, ReadableMap options, Callback callback) {
-        Log.d(LOG_TAG, "companion scan start");
+        BleLog.d(LOG_TAG, "companion scan start");
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             callback.invoke("Companion not supported");
@@ -114,11 +113,11 @@ public class CompanionScanner {
             String uuidString = serviceUUIDs.getString(i);
             // Validate UUID format to prevent crash
             if (!UUIDHelper.isValidBLEUUID(uuidString)) {
-                Log.w(LOG_TAG, "Warning: Invalid UUID format in scan options: " + uuidString + ", skipping");
+                BleLog.w(LOG_TAG, "Warning: Invalid UUID format in scan options: " + uuidString + ", skipping");
                 continue;
             }
             final ParcelUuid uuid = new ParcelUuid(UUIDHelper.uuidFromString(uuidString));
-            Log.d(LOG_TAG, "Filter service: " + uuid);
+            BleLog.d(LOG_TAG, "Filter service: " + uuid);
             validUUIDCount++;
 
             builder = builder
@@ -144,7 +143,7 @@ public class CompanionScanner {
         companionDeviceManager.associate(pairingRequest, new CompanionDeviceManager.Callback() {
             @Override
             public void onFailure(@Nullable CharSequence charSequence) {
-                Log.d(LOG_TAG, "companion failure: " + charSequence);
+                BleLog.e(LOG_TAG, "companion failure: " + charSequence);
                 String msg = charSequence != null
                     ? "Companion association failed: " + charSequence.toString()
                     : "Companion association failed" ;
@@ -164,13 +163,13 @@ public class CompanionScanner {
 
             @Override
             public void onDeviceFound(@NonNull IntentSender intentSender) {
-                Log.d(LOG_TAG, "companion device found");
+                BleLog.d(LOG_TAG, "companion device found");
                 try {
                     reactContext.getCurrentActivity().startIntentSenderForResult(
                             intentSender, SELECT_DEVICE_REQUEST_CODE, null, 0, 0, 0
                     );
                 } catch (IntentSender.SendIntentException e) {
-                    Log.e(LOG_TAG, "Failed to send intent: " + e.toString());
+                    BleLog.e(LOG_TAG, "Failed to send intent: " + e.toString());
                     String msg = "Failed to send intent: " + e.toString();
 
                     if (scanCallback != null) {
