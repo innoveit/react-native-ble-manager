@@ -261,7 +261,9 @@ public class BleManager extends NativeBleManagerSpec {
         int logLevel = BleLog.NORMAL;
         if (options.hasKey("logLevel") && options.getType("logLevel") == ReadableType.String) {
             logLevel = BleLog.parseLevel(options.getString("logLevel"));
-        } else if (options.hasKey("verboseLogging") && options.getBoolean("verboseLogging")) {
+        } else if (options.hasKey("verboseLogging")
+                && options.getType("verboseLogging") == ReadableType.Boolean
+                && options.getBoolean("verboseLogging")) {
             logLevel = BleLog.VERBOSE;
         }
         BleLog.setLevel(logLevel);
@@ -574,7 +576,9 @@ public class BleManager extends NativeBleManagerSpec {
                 for (int i = 0; i < message.size(); i++) {
                     decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
                 }
-                BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                if (BleLog.isVerbose()) {
+                    BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                }
                 peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
                         decoded, (int) maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             } else {
@@ -608,7 +612,9 @@ public class BleManager extends NativeBleManagerSpec {
                 for (int i = 0; i < message.size(); i++) {
                     decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
                 }
-                BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                if (BleLog.isVerbose()) {
+                    BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                }
                 peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
                         decoded, (int) maxByteSize, (int) queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
             } else {
@@ -712,7 +718,9 @@ public class BleManager extends NativeBleManagerSpec {
             for (int i = 0; i < message.size(); i++) {
                 decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
             }
-            BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+            if (BleLog.isVerbose()) {
+                BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+            }
             peripheral.writeDescriptor(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), UUIDHelper.uuidFromString(descriptorUUID), decoded, callback);
         }
     }

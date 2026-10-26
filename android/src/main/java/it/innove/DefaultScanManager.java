@@ -163,15 +163,17 @@ public class DefaultScanManager extends ScanManager {
                     callback.invoke("manufacturerData and manufacturerDataMask must have the same length");
                     return;
                 }
-                BleLog.data(
-                        BleManager.LOG_TAG,
-                        String.format(
-                                "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
-                                manufacturerId,
-                                Arrays.toString(manufacturerDataBytes),
-                                Arrays.toString(manufacturerDataMaskBytes)
-                        )
-                );
+                if (BleLog.isVerbose()) {
+                    BleLog.data(
+                            BleManager.LOG_TAG,
+                            String.format(
+                                    "Filter on manufacturerId: %d; manufacturerData: %s; manufacturerDataMask: %s",
+                                    manufacturerId,
+                                    Arrays.toString(manufacturerDataBytes),
+                                    Arrays.toString(manufacturerDataMaskBytes)
+                            )
+                    );
+                }
                 ScanFilter filter = new ScanFilter.Builder()
                         .setManufacturerData(
                                 manufacturerId,
@@ -273,18 +275,20 @@ public class DefaultScanManager extends ScanManager {
     }
 
     private void onDiscoveredPeripheral(final ScanResult result) {
-        String info;
-        ScanRecord record = result.getScanRecord();
+        if (BleLog.isVerbose()) {
+            String info;
+            ScanRecord record = result.getScanRecord();
 
-        if (record != null) {
-            info = record.getDeviceName();
-        } else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-            info = result.getDevice().getName();
-        } else {
-            info = result.toString();
+            if (record != null) {
+                info = record.getDeviceName();
+            } else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                info = result.getDevice().getName();
+            } else {
+                info = result.toString();
+            }
+
+            BleLog.data(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
         }
-
-        BleLog.data(BleManager.LOG_TAG, "DiscoverPeripheral: " + info);
 
         DefaultPeripheral peripheral = (DefaultPeripheral) bleManager.getPeripheral(result.getDevice());
         if (peripheral == null) {

@@ -24,6 +24,10 @@ final class BleLog {
         level = newLevel;
     }
 
+    static boolean isVerbose() {
+        return level >= VERBOSE;
+    }
+
     static int parseLevel(String value) {
         if ("none".equals(value)) {
             return NONE;
