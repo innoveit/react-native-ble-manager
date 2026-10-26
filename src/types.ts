@@ -170,15 +170,11 @@ export interface ScanOptions {
   useScanIntent?: boolean;
 }
 
-export interface DeviceSetupScanOptions {
+export interface CompanionScanOptions {
   /**
    * Scan only for a single peripheral.
    */
   single?: boolean;
-  /**
-   * Enable verbose native logging during device setup.
-   */
-  verboseLogging?: boolean;
 }
 
 /**

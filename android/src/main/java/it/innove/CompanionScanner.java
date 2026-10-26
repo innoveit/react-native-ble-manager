@@ -31,8 +31,6 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 
-import java.util.Objects;
-
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class CompanionScanner {
 
@@ -73,12 +71,12 @@ public class CompanionScanner {
                     if (peripheral != null && scanCallback != null) {
                         scanCallback.invoke(null, peripheral.asWritableMap());
                         scanCallback = null;
-                        bleManager.emitOnDeviceSetupSelected(peripheral.asWritableMap());
+                        bleManager.emitOnCompanionPeripheral(peripheral.asWritableMap());
                     }
                 } else {
                     scanCallback.invoke(null, null);
                     scanCallback = null;
-                    bleManager.emitOnDeviceSetupSelected(null);
+                    bleManager.emitOnCompanionPeripheral(null);
                 }
             } else {
                 // No device, user cancelled?
@@ -90,7 +88,7 @@ public class CompanionScanner {
                 scanCallback.invoke(null, peripheral != null ? peripheral.asWritableMap() : null);
                 scanCallback = null;
             }
-            bleManager.emitOnDeviceSetupSelected(peripheral != null ? peripheral.asWritableMap() : null);
+            bleManager.emitOnCompanionPeripheral(peripheral != null ? peripheral.asWritableMap() : null);
         }
     };
 
@@ -112,7 +110,7 @@ public class CompanionScanner {
                 .setSingleDevice(options.hasKey("single") && options.getBoolean("single")) ;
 
         for (int i = 0; i < serviceUUIDs.size(); i++) {
-            final ParcelUuid uuid = new ParcelUuid(UUIDHelper.uuidFromString(Objects.requireNonNull(serviceUUIDs.getString(i))));
+            final ParcelUuid uuid = new ParcelUuid(UUIDHelper.uuidFromString(serviceUUIDs.getString(i)));
             Log.d(LOG_TAG, "Filter service: " + uuid);
 
             builder = builder
@@ -146,15 +144,15 @@ public class CompanionScanner {
                 }
 
                 WritableMap map = Arguments.createMap();
-                map.putString("error", charSequence != null ? charSequence.toString() : "");
-                bleManager.emitOnDeviceSetupFailure(map);
+                map.putString("error", charSequence.toString());
+                bleManager.emitOnCompanionFailure(map);
             }
 
             @Override
             public void onDeviceFound(@NonNull IntentSender intentSender) {
                 Log.d(LOG_TAG, "companion device found");
                 try {
-                    Objects.requireNonNull(reactContext.getCurrentActivity()).startIntentSenderForResult(
+                    reactContext.getCurrentActivity().startIntentSenderForResult(
                             intentSender, SELECT_DEVICE_REQUEST_CODE, null, 0, 0, 0
                     );
                 } catch (IntentSender.SendIntentException e) {
@@ -168,7 +166,7 @@ public class CompanionScanner {
 
                     WritableMap map = Arguments.createMap();
                     map.putString("error", msg);
-                    bleManager.emitOnDeviceSetupFailure(map);
+                    bleManager.emitOnCompanionFailure(map);
                 }
             }
         }, null);

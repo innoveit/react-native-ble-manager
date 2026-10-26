@@ -7,11 +7,11 @@ import {
   BleState,
   ConnectOptions,
   ConnectionPriority,
+  CompanionScanOptions,
   Peripheral,
   PeripheralInfo,
   ScanOptions,
   StartOptions,
-  DeviceSetupScanOptions,
 } from './types';
 import { CallbackError } from './NativeBleManager';
 export * from './types';
@@ -712,9 +712,9 @@ class BleManager {
    *
    * @returns
    */
-  getAssociatedDevices() {
+  getAssociatedPeripherals() {
     return new Promise<Peripheral[]>((fulfill, reject) => {
-      BleManagerModule.getAssociatedDevices(
+      BleManagerModule.getAssociatedPeripherals(
         (error: string | null, peripherals: Peripheral[] | null) => {
           if (error) {
             reject(error);
@@ -732,9 +732,9 @@ class BleManager {
    * @returns Promise that resolves once the peripheral has been removed. Rejects
    *          if no association is found.
    */
-  removeAssociatedDevice(peripheralId: string) {
+  removeAssociatedPeripheral(peripheralId: string) {
     return new Promise<void>((fulfill, reject) => {
-      BleManagerModule.removeAssociatedDevice(
+      BleManagerModule.removeAssociatedPeripheral(
         peripheralId,
         (error: string | null) => {
           if (error) {
@@ -748,26 +748,28 @@ class BleManager {
   }
 
   /**
+   * [Android only]
    *
-   * Check if current device supports device setup.
+   * Check if current device supports companion device manager.
    *
    * @return Promise resolving to a boolean.
    */
-  supportsDeviceSetup() {
+  supportsCompanion() {
     return new Promise<boolean>((fulfill) => {
-      BleManagerModule.supportsDeviceSetup((supports: boolean) =>
+      BleManagerModule.supportsCompanion((supports: boolean) =>
         fulfill(supports)
       );
     });
   }
 
   /**
+   * [Android only, API 26+]
    *
-   * Start device setup scan.
+   * Start companion scan.
    */
-  deviceSetupScan(serviceUUIDs: string[], options: DeviceSetupScanOptions = {}) {
+  companionScan(serviceUUIDs: string[], options: CompanionScanOptions = {}) {
     return new Promise<Peripheral | null>((fulfill, reject) => {
-      BleManagerModule.deviceSetupScan(
+      BleManagerModule.companionScan(
         serviceUUIDs,
         options,
         (error: string | null, peripheral: Peripheral | null) => {
