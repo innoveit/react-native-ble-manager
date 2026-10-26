@@ -51,6 +51,7 @@
         "version": "git add -A",
         "clean": "rimraf dist",
         "type:check": "tsc -p tsconfig.json --noEmit",
+        "test": "node --test tests/*.test.cjs",
         "build:plugin": "tsc --build plugin",
         "clean:plugin": "expo-module clean plugin",
         "prepare": "npm run build",

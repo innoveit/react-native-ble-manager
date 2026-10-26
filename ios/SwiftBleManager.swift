@@ -11,6 +11,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     private weak var bleManager: BleManager?
     private var manager: CBCentralManager?
     private var scanTimer: Timer?
+    private var accessorySetup: AnyObject?
 
     private var peripherals: [String: Peripheral]
     private var connectCallbacks: [String: [RCTResponseSenderBlock]]
@@ -113,6 +114,13 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     }
 
     @objc func bridgeReloading() {
+        DispatchQueue.main.async {
+            #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, *) {
+                (self.accessorySetup as? AccessorySetup)?.cancel()
+            }
+            #endif
+        }
         if let manager = manager {
             if let scanTimer = self.scanTimer {
                 scanTimer.invalidate()
@@ -2296,5 +2304,82 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         callback: RCTResponseSenderBlock
     ) {
         callback(["Not supported"])
+    }
+
+    @objc public func supportsAccessorySetup(_ callback: RCTResponseSenderBlock) {
+        #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+        if #available(iOS 18.0, *) {
+            callback([true])
+            return
+        }
+        #endif
+        callback([false])
+    }
+
+    #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+    @available(iOS 18.0, *)
+    private func accessorySetupController() -> AccessorySetup {
+        if let controller = accessorySetup as? AccessorySetup { return controller }
+        let controller = AccessorySetup()
+        accessorySetup = controller
+        return controller
+    }
+    #endif
+
+    @objc public func accessoriesScan(
+        _ displayItems: [Any],
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.main.async {
+            #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, *) {
+                self.accessorySetupController().scan(displayItems, resolve: resolve, reject: reject)
+                return
+            }
+            #endif
+            reject("NOT_SUPPORTED", "AccessorySetupKit requires iOS 18 or newer.", nil)
+        }
+    }
+
+    @objc public func getPairedAccessories(
+        _ resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.main.async {
+            #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, *) {
+                self.accessorySetupController().getPairedAccessories(resolve: resolve, reject: reject)
+                return
+            }
+            #endif
+            reject("NOT_SUPPORTED", "AccessorySetupKit requires iOS 18 or newer.", nil)
+        }
+    }
+
+    @objc public func removeAccessory(
+        _ id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.main.async {
+            #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, *) {
+                self.accessorySetupController().remove(id, resolve: resolve, reject: reject)
+                return
+            }
+            #endif
+            reject("NOT_SUPPORTED", "AccessorySetupKit requires iOS 18 or newer.", nil)
+        }
+    }
+
+    @objc public func stopAccessoriesScan() {
+        DispatchQueue.main.async {
+            #if canImport(AccessorySetupKit) && !targetEnvironment(macCatalyst)
+            if #available(iOS 18.0, *) {
+                (self.accessorySetup as? AccessorySetup)?.stopScan()
+            }
+            #endif
+        }
     }
 }

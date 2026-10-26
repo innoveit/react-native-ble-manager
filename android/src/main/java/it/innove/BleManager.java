@@ -26,6 +26,7 @@ import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
@@ -363,6 +364,31 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void supportsCompanion(Callback callback) {
         callback.invoke(companionScanner != null);
+    }
+
+    @ReactMethod
+    public void supportsAccessorySetup(Callback callback) {
+        callback.invoke(false);
+    }
+
+    @ReactMethod
+    public void accessoriesScan(ReadableArray displayItems, Promise promise) {
+        promise.reject("NOT_SUPPORTED", "AccessorySetupKit requires iOS 18 or newer.");
+    }
+
+    @ReactMethod
+    public void getPairedAccessories(Promise promise) {
+        promise.reject("NOT_SUPPORTED", "AccessorySetupKit requires iOS 18 or newer.");
+    }
+
+    @ReactMethod
+    public void removeAccessory(String id, Promise promise) {
+        promise.reject("NOT_SUPPORTED", "AccessorySetupKit requires iOS 18 or newer.");
+    }
+
+    @ReactMethod
+    public void stopAccessoriesScan() {
+        // No AccessorySetupKit session on Android.
     }
 
     @ReactMethod

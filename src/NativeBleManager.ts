@@ -193,6 +193,18 @@ export interface Spec extends TurboModule {
     callback: (error: CallbackError, peripheral: Peripheral | null) => void
   ): void;
 
+  supportsAccessorySetup(callback: (supports: boolean) => void): void;
+
+  accessoriesScan(
+    displayItems: IOSAccessoryDisplayItem[]
+  ): Promise<IOSAccessory[]>;
+
+  getPairedAccessories(): Promise<IOSAccessory[]>;
+
+  removeAccessory(id: string): Promise<void>;
+
+  stopAccessoriesScan(): void;
+
   /**
    * Supported events.
    */
@@ -220,6 +232,18 @@ export type BleScanMatchMode = number;
 export type BleScanMode = number;
 export type BleScanPhyMode = number;
 export type CallbackError = string | null;
+export type IOSAccessoryDisplayItem = {
+  name: string;
+  productImage: string;
+  serviceUUID: string;
+};
+export type IOSAccessory = {
+  /** CoreBluetooth identifier, usable with connect(). */
+  id: string;
+  name: string;
+  /** ASAccessoryState: 0 unauthorized, 10 awaiting authorization, 20 authorized. */
+  state: number;
+};
 export type BleState = string;
 
 export type Peripheral = {

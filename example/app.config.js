@@ -1,4 +1,3 @@
-
 export default ({ config }) => {
   if (process.env.MY_ENVIRONMENT === 'production') {
     config.name = 'RN BLE Example';
@@ -13,6 +12,12 @@ export default ({ config }) => {
     },
     ios: {
       bundleIdentifier: 'it.innove.example.ble',
+      ...(process.env.BLE_ACCESSORY_SETUP === '1' && {
+        infoPlist: {
+          NSAccessorySetupKitSupports: ['Bluetooth'],
+          NSAccessorySetupBluetoothServices: ['180D'],
+        },
+      }),
     },
     plugins: [
       [
