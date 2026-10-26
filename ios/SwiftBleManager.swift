@@ -28,13 +28,54 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     private var connectedPeripherals: Set<String>
 
     private var retrieveServicesLatches: [String: Set<CBService>]
-    private var characteristicsLatches: [String: Set<CBCharacteristic>]
+    private var characteristicsLatches: [CBService: Set<CBCharacteristic>]
+    // Peripherals whose current discovery failed as a stale GATT cache. Its
+    // replies still in flight start no further requests, since on a stale
+    // table every reply is another chance for CoreBluetooth to route it to
+    // the wrong attribute and abort. Cleared when a successful services
+    // reply arrives that a pending call is waiting for. Touched only on the
+    // delegate queue.
+    private var abandonedDiscoveries = Set<String>()
 
     private let serialQueue = DispatchQueue(label: "BleManager.serialQueue")
+
+    // Structured error payload so JS can detect specific failures by (domain, code).
+    private static func errorPayload(_ error: Error) -> [String: Any] {
+        return [
+            "code": error._code,
+            "domain": error._domain,
+            "message": error.localizedDescription,
+        ]
+    }
+
+    // The structured errors this module raises itself, rather than passes
+    // on from CoreBluetooth, use the same shape in their own domain.
+    static let errorDomain = "BleManagerErrorDomain"
+
+    enum ErrorCode: Int {
+        // The attribute table iOS cached for the peripheral no longer matches
+        // the device (see failRetrieveServicesForStaleGattCache).
+        case staleGattCache = 1
+    }
+
+    private static func errorPayload(_ code: ErrorCode, message: String)
+        -> [String: Any]
+    {
+        return [
+            "code": code.rawValue,
+            "domain": errorDomain,
+            "message": message,
+        ]
+    }
 
     private var exactAdvertisingName: [String]
 
     static var verboseLogging = false
+
+    // From the discoverIncludedServices start option. Skipping the
+    // included-services request also skips the second characteristic
+    // discovery didDiscoverIncludedServicesFor starts for every service.
+    private var discoverIncludedServices = true
 
     @objc public init(bleManager: BleManager) {
         peripherals = [:]
@@ -133,6 +174,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
     }
 
+    private func clearDiscoveryLatches(for peripheral: CBPeripheral) {
+        retrieveServicesLatches.removeValue(forKey: peripheral.uuidAsString())
+        for service in Array(characteristicsLatches.keys)
+        where service.peripheral?.identifier == peripheral.identifier {
+            characteristicsLatches.removeValue(forKey: service)
+        }
+    }
+
     private func enqueueSplitMessages(
         _ messages: [Data],
         forKey key: String
@@ -191,6 +240,21 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         prop: CBCharacteristicProperties,
         callback: @escaping RCTResponseSenderBlock
     ) -> BLECommandContext? {
+        // Validate UUID formats to prevent CBUUID(string:) crash
+        guard Helper.isValidBLEUUID(serviceUUIDString) else {
+            let error = "Invalid service UUID format: \(serviceUUIDString)"
+            NSLog(error)
+            callback([error])
+            return nil
+        }
+        
+        guard Helper.isValidBLEUUID(characteristicUUIDString) else {
+            let error = "Invalid characteristic UUID format: \(characteristicUUIDString)"
+            NSLog(error)
+            callback([error])
+            return nil
+        }
+        
         let serviceUUID = CBUUID(string: serviceUUIDString)
         let characteristicUUID = CBUUID(string: characteristicUUIDString)
 
@@ -268,6 +332,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ options: NSDictionary,
         callback: RCTResponseSenderBlock
     ) {
+        if manager != nil && !(options["forceReinitialize"] as? Bool ?? false) {
+            callback([])
+            return
+        }
         if SwiftBleManager.verboseLogging {
             NSLog("BleManager initialized")
         }
@@ -291,6 +359,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let verboseLogging = options["verboseLogging"] as? Bool {
             SwiftBleManager.verboseLogging = verboseLogging
         }
+
+        discoverIncludedServices =
+            options["discoverIncludedServices"] as? Bool ?? true
 
         var queue: DispatchQueue
         if let queueIdentifierKey = options["queueIdentifierKey"] as? String {
@@ -363,7 +434,21 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let serviceUUIDStrings = scanningOptions["serviceUUIDs"]
             as? [String]
         {
-            serviceUUIDs = serviceUUIDStrings.map { CBUUID(string: $0) }
+            // Validate UUID formats to prevent CBUUID(string:) crash
+            for uuidString in serviceUUIDStrings {
+                if Helper.isValidBLEUUID(uuidString) {
+                    serviceUUIDs.append(CBUUID(string: uuidString))
+                } else {
+                    NSLog("Warning: Invalid UUID format in scan options: \(uuidString), skipping")
+                }
+            }
+            // If serviceUUIDs were provided but none were valid, return error
+            if !serviceUUIDStrings.isEmpty && serviceUUIDs.isEmpty {
+                let error = "Invalid UUID format in serviceUUIDs: all UUIDs are invalid"
+                NSLog(error)
+                callback([error])
+                return
+            }
         }
 
         var options: [String: Any]?
@@ -384,12 +469,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         )
 
         let timeoutSeconds = scanningOptions["seconds"] as? Double ?? 0
-        if timeoutSeconds > 0 {
-            if let scanTimer = scanTimer {
-                scanTimer.invalidate()
-                self.scanTimer = nil
-            }
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
+            self.scanTimer?.invalidate()
+            self.scanTimer = nil
+            if timeoutSeconds > 0 {
                 self.scanTimer = Timer.scheduledTimer(
                     timeInterval: timeoutSeconds,
                     target: self,
@@ -482,21 +565,16 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let peripheral = peripherals[peripheralUUID] {
             NSLog("Disconnecting from peripheral with UUID: \(peripheralUUID)")
 
-            if let services = peripheral.instance.services {
-                for service in services {
-                    if let characteristics = service.characteristics {
-                        for characteristic in characteristics {
-                            if characteristic.isNotifying {
-                                NSLog(
-                                    "Remove notification from: \(characteristic.uuid)"
-                                )
-                                peripheral.instance.setNotifyValue(
-                                    false,
-                                    for: characteristic
-                                )
-                            }
-                        }
-                    }
+            for service in peripheral.instance.safeServices.attributes {
+                for characteristic in service.safeCharacteristics.attributes
+                where characteristic.isNotifying {
+                    NSLog(
+                        "Remove notification from: \(characteristic.uuid)"
+                    )
+                    peripheral.instance.setNotifyValue(
+                        false,
+                        for: characteristic
+                    )
                 }
             }
 
@@ -520,17 +598,27 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         if let peripheral = peripherals[peripheralUUID],
             peripheral.instance.state == .connected
         {
+            // Validated before the callback is queued: a call rejected here
+            // but left queued would be called again when the next discovery
+            // on this peripheral settles, and React Native's TurboModule
+            // bridge treats a second call as fatal.
+            var uuids: [CBUUID] = []
+            for string in services {
+                // Validate UUID format to prevent CBUUID(string:) crash
+                guard Helper.isValidBLEUUID(string) else {
+                    let error = "Invalid service UUID format: \(string)"
+                    NSLog(error)
+                    callback([error])
+                    return
+                }
+                uuids.append(CBUUID(string: string))
+            }
+
             insertCallback(
                 callback,
                 intoDictionary: &retrieveServicesCallbacks,
                 withKey: peripheral.instance.uuidAsString()
             )
-
-            var uuids: [CBUUID] = []
-            for string in services {
-                let uuid = CBUUID(string: string)
-                uuids.append(uuid)
-            }
 
             if !uuids.isEmpty {
                 peripheral.instance.discoverServices(uuids)
@@ -587,6 +675,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let peripheral = context.peripheral
         let characteristic = context.characteristic
 
+        // Validate UUID format to prevent CBUUID(string:) crash
+        guard Helper.isValidBLEUUID(descriptorUUID) else {
+            let error = "Invalid descriptor UUID format: \(descriptorUUID)"
+            NSLog(error)
+            callback([error])
+            return
+        }
+
         guard
             let descriptor = Helper.findDescriptor(
                 fromUUID: CBUUID(string: descriptorUUID),
@@ -642,6 +738,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let peripheral = context.peripheral
         let characteristic = context.characteristic
 
+        // Validate UUID format to prevent CBUUID(string:) crash
+        guard Helper.isValidBLEUUID(descriptorUUID) else {
+            let error = "Invalid descriptor UUID format: \(descriptorUUID)"
+            NSLog(error)
+            callback([error])
+            return
+        }
+
         guard
             let descriptor = Helper.findDescriptor(
                 fromUUID: CBUUID(string: descriptorUUID),
@@ -696,6 +800,15 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         var serviceUUIDs: [CBUUID] = []
 
         for uuidString in serviceUUIDStrings {
+            // Validate BLE UUID format to prevent CBUUID(string:) crash
+            guard Helper.isValidBLEUUID(uuidString) else {
+                let error = uuidString.isEmpty ? "Invalid UUID: empty string" : "Invalid UUID format: \(uuidString)"
+                NSLog(error)
+                callback([error])
+                return
+            }
+            
+            // Create CBUUID only with validated UUID string (prevents crash)
             serviceUUIDs.append(CBUUID(string: uuidString))
         }
 
@@ -1181,14 +1294,17 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didFailToConnect peripheral: CBPeripheral,
         error: Error?
     ) {
-        let errorStr =
+        NSLog(
             "Peripheral connection failure: \(peripheral.uuidAsString() ) (\(error?.localizedDescription ?? "")"
-        NSLog(errorStr)
+        )
 
+        let errorParam: Any =
+            error.map(SwiftBleManager.errorPayload)
+            ?? "Peripheral connection failure: \(peripheral.uuidAsString())"
         invokeAndClearDictionary(
             &connectCallbacks,
             withKey: peripheral.uuidAsString(),
-            usingParameters: [errorStr]
+            usingParameters: [errorParam]
         )
     }
 
@@ -1222,6 +1338,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             withKey: peripheralUUIDString,
             usingParameters: [errorStr]
         )
+        clearDiscoveryLatches(for: peripheral)
 
         for key in readCallbacks.keys {
             if let keyString = key as String?,
@@ -1391,33 +1508,169 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
     }
 
+    // The first array in the peripheral's attribute tree that holds an
+    // attribute of the wrong class, read through the KVC accessors.
+    private func firstForeignArray(
+        in peripheral: CBPeripheral
+    ) -> (location: String, foreignClassNames: [String])? {
+        let services = peripheral.safeServices
+        if services.hasForeign {
+            return ("services", services.foreignClassNames)
+        }
+        for service in services.attributes {
+            let characteristics = service.safeCharacteristics
+            if characteristics.hasForeign {
+                return (
+                    "characteristics of service \(service.uuid.uuidString)",
+                    characteristics.foreignClassNames
+                )
+            }
+            for characteristic in characteristics.attributes {
+                let descriptors = characteristic.safeDescriptors
+                if descriptors.hasForeign {
+                    return (
+                        "descriptors of characteristic \(characteristic.uuid.uuidString)",
+                        descriptors.foreignClassNames
+                    )
+                }
+            }
+        }
+        return nil
+    }
+
+    // The last check before a discovery reports success. Some arrays, such
+    // as a characteristic's descriptors, are never iterated on the way here,
+    // so the whole tree is read once more and any foreign entry fails the
+    // discovery as stale.
+    private func failIfTreeHoldsForeignAttributes(
+        _ peripheral: CBPeripheral
+    ) -> Bool {
+        guard let foreign = firstForeignArray(in: peripheral) else {
+            return false
+        }
+        failRetrieveServicesForStaleGattCache(
+            peripheral,
+            location: foreign.location,
+            foreignClassNames: foreign.foreignClassNames
+        )
+        return true
+    }
+
+    // The attribute table iOS cached for this peripheral's bond no longer
+    // matches the device, so CoreBluetooth built the attribute tree from the
+    // wrong table and an array holds an attribute of the wrong class. Reads
+    // and writes against that tree would land on the wrong handles, so the
+    // pending retrieveServices fails instead. Discovering again on the same
+    // connection returns the same tree; iOS reads the table again after
+    // Bluetooth is turned off and on.
+    private func failRetrieveServicesForStaleGattCache(
+        _ peripheral: CBPeripheral,
+        location: String,
+        foreignClassNames: [String]
+    ) {
+        let key = peripheral.uuidAsString()
+        // Called from the discovery delegates, on the delegate queue.
+        // Dropping this peripheral's latches keeps the rest of the failed
+        // discovery from settling a later retrieveServices with a tree read
+        // from the stale table, and marking it abandoned stops it from
+        // sending further requests.
+        clearDiscoveryLatches(for: peripheral)
+        abandonedDiscoveries.insert(key)
+        let message =
+            "Stale GATT cache: \(foreignClassNames.count) attribute(s) of unexpected type [\(foreignClassNames.joined(separator: ", "))] in \(location) of peripheral \(key); iOS reads the device's attribute table again after Bluetooth is turned off and on"
+        NSLog("%@", message)
+        invokeAndClearDictionary(
+            &retrieveServicesCallbacks,
+            withKey: key,
+            usingParameters: [
+                SwiftBleManager.errorPayload(.staleGattCache, message: message)
+            ]
+        )
+    }
+
+    // CoreBluetooth passes each discovery delegate the attribute it resolved
+    // from the reply's handle, and Swift does not check that object's class
+    // at this boundary. With a stale attribute cache it can be an attribute
+    // of the wrong class. A reply without an error goes to that attribute's
+    // own handler first, and CoreBluetooth aborts there before any delegate
+    // runs; a reply that carries an error skips the handler and reaches the
+    // delegate with the object as it is. Reading a property only the expected
+    // class has, such as a characteristic's service on a CBService, then
+    // raises an unrecognized selector. So the class is checked through the
+    // runtime before anything else touches it, and discovery fails as stale.
+    private func failIfForeignAttribute(
+        _ attribute: NSObject,
+        expected: AnyClass,
+        peripheral: CBPeripheral,
+        location: String
+    ) -> Bool {
+        guard !attribute.isKind(of: expected) else { return false }
+        let actual = NSStringFromClass(type(of: attribute))
+        failRetrieveServicesForStaleGattCache(
+            peripheral,
+            location: "\(location) (delegate received \(actual))",
+            foreignClassNames: [actual]
+        )
+        return true
+    }
+
     public func peripheral(
         _ peripheral: CBPeripheral,
         didDiscoverServices error: Error?
     ) {
         if let error = error {
             NSLog("Error: \(error)")
+            invokeAndClearDictionary(
+                &retrieveServicesCallbacks,
+                withKey: peripheral.uuidAsString(),
+                usingParameters: [SwiftBleManager.errorPayload(error)]
+            )
             return
         }
         if SwiftBleManager.verboseLogging {
             NSLog("Services Discover")
         }
 
+        let key = peripheral.uuidAsString()
+        if abandonedDiscoveries.contains(key) {
+            // This peripheral's last discovery failed as stale. A services
+            // reply no pending call is waiting for answers a request that
+            // failure already settled, and another round of requests on the
+            // same tree would only give CoreBluetooth more replies to route
+            // to the wrong attribute.
+            let isAwaited = serialQueue.sync {
+                retrieveServicesCallbacks[key] != nil
+            }
+            guard isAwaited else { return }
+            abandonedDiscoveries.remove(key)
+        }
+
+        let services = peripheral.safeServices
+        if services.hasForeign {
+            failRetrieveServicesForStaleGattCache(
+                peripheral,
+                location: "services",
+                foreignClassNames: services.foreignClassNames
+            )
+            return
+        }
+
         var servicesForPeripheral = Set<CBService>()
-        servicesForPeripheral.formUnion(peripheral.services ?? [])
+        servicesForPeripheral.formUnion(services.attributes)
+        clearDiscoveryLatches(for: peripheral)
         retrieveServicesLatches[peripheral.uuidAsString()] =
             servicesForPeripheral
 
-        if let services = peripheral.services {
-            for service in services {
-                if SwiftBleManager.verboseLogging {
-                    NSLog(
-                        "Service \(service.uuid.uuidString) \(service.description)"
-                    )
-                }
-                peripheral.discoverIncludedServices(nil, for: service)  // discover included services
-                peripheral.discoverCharacteristics(nil, for: service)  // discover characteristics for service
+        for service in services.attributes {
+            if SwiftBleManager.verboseLogging {
+                NSLog(
+                    "Service \(service.uuid.uuidString) \(service.description)"
+                )
             }
+            if discoverIncludedServices {
+                peripheral.discoverIncludedServices(nil, for: service)  // discover included services
+            }
+            peripheral.discoverCharacteristics(nil, for: service)  // discover characteristics for service
         }
     }
 
@@ -1426,8 +1679,17 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didDiscoverIncludedServicesFor service: CBService,
         error: Error?
     ) {
+        if failIfForeignAttribute(
+            service, expected: CBService.self, peripheral: peripheral,
+            location: "included services"
+        ) {
+            return
+        }
         if let error = error {
             NSLog("Error: \(error)")
+            return
+        }
+        if abandonedDiscoveries.contains(peripheral.uuidAsString()) {
             return
         }
         peripheral.discoverCharacteristics(nil, for: service)  // discover characteristics for included service
@@ -1438,23 +1700,81 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didDiscoverCharacteristicsFor service: CBService,
         error: Error?
     ) {
+        if failIfForeignAttribute(
+            service, expected: CBService.self, peripheral: peripheral,
+            location: "characteristics"
+        ) {
+            return
+        }
         if let error = error {
             NSLog("Error: \(error)")
-            return
         }
         if SwiftBleManager.verboseLogging {
             NSLog("Characteristics For Service Discover")
         }
 
-        var characteristicsForService = Set<CBCharacteristic>()
-        characteristicsForService.formUnion(service.characteristics ?? [])
-        characteristicsLatches[service.uuid.uuidString] =
-            characteristicsForService
+        let peripheralUUIDString = peripheral.uuidAsString()
+        // Checked even for an errored reply, which leaves the array as it
+        // was: a foreign element in it still shows the table is stale, and
+        // failing now stops the discovery from sending more requests.
+        let discovered = service.safeCharacteristics
+        if discovered.hasForeign {
+            failRetrieveServicesForStaleGattCache(
+                peripheral,
+                location:
+                    "characteristics of service \(service.uuid.uuidString)",
+                foreignClassNames: discovered.foreignClassNames
+            )
+            return
+        }
+        let characteristics = (error == nil) ? discovered.attributes : []
 
-        if let characteristics = service.characteristics {
+        if characteristics.isEmpty {
+            if var servicesLatch = retrieveServicesLatches[peripheralUUIDString] {
+                servicesLatch.remove(service)
+                retrieveServicesLatches[peripheralUUIDString] = servicesLatch
+
+                if servicesLatch.isEmpty {
+                    if failIfTreeHoldsForeignAttributes(peripheral) {
+                        return
+                    }
+                    if let peripheral = peripherals[peripheralUUIDString] {
+                        invokeAndClearDictionary(
+                            &retrieveServicesCallbacks,
+                            withKey: peripheralUUIDString,
+                            usingParameters: [
+                                NSNull(), peripheral.servicesInfo(),
+                            ]
+                        )
+                    }
+                    retrieveServicesLatches.removeValue(
+                        forKey: peripheralUUIDString
+                    )
+                }
+            }
+            return
+        }
+
+        if abandonedDiscoveries.contains(peripheralUUIDString) {
+            return
+        }
+
+        var characteristicsForService = Set<CBCharacteristic>()
+        characteristicsForService.formUnion(characteristics)
+        // Only track services still pending for this peripheral's
+        // retrieveServices call (e.g. ignore late included-service callbacks).
+        guard retrieveServicesLatches[peripheralUUIDString]?.contains(service) == true else {
             for characteristic in characteristics {
                 peripheral.discoverDescriptors(for: characteristic)
             }
+            return
+        }
+        // Keyed by the CBService instance, not its UUID: peripherals of the
+        // same model share service UUIDs and may be discovered concurrently.
+        characteristicsLatches[service] = characteristicsForService
+
+        for characteristic in characteristics {
+            peripheral.discoverDescriptors(for: characteristic)
         }
     }
 
@@ -1463,13 +1783,25 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         didDiscoverDescriptorsFor characteristic: CBCharacteristic,
         error: Error?
     ) {
-        if let error = error {
-            NSLog("Error: \(error)")
+        if failIfForeignAttribute(
+            characteristic, expected: CBCharacteristic.self,
+            peripheral: peripheral, location: "descriptors"
+        ) {
             return
         }
+        if let error = error {
+            NSLog("Error: \(error)")
+        }
         let peripheralUUIDString: String = peripheral.uuidAsString()
+        // While the discovery is marked abandoned, a reply here belongs to
+        // the discovery that failed as stale. Returning keeps it from
+        // settling a retry or failing one through the missing-service path
+        // below.
+        if abandonedDiscoveries.contains(peripheralUUIDString) {
+            return
+        }
         let serviceUUIDString: String =
-            (characteristic.service?.uuid.uuidString)!
+            characteristic.service?.uuid.uuidString ?? "unknown"
 
         if SwiftBleManager.verboseLogging {
             NSLog(
@@ -1477,20 +1809,45 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             )
         }
 
+        // characteristic.service is weak; if it's gone, recover the owning
+        // service from the latch, otherwise fail retrieveServices instead of
+        // leaving it pending.
+        guard
+            let service = characteristic.service
+                ?? characteristicsLatches.first(where: {
+                    $0.value.contains(characteristic)
+                })?.key
+        else {
+            invokeAndClearDictionary(
+                &retrieveServicesCallbacks,
+                withKey: peripheralUUIDString,
+                usingParameters: [
+                    "Service for characteristic \(characteristic.uuid.uuidString) is no longer available"
+                ]
+            )
+            clearDiscoveryLatches(for: peripheral)
+            return
+        }
+
         if var servicesLatch = retrieveServicesLatches[peripheralUUIDString],
-            var characteristicsLatch = characteristicsLatches[serviceUUIDString]
+            var characteristicsLatch = characteristicsLatches[service]
         {
 
             characteristicsLatch.remove(characteristic)
-            characteristicsLatches[serviceUUIDString] = characteristicsLatch
 
-            if characteristicsLatch.isEmpty {
+            if !characteristicsLatch.isEmpty {
+                characteristicsLatches[service] = characteristicsLatch
+            } else {
                 // All characteristics for this service have been checked
-                servicesLatch.remove(characteristic.service!)
+                characteristicsLatches.removeValue(forKey: service)
+                servicesLatch.remove(service)
                 retrieveServicesLatches[peripheralUUIDString] = servicesLatch
 
                 if servicesLatch.isEmpty {
                     // All characteristics and services have been checked
+                    if failIfTreeHoldsForeignAttributes(peripheral) {
+                        return
+                    }
                     if let peripheral = peripherals[peripheral.uuidAsString()] {
                         invokeAndClearDictionary(
                             &retrieveServicesCallbacks,
@@ -1500,9 +1857,6 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                             ]
                         )
                     }
-                    characteristicsLatches.removeValue(
-                        forKey: serviceUUIDString
-                    )
                     retrieveServicesLatches.removeValue(
                         forKey: peripheralUUIDString
                     )
@@ -1525,7 +1879,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &readRSSICallbacks,
                 withKey: peripheral.uuidAsString(),
-                usingParameters: [error.localizedDescription, RSSI]
+                usingParameters: [SwiftBleManager.errorPayload(error), RSSI]
             )
         } else {
             invokeAndClearDictionary(
@@ -1554,7 +1908,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &readDescriptorCallbacks,
                 withKey: key,
-                usingParameters: [error.localizedDescription, NSNull()]
+                usingParameters: [SwiftBleManager.errorPayload(error), NSNull()]
             )
             return
         }
@@ -1636,7 +1990,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             invokeAndClearDictionary(
                 &readCallbacks,
                 withKey: key,
-                usingParameters: [error.localizedDescription, NSNull()]
+                usingParameters: [SwiftBleManager.errorPayload(error), NSNull()]
             )
             return
         }
@@ -1793,7 +2147,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 invokeAndClearDictionary(
                     &writeDescriptorCallbacks,
                     withKey: key,
-                    usingParameters: [error.localizedDescription]
+                    usingParameters: [SwiftBleManager.errorPayload(error)]
                 )
             } else {
                 invokeAndClearDictionary(
@@ -1824,7 +2178,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 invokeAndClearDictionary(
                     &writeCallbacks,
                     withKey: key,
-                    usingParameters: [error.localizedDescription]
+                    usingParameters: [SwiftBleManager.errorPayload(error)]
                 )
                 serialQueue.sync {
                     writeQueues.removeValue(forKey: key)

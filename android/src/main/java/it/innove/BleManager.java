@@ -251,6 +251,13 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void start(ReadableMap options, Callback callback) {
         Log.d(LOG_TAG, "start");
+        boolean forceReinitialize = options.hasKey("forceReinitialize")
+                && !options.isNull("forceReinitialize")
+                && options.getBoolean("forceReinitialize");
+        if (scanManager != null && !forceReinitialize) {
+            callback.invoke();
+            return;
+        }
         if (getBluetoothAdapter() == null) {
             Log.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
@@ -325,6 +332,7 @@ public class BleManager extends NativeBleManagerSpec {
             return;
         }
         if (!getBluetoothAdapter().isEnabled()) {
+            callback.invoke("Bluetooth is not enabled");
             return;
         }
 
@@ -460,6 +468,15 @@ public class BleManager extends NativeBleManagerSpec {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
         }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID);
+            return;
+        }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             peripheral.registerNotify(UUIDHelper.uuidFromString(serviceUUID),
@@ -473,6 +490,15 @@ public class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "startNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
+            return;
+        }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID);
             return;
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
@@ -494,6 +520,15 @@ public class BleManager extends NativeBleManagerSpec {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
         }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID);
+            return;
+        }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             if (peripheral.isConnected()) {
@@ -512,6 +547,15 @@ public class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "Write to: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
+            return;
+        }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID);
             return;
         }
         Peripheral peripheral = peripherals.get(deviceUUID);
@@ -539,6 +583,15 @@ public class BleManager extends NativeBleManagerSpec {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
         }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID);
+            return;
+        }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             if (peripheral.isConnected()) {
@@ -563,6 +616,15 @@ public class BleManager extends NativeBleManagerSpec {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
         }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID);
+            return;
+        }
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             if (peripheral.isConnected()) {
@@ -580,6 +642,19 @@ public class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "Read descriptor from: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null || descriptorUUID == null) {
             callback.invoke("ServiceUUID, CharacteristicUUID and descriptorUUID required.", null);
+            return;
+        }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID, null);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID, null);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(descriptorUUID)) {
+            callback.invoke("Invalid descriptor UUID format: " + descriptorUUID, null);
             return;
         }
 
@@ -602,6 +677,19 @@ public class BleManager extends NativeBleManagerSpec {
         Log.d(LOG_TAG, "Write descriptor from: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null || descriptorUUID == null) {
             callback.invoke("ServiceUUID, CharacteristicUUID and descriptorUUID required.", null);
+            return;
+        }
+        // Validate UUID formats to prevent crash
+        if (!UUIDHelper.isValidBLEUUID(serviceUUID)) {
+            callback.invoke("Invalid service UUID format: " + serviceUUID, null);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(characteristicUUID)) {
+            callback.invoke("Invalid characteristic UUID format: " + characteristicUUID, null);
+            return;
+        }
+        if (!UUIDHelper.isValidBLEUUID(descriptorUUID)) {
+            callback.invoke("Invalid descriptor UUID format: " + descriptorUUID, null);
             return;
         }
 
