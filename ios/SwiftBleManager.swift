@@ -332,6 +332,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         _ options: NSDictionary,
         callback: RCTResponseSenderBlock
     ) {
+        if manager != nil && !(options["forceReinitialize"] as? Bool ?? false) {
+            callback([])
+            return
+        }
         if SwiftBleManager.verboseLogging {
             NSLog("BleManager initialized")
         }

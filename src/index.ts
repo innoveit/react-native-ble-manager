@@ -477,7 +477,8 @@ class BleManager {
   }
 
   /**
-   * Init the module. Don't call this multiple times.
+   * Init the module. Subsequent calls succeed without changing the configuration,
+   * unless forceReinitialize is true.
    */
   start(options?: StartOptions) {
     return new Promise<void>((fulfill, reject) => {

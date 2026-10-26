@@ -61,6 +61,11 @@ export interface CustomAdvertisingData {
 
 export interface StartOptions {
   /**
+   * Run initialization again even if already started. Defaults to false.
+   * On iOS, restoreIdentifierKey can still cause the existing manager to be reused.
+   */
+  forceReinitialize?: boolean;
+  /**
    * [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
    */
   showAlert?: boolean;

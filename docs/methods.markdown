@@ -26,7 +26,7 @@ These APIs are available on both platforms.
 
 Init the module.
 Returns a `Promise` object.
-Don't call this multiple times.
+Once initialized, subsequent calls resolve successfully without changing the configuration or recreating native resources. To run the initialization path again, pass `forceReinitialize: true`.
 
 **Arguments**
 
@@ -34,6 +34,7 @@ Don't call this multiple times.
 
 The parameter is optional the configuration keys are:
 
+- `forceReinitialize` - `Boolean` - Run initialization again even if already started. Defaults to `false`. This preserves the previous behavior of repeated `start()` calls; it does not clean up existing connections or pending operations. On iOS, providing `restoreIdentifierKey` can still reuse the existing manager. Use it only when your app deliberately relies on reinitialization.
 - `showAlert` - `Boolean` - [iOS only] Show or hide the alert if the bluetooth is turned off during initialization
 - `restoreIdentifierKey` - `String` - [iOS only] Unique key to use for CoreBluetooth state restoration
 - `queueIdentifierKey` - `String` - [iOS only] Unique key to use for a queue identifier on which CoreBluetooth events will be dispatched

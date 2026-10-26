@@ -251,6 +251,13 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void start(ReadableMap options, Callback callback) {
         Log.d(LOG_TAG, "start");
+        boolean forceReinitialize = options.hasKey("forceReinitialize")
+                && !options.isNull("forceReinitialize")
+                && options.getBoolean("forceReinitialize");
+        if (scanManager != null && !forceReinitialize) {
+            callback.invoke();
+            return;
+        }
         if (getBluetoothAdapter() == null) {
             Log.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
