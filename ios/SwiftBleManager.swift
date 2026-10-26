@@ -465,12 +465,10 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         )
 
         let timeoutSeconds = scanningOptions["seconds"] as? Double ?? 0
-        if timeoutSeconds > 0 {
-            if let scanTimer = scanTimer {
-                scanTimer.invalidate()
-                self.scanTimer = nil
-            }
-            DispatchQueue.main.async {
+        DispatchQueue.main.async {
+            self.scanTimer?.invalidate()
+            self.scanTimer = nil
+            if timeoutSeconds > 0 {
                 self.scanTimer = Timer.scheduledTimer(
                     timeInterval: timeoutSeconds,
                     target: self,
