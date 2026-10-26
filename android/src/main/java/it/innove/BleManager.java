@@ -325,6 +325,7 @@ public class BleManager extends NativeBleManagerSpec {
             return;
         }
         if (!getBluetoothAdapter().isEnabled()) {
+            callback.invoke("Bluetooth is not enabled");
             return;
         }
 
