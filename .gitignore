@@ -21,6 +21,7 @@ dist/
 
 ## Build generated
 build/
+.build/
 *.tsbuildinfo
 
 # OSX
