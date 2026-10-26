@@ -16,7 +16,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,6 +29,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
@@ -85,7 +85,7 @@ public class BleManager extends NativeBleManagerSpec {
 
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent intent) {
-            Log.d(LOG_TAG, "onActivityResult");
+            BleLog.d(LOG_TAG, "onActivityResult");
             if (requestCode == ENABLE_REQUEST && enableBluetoothCallback != null) {
                 if (resultCode == RESULT_OK) {
                     enableBluetoothCallback.invoke();
@@ -108,7 +108,7 @@ public class BleManager extends NativeBleManagerSpec {
         @SuppressLint("MissingPermission")
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(LOG_TAG, "onReceive");
+            BleLog.d(LOG_TAG, "onReceive");
             final String action = intent.getAction();
 
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
@@ -138,7 +138,7 @@ public class BleManager extends NativeBleManagerSpec {
 
                 WritableMap map = Arguments.createMap();
                 map.putString("state", stringState);
-                Log.d(LOG_TAG, "state: " + stringState);
+                BleLog.d(LOG_TAG, "state: " + stringState);
                 emitOnDidUpdateState(map);
 
             } else if (action.equals(BluetoothDevice.ACTION_BOND_STATE_CHANGED)) {
@@ -164,7 +164,7 @@ public class BleManager extends NativeBleManagerSpec {
                         bondStateStr = "BOND_NONE";
                         break;
                 }
-                Log.d(LOG_TAG, "bond state: " + bondStateStr);
+                BleLog.d(LOG_TAG, "bond state: " + bondStateStr);
 
                 if (bondRequest != null && bondRequest.uuid.equals(device.getAddress())) {
                     if (bondState == BluetoothDevice.BOND_BONDED) {
@@ -224,7 +224,7 @@ public class BleManager extends NativeBleManagerSpec {
                 : null;
 
         reactContext.addActivityEventListener(mActivityEventListener);
-        Log.d(LOG_TAG, "BleManager created");
+        BleLog.data(LOG_TAG, "BleManager created");
     }
 
     @NonNull
@@ -250,7 +250,6 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void start(ReadableMap options, Callback callback) {
-        Log.d(LOG_TAG, "start");
         boolean forceReinitialize = options.hasKey("forceReinitialize")
                 && !options.isNull("forceReinitialize")
                 && options.getBoolean("forceReinitialize");
@@ -258,8 +257,20 @@ public class BleManager extends NativeBleManagerSpec {
             callback.invoke();
             return;
         }
+
+        int logLevel = BleLog.NORMAL;
+        if (options.hasKey("logLevel") && options.getType("logLevel") == ReadableType.String) {
+            logLevel = BleLog.parseLevel(options.getString("logLevel"));
+        } else if (options.hasKey("verboseLogging")
+                && options.getType("verboseLogging") == ReadableType.Boolean
+                && options.getBoolean("verboseLogging")) {
+            logLevel = BleLog.VERBOSE;
+        }
+        BleLog.setLevel(logLevel);
+
+        BleLog.d(LOG_TAG, "start");
         if (getBluetoothAdapter() == null) {
-            Log.d(LOG_TAG, "No bluetooth support");
+            BleLog.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
             return;
         }
@@ -286,12 +297,12 @@ public class BleManager extends NativeBleManagerSpec {
         }
 
         callback.invoke();
-        Log.d(LOG_TAG, "BleManager initialized");
+        BleLog.d(LOG_TAG, "BleManager initialized");
     }
 
     @ReactMethod
     public void isStarted(Callback callback) {
-        Log.d(LOG_TAG, "isStarted");
+        BleLog.d(LOG_TAG, "isStarted");
         callback.invoke(null, scanManager != null);
     }
 
@@ -299,7 +310,7 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void enableBluetooth(Callback callback) {
         if (getBluetoothAdapter() == null) {
-            Log.d(LOG_TAG, "No bluetooth support");
+            BleLog.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
             return;
         }
@@ -325,9 +336,9 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void scan(ReadableMap scanningOptions,
                      Callback callback) {
-        Log.d(LOG_TAG, "scan");
+        BleLog.d(LOG_TAG, "scan");
         if (getBluetoothAdapter() == null) {
-            Log.d(LOG_TAG, "No bluetooth support");
+            BleLog.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
             return;
         }
@@ -367,9 +378,9 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void stopScan(Callback callback) {
-        Log.d(LOG_TAG, "Stop scan");
+        BleLog.d(LOG_TAG, "Stop scan");
         if (getBluetoothAdapter() == null) {
-            Log.d(LOG_TAG, "No bluetooth support");
+            BleLog.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
             return;
         }
@@ -389,7 +400,7 @@ public class BleManager extends NativeBleManagerSpec {
     @SuppressLint("MissingPermission")
     @ReactMethod
     public void createBond(String peripheralUUID, String peripheralPin, Callback callback) {
-        Log.d(LOG_TAG, "Request bond to: " + peripheralUUID);
+        BleLog.d(LOG_TAG, "Request bond to: " + peripheralUUID);
 
         Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
         for (BluetoothDevice device : deviceSet) {
@@ -407,7 +418,7 @@ public class BleManager extends NativeBleManagerSpec {
             callback.invoke("Only allow one bond request at a time");
             return;
         } else if (peripheral.getDevice().createBond()) {
-            Log.d(LOG_TAG, "Request bond successful for: " + peripheralUUID);
+            BleLog.d(LOG_TAG, "Request bond successful for: " + peripheralUUID);
             bondRequest = new BondRequest(peripheralUUID, peripheralPin, callback); // request bond success, waiting for broadcast
             return;
         }
@@ -417,7 +428,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void removeBond(String peripheralUUID, Callback callback) {
-        Log.d(LOG_TAG, "Remove bond to: " + peripheralUUID);
+        BleLog.d(LOG_TAG, "Remove bond to: " + peripheralUUID);
 
         Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
         if (peripheral == null) {
@@ -430,7 +441,7 @@ public class BleManager extends NativeBleManagerSpec {
                 removeBondRequest = new BondRequest(peripheralUUID, callback);
                 return;
             } catch (Exception e) {
-                Log.d(LOG_TAG, "Error in remove bond: " + peripheralUUID, e);
+                BleLog.e(LOG_TAG, "Error in remove bond: " + peripheralUUID, e);
                 callback.invoke("Remove bond request fail");
             }
         }
@@ -439,7 +450,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void connect(String peripheralUUID, ReadableMap options, Callback callback) {
-        Log.d(LOG_TAG, "Connect to: " + peripheralUUID);
+        BleLog.d(LOG_TAG, "Connect to: " + peripheralUUID);
 
         Peripheral peripheral = retrieveOrCreatePeripheral(peripheralUUID);
         if (peripheral == null) {
@@ -451,7 +462,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void disconnect(String peripheralUUID, boolean force, Callback callback) {
-        Log.d(LOG_TAG, "Disconnect from: " + peripheralUUID);
+        BleLog.d(LOG_TAG, "Disconnect from: " + peripheralUUID);
 
         Peripheral peripheral = peripherals.get(peripheralUUID);
         if (peripheral != null) {
@@ -463,7 +474,7 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void startNotificationWithBuffer(String deviceUUID, String serviceUUID, String characteristicUUID,
                                             double bufferLength, Callback callback) {
-        Log.d(LOG_TAG, "startNotification");
+        BleLog.d(LOG_TAG, "startNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
@@ -487,7 +498,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void startNotification(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
-        Log.d(LOG_TAG, "startNotification");
+        BleLog.d(LOG_TAG, "startNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
@@ -515,7 +526,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void stopNotification(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
-        Log.d(LOG_TAG, "stopNotification");
+        BleLog.d(LOG_TAG, "stopNotification");
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
@@ -544,7 +555,7 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void write(String deviceUUID, String serviceUUID, String characteristicUUID, ReadableArray message,
                       double maxByteSize, Callback callback) {
-        Log.d(LOG_TAG, "Write to: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Write to: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
@@ -565,7 +576,9 @@ public class BleManager extends NativeBleManagerSpec {
                 for (int i = 0; i < message.size(); i++) {
                     decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
                 }
-                Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                if (BleLog.isVerbose()) {
+                    BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                }
                 peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
                         decoded, (int) maxByteSize, null, callback, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
             } else {
@@ -578,7 +591,7 @@ public class BleManager extends NativeBleManagerSpec {
     @ReactMethod
     public void writeWithoutResponse(String deviceUUID, String serviceUUID, String characteristicUUID,
                                      ReadableArray message, double maxByteSize, double queueSleepTime, Callback callback) {
-        Log.d(LOG_TAG, "Write without response to: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Write without response to: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
@@ -599,7 +612,9 @@ public class BleManager extends NativeBleManagerSpec {
                 for (int i = 0; i < message.size(); i++) {
                     decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
                 }
-                Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                if (BleLog.isVerbose()) {
+                    BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+                }
                 peripheral.write(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID),
                         decoded, (int) maxByteSize, (int) queueSleepTime, callback, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
             } else {
@@ -611,7 +626,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void read(String deviceUUID, String serviceUUID, String characteristicUUID, Callback callback) {
-        Log.d(LOG_TAG, "Read from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Read from: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null) {
             callback.invoke("ServiceUUID and characteristicUUID required.");
             return;
@@ -639,7 +654,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void readDescriptor(String deviceUUID, String serviceUUID, String characteristicUUID, String descriptorUUID, Callback callback) {
-        Log.d(LOG_TAG, "Read descriptor from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Read descriptor from: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null || descriptorUUID == null) {
             callback.invoke("ServiceUUID, CharacteristicUUID and descriptorUUID required.", null);
             return;
@@ -674,7 +689,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void writeDescriptor(String deviceUUID, String serviceUUID, String characteristicUUID, String descriptorUUID, ReadableArray message, Callback callback) {
-        Log.d(LOG_TAG, "Write descriptor from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Write descriptor from: " + deviceUUID);
         if (serviceUUID == null || characteristicUUID == null || descriptorUUID == null) {
             callback.invoke("ServiceUUID, CharacteristicUUID and descriptorUUID required.", null);
             return;
@@ -703,14 +718,16 @@ public class BleManager extends NativeBleManagerSpec {
             for (int i = 0; i < message.size(); i++) {
                 decoded[i] = Integer.valueOf(message.getInt(i)).byteValue();
             }
-            Log.d(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+            if (BleLog.isVerbose()) {
+                BleLog.data(LOG_TAG, "Message(" + decoded.length + "): " + bytesToHex(decoded));
+            }
             peripheral.writeDescriptor(UUIDHelper.uuidFromString(serviceUUID), UUIDHelper.uuidFromString(characteristicUUID), UUIDHelper.uuidFromString(descriptorUUID), decoded, callback);
         }
     }
 
     @ReactMethod
     public void retrieveServices(String deviceUUID, ReadableArray services, Callback callback) {
-        Log.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Retrieve services from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             if (peripheral.isConnected()) {
@@ -724,7 +741,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void refreshCache(String deviceUUID, Callback callback) {
-        Log.d(LOG_TAG, "Refreshing cache for: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Refreshing cache for: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             if (peripheral.isConnected()) {
@@ -738,7 +755,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void readRSSI(String deviceUUID, Callback callback) {
-        Log.d(LOG_TAG, "Read RSSI from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Read RSSI from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             if (peripheral.isConnected()) {
@@ -780,7 +797,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void checkState(Callback callback) {
-        Log.d(LOG_TAG, "checkState");
+        BleLog.d(LOG_TAG, "checkState");
 
         BluetoothAdapter adapter = getBluetoothAdapter();
         String state = "off";
@@ -813,7 +830,7 @@ public class BleManager extends NativeBleManagerSpec {
 
         WritableMap map = Arguments.createMap();
         map.putString("state", state);
-        Log.d(LOG_TAG, "state:" + state);
+        BleLog.d(LOG_TAG, "state:" + state);
         emitOnDidUpdateState(map);
         callback.invoke(state);
     }
@@ -871,7 +888,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void getDiscoveredPeripherals(Callback callback) {
-        Log.d(LOG_TAG, "Get discovered peripherals");
+        BleLog.d(LOG_TAG, "Get discovered peripherals");
         WritableArray map = Arguments.createArray();
         synchronized (peripherals) {
             for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
@@ -886,11 +903,11 @@ public class BleManager extends NativeBleManagerSpec {
     @SuppressLint("MissingPermission")
     @ReactMethod
     public void getConnectedPeripherals(ReadableArray serviceUUIDs, Callback callback) {
-        Log.d(LOG_TAG, "Get connected peripherals");
+        BleLog.d(LOG_TAG, "Get connected peripherals");
         WritableArray map = Arguments.createArray();
 
         if (getBluetoothAdapter() == null) {
-            Log.d(LOG_TAG, "No bluetooth support");
+            BleLog.d(LOG_TAG, "No bluetooth support");
             callback.invoke("No bluetooth support");
             return;
         }
@@ -906,7 +923,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @Override
     public void isPeripheralConnected(String deviceUUID, Callback callback) {
-        Log.d(LOG_TAG, "Checking connection state for: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Checking connection state for: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             callback.invoke(null, peripheral.isConnected());
@@ -917,7 +934,7 @@ public class BleManager extends NativeBleManagerSpec {
     @SuppressLint("MissingPermission")
     @ReactMethod
     public void getBondedPeripherals(Callback callback) {
-        Log.d(LOG_TAG, "Get bonded peripherals");
+        BleLog.d(LOG_TAG, "Get bonded peripherals");
         WritableArray map = Arguments.createArray();
         Set<BluetoothDevice> deviceSet = getBluetoothAdapter().getBondedDevices();
         for (BluetoothDevice device : deviceSet) {
@@ -935,7 +952,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void removePeripheral(String deviceUUID, Callback callback) {
-        Log.d(LOG_TAG, "Removing from list: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Removing from list: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             synchronized (peripherals) {
@@ -952,7 +969,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void requestConnectionPriority(String deviceUUID, double connectionPriority, Callback callback) {
-        Log.d(LOG_TAG, "Request connection priority of " + connectionPriority + " from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Request connection priority of " + connectionPriority + " from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             peripheral.requestConnectionPriority((int) connectionPriority, callback);
@@ -963,7 +980,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void requestMTU(String deviceUUID, double mtu, Callback callback) {
-        Log.d(LOG_TAG, "Request MTU of " + mtu + " bytes from: " + deviceUUID);
+        BleLog.d(LOG_TAG, "Request MTU of " + mtu + " bytes from: " + deviceUUID);
         Peripheral peripheral = peripherals.get(deviceUUID);
         if (peripheral != null) {
             peripheral.requestMTU((int) mtu, callback);
@@ -974,7 +991,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void getAssociatedPeripherals(Callback callback) {
-        Log.d(LOG_TAG, "Get associated peripherals");
+        BleLog.d(LOG_TAG, "Get associated peripherals");
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
             callback.invoke("Not supported");
             return;
@@ -990,7 +1007,7 @@ public class BleManager extends NativeBleManagerSpec {
 
     @ReactMethod
     public void removeAssociatedPeripheral(String address, Callback callback) {
-        Log.d(LOG_TAG, "Remove associated peripheral: " + address);
+        BleLog.d(LOG_TAG, "Remove associated peripheral: " + address);
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
             callback.invoke("Not supported");
             return;
@@ -1070,14 +1087,14 @@ public class BleManager extends NativeBleManagerSpec {
         try {
             context.unregisterReceiver(mReceiver);
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Receiver not registered or already unregistered", e);
+            BleLog.e(LOG_TAG, "Receiver not registered or already unregistered", e);
         }
         try {
             // Disconnect all known peripherals, otherwise android system will think we are still connected
             // while we have lost the gatt instance
             disconnectPeripherals();
         } catch (Exception e) {
-            Log.d(LOG_TAG, "Could not disconnect peripherals", e);
+            BleLog.e(LOG_TAG, "Could not disconnect peripherals", e);
         }
 
         if (scanManager != null) {

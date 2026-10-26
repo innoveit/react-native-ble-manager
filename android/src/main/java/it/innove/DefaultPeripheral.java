@@ -8,7 +8,6 @@ import android.bluetooth.le.ScanResult;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.annotation.SuppressLint;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.facebook.react.bridge.Arguments;
@@ -107,7 +106,7 @@ public class DefaultPeripheral extends Peripheral {
 
             map.putMap("advertising", advertising);
         } catch (Exception e) { // this shouldn't happen
-            Log.e(LOG_TAG, "asWritableMap error", e);
+            BleLog.e(LOG_TAG, "asWritableMap error", e);
         }
 
         return map;

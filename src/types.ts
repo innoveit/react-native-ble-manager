@@ -90,6 +90,16 @@ export interface StartOptions {
    * [Android only] Force to use the LegacyScanManager
    */
   forceLegacy?: boolean;
+  /**
+   * Native log level. 'none' disables all native logs, 'normal' logs events
+   * without data payloads, 'verbose' also logs data (bytes/values).
+   * Default: 'normal'.
+   */
+  logLevel?: 'none' | 'normal' | 'verbose';
+  /**
+   * @deprecated Use `logLevel: 'verbose'` instead.
+   */
+  verboseLogging?: boolean;
 }
 
 export interface ConnectOptions {
