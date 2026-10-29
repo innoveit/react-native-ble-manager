@@ -154,9 +154,8 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             for p in peripherals.values {
                 p.instance.delegate = nil
             }
+            peripherals = [:]
         }
-
-        peripherals = [:]
     }
 
     // Helper method to find a peripheral by UUID
@@ -285,7 +284,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         let serviceUUID = CBUUID(string: serviceUUIDString)
         let characteristicUUID = CBUUID(string: characteristicUUIDString)
 
-        guard let peripheral = peripherals[peripheralUUIDString] else {
+        guard let peripheral = findPeripheral(byUUID: peripheralUUIDString) else {
             let error = String(
                 format: "Could not find peripheral with UUID %@",
                 peripheralUUIDString
@@ -546,7 +545,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         callback: @escaping RCTResponseSenderBlock
     ) {
 
-        if let peripheral = peripherals[peripheralUUID] {
+        if let peripheral = findPeripheral(byUUID: peripheralUUID) {
             // Found the peripheral, connect to it
             SwiftBleManager.log("Connecting to peripheral with UUID: \(peripheralUUID)")
 
@@ -596,7 +595,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         force: Bool,
         callback: @escaping RCTResponseSenderBlock
     ) {
-        if let peripheral = peripherals[peripheralUUID] {
+        if let peripheral = findPeripheral(byUUID: peripheralUUID) {
             SwiftBleManager.log("Disconnecting from peripheral with UUID: \(peripheralUUID)")
 
             for service in peripheral.instance.safeServices.attributes {
@@ -629,7 +628,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         SwiftBleManager.log("retrieveServices \(services)")
 
-        if let peripheral = peripherals[peripheralUUID],
+        if let peripheral = findPeripheral(byUUID: peripheralUUID),
             peripheral.instance.state == .connected
         {
             // Validated before the callback is queued: a call rejected here
@@ -671,7 +670,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         SwiftBleManager.log("readRSSI")
 
-        if let peripheral = peripherals[peripheralUUID],
+        if let peripheral = findPeripheral(byUUID: peripheralUUID),
             peripheral.instance.state == .connected
         {
             insertCallback(
@@ -889,7 +888,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         callback: @escaping RCTResponseSenderBlock
     ) {
 
-        if let peripheral = peripherals[peripheralUUID] {
+        if let peripheral = findPeripheral(byUUID: peripheralUUID) {
             callback([NSNull(), peripheral.instance.state == .connected])
         } else {
             callback(["Peripheral not found"])
@@ -1225,7 +1224,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         SwiftBleManager.log("getMaximumWriteValueLengthForWithoutResponse")
 
-        guard let peripheral = peripherals[peripheralUUID] else {
+        guard let peripheral = findPeripheral(byUUID: peripheralUUID) else {
             callback(["Peripheral not found or not connected"])
             return
         }
@@ -1248,7 +1247,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
     ) {
         SwiftBleManager.log("getMaximumWriteValueLengthForWithResponse")
 
-        guard let peripheral = peripherals[peripheralUUID] else {
+        guard let peripheral = findPeripheral(byUUID: peripheralUUID) else {
             callback(["Peripheral not found or not connected"])
             return
         }
@@ -1457,7 +1456,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         self.bleManager?.emit(onDidUpdateState: ["state": stateName])
         if stateName == "off" {
             for peripheralUUID in connectedPeripherals {
-                if let peripheral = peripherals[peripheralUUID] {
+                if let peripheral = findPeripheral(byUUID: peripheralUUID) {
                     if peripheral.instance.state == .disconnected {
                         self.centralManager(
                             manager!,
@@ -1758,7 +1757,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     if failIfTreeHoldsForeignAttributes(peripheral) {
                         return
                     }
-                    if let peripheral = peripherals[peripheralUUIDString] {
+                    if let peripheral = findPeripheral(byUUID: peripheralUUIDString) {
                         invokeAndClearDictionary(
                             &retrieveServicesCallbacks,
                             withKey: peripheralUUIDString,
@@ -1866,7 +1865,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                     if failIfTreeHoldsForeignAttributes(peripheral) {
                         return
                     }
-                    if let peripheral = peripherals[peripheral.uuidAsString()] {
+                    if let peripheral = findPeripheral(byUUID: peripheral.uuidAsString()) {
                         invokeAndClearDictionary(
                             &retrieveServicesCallbacks,
                             withKey: peripheralUUIDString,
