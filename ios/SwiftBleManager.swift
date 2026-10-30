@@ -1380,7 +1380,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             }
         }
 
-        for key in writeCallbacks.keys {
+        for key in serialQueue.sync(execute: { Array(writeCallbacks.keys) }) {
             if let keyString = key as String?,
                 keyString.hasPrefix(peripheralUUIDString)
             {
@@ -2176,7 +2176,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
             forPeripheral: peripheral,
             andCharacteristic: characteristic
         )
-        let peripheralWriteCallbacks = writeCallbacks[key]
+        let peripheralWriteCallbacks = serialQueue.sync { writeCallbacks[key] }
 
         if peripheralWriteCallbacks != nil {
             if let error = error {
