@@ -1,4 +1,4 @@
-// Keep the mirrored Swift API guarded by SwiftHeaderPin.swift to avoid a target cycle.
+// Hand-written mirror of the Swift API (a generated header would need a target cycle); SwiftHeaderPin.swift pins it.
 #pragma once
 #import <CoreBluetooth/CoreBluetooth.h>
 #import <React/RCTBridgeModule.h>
@@ -8,9 +8,9 @@ NS_ASSUME_NONNULL_BEGIN
 __attribute__((objc_runtime_name("_TtC12RNBleManager15SwiftBleManager")))
 @interface SwiftBleManager : NSObject
 - (instancetype)initWithBleManager:(BleManager *)bleManager;
-- (void)start:(NSDictionary *)options callback:(RCTResponseSenderBlock)callback;
-- (void)isStarted:(RCTResponseSenderBlock)callback;
-- (void)scan:(NSDictionary *)scanningOptions callback:(RCTResponseSenderBlock)callback;
+- (void)start:(NSDictionary *)options callback:(NS_NOESCAPE RCTResponseSenderBlock)callback;
+- (void)isStarted:(NS_NOESCAPE RCTResponseSenderBlock)callback;
+- (void)scan:(NSDictionary *)scanningOptions callback:(NS_NOESCAPE RCTResponseSenderBlock)callback;
 - (void)stopScan:(RCTResponseSenderBlock)callback;
 - (void)connect:(NSString *)peripheralUUID options:(NSDictionary *)options callback:(RCTResponseSenderBlock)callback;
 - (void)disconnect:(NSString *)peripheralUUID force:(BOOL)force callback:(RCTResponseSenderBlock)callback;
@@ -45,6 +45,6 @@ __attribute__((objc_runtime_name("_TtC12RNBleManager15SwiftBleManager")))
 - (void)getAssociatedPeripherals:(RCTResponseSenderBlock)callback;
 - (void)removeAssociatedPeripheral:(NSString *)peripheralUUID callback:(RCTResponseSenderBlock)callback;
 - (void)supportsCompanion:(RCTResponseSenderBlock)callback;
-- (void)companionScan:(NSArray *)serviceUUIDs option:(NSDictionary *)option callback:(RCTResponseSenderBlock)callback;
+- (void)companionScan:(NSArray *)serviceUUIDs option:(NSDictionary *)option callback:(NS_NOESCAPE RCTResponseSenderBlock)callback;
 @end
 NS_ASSUME_NONNULL_END

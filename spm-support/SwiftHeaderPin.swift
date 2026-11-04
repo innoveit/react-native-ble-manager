@@ -1,3 +1,4 @@
+// Pins the Swift API mirrored by spm-headers/RNBleManager-Swift.h. If this file fails to compile, update both files together.
 // These imports replace the CocoaPods bridging header without changing shared sources.
 @_exported import CoreBluetooth
 @_exported import React

@@ -52,8 +52,8 @@ let package = Package(
             name: "RNBleManagerObjC",
             dependencies: reactHeaders,
             path: ".",
-            exclude: unusedRootEntries + ["spm-support"] + unusedIosEntries(sourceExtensions: ["h", "mm"]),
-            sources: ["ios/BleManager.mm"],
+            exclude: unusedRootEntries + ["spm-support"] + unusedIosEntries(sourceExtensions: ["h", "m", "mm"]),
+            sources: ["ios"],
             publicHeadersPath: "spm-headers/public",
             cSettings: [
                 .define("RCT_NEW_ARCH_ENABLED", to: "1"),
