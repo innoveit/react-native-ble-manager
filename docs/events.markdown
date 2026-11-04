@@ -70,7 +70,8 @@ The scanning found a new peripheral.
 - `advertising` - `JSON` - the advertising payload, here are some examples:
   - `isConnectable` - `Boolean`
   - `serviceUUIDs` - `String[]`
-  - `manufacturerData` - `JSON` - contains a json with the company id as field and the custom value as raw `bytes` and `data` (Base64 encoded string)
+  - `manufacturerData` - `JSON` - contains a json with the company id as field (4-digit lowercase hex string, e.g. `"004c"` for Apple) and the custom value as raw `bytes` and `data` (Base64 encoded string). On Android, if the same company id is in both the advertising packet and the scan response, the data is merged in that order. On iOS, the data is the manufacturer data as reported by CoreBluetooth
+  - `manufacturerRawData` - `JSON` - contains the raw `bytes` and `data` (Base64 encoded string) of the manufacturer data: the 2-byte company id in little-endian order followed by the data (e.g. company `0xAABB` with data `01 02 03 04` -> `bb aa 01 02 03 04`), same format on Android and iOS. Before this version, Android used a 4-byte big-endian company id (`00 00 aa bb`)
   - `serviceData` - `JSON` - contains the raw `bytes` and `data` (Base64 encoded string)
   - `txPowerLevel` - `Int`
   - `rawData` - [Android only] `JSON` - contains the raw `bytes` and `data` (Base64 encoded string) of all the advertising data
