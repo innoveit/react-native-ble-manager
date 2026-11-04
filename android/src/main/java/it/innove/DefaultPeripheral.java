@@ -14,12 +14,15 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
 @SuppressLint("MissingPermission")
 public class DefaultPeripheral extends Peripheral {
+
+    private static final int MANUFACTURER_SPECIFIC_DATA = 0xFF;
 
     private ScanRecord advertisingData;
     private ScanResult scanResult;
@@ -84,19 +87,22 @@ public class DefaultPeripheral extends Peripheral {
                 advertising.putMap("serviceData", serviceData);
 
                 WritableMap manufacturerData = Arguments.createMap();
-                SparseArray<byte[]> manufacturerRawData = advertisingData.getManufacturerSpecificData();
                 byte[] manufacturerRawBytes = new byte[0];
-                if (manufacturerRawData != null && manufacturerRawData.size() > 0) {
-                    int key = manufacturerRawData.keyAt(0);
-                    byte[] data = manufacturerRawData.valueAt(0);
-                    manufacturerData.putMap(String.format("%04x", key), byteArrayToWritableMap(data));
+                Map<Integer, byte[]> manufacturerPayloads = advertisingDataBytes != null
+                        ? parseManufacturerData(advertisingDataBytes)
+                        : getManufacturerData(advertisingData);
+                for (Map.Entry<Integer, byte[]> entry : manufacturerPayloads.entrySet()) {
+                    int companyId = entry.getKey();
+                    byte[] data = entry.getValue();
+                    manufacturerData.putMap(String.format("%04x", companyId), byteArrayToWritableMap(data));
 
-                    ByteBuffer keyBuffer = ByteBuffer.allocate(Integer.SIZE / Byte.SIZE);
-                    keyBuffer.putInt(key);
-                    byte[] keyBytes = keyBuffer.array();
-                    manufacturerRawBytes = new byte[keyBytes.length + data.length];
-                    System.arraycopy(keyBytes, 0, manufacturerRawBytes, 0, keyBytes.length);
-                    System.arraycopy(data, 0, manufacturerRawBytes, keyBytes.length, data.length);
+                    if (manufacturerRawBytes.length == 0) {
+                        // Same layout as iOS: 2-byte little-endian company ID followed by the data
+                        manufacturerRawBytes = new byte[2 + data.length];
+                        manufacturerRawBytes[0] = (byte) (companyId & 0xFF);
+                        manufacturerRawBytes[1] = (byte) ((companyId >> 8) & 0xFF);
+                        System.arraycopy(data, 0, manufacturerRawBytes, 2, data.length);
+                    }
                 }
                 advertising.putMap("manufacturerData", manufacturerData);
                 advertising.putMap("manufacturerRawData", byteArrayToWritableMap(manufacturerRawBytes));
@@ -110,6 +116,54 @@ public class DefaultPeripheral extends Peripheral {
         }
 
         return map;
+    }
+
+    /**
+     * Parses the manufacturer specific data (AD type 0xFF) from the raw advertising bytes, which
+     * hold the advertising packet followed by the scan response. Data with the same company ID is
+     * concatenated in the order it appears, like iOS does.
+     */
+    private static Map<Integer, byte[]> parseManufacturerData(byte[] scanRecord) {
+        Map<Integer, ByteArrayOutputStream> merged = new LinkedHashMap<>();
+        int index = 0;
+        while (index < scanRecord.length) {
+            int length = scanRecord[index] & 0xFF;
+            // length 0 marks the end of the significant part, and a record must fit in the array
+            if (length == 0 || index + length >= scanRecord.length) {
+                break;
+            }
+            int type = scanRecord[index + 1] & 0xFF;
+            // length covers the type byte, then at least the 2-byte company ID
+            if (type == MANUFACTURER_SPECIFIC_DATA && length >= 3) {
+                int companyId = (scanRecord[index + 2] & 0xFF) | ((scanRecord[index + 3] & 0xFF) << 8);
+                ByteArrayOutputStream data = merged.get(companyId);
+                if (data == null) {
+                    data = new ByteArrayOutputStream();
+                    merged.put(companyId, data);
+                }
+                data.write(scanRecord, index + 4, length - 3);
+            }
+            index += length + 1;
+        }
+
+        Map<Integer, byte[]> result = new LinkedHashMap<>();
+        for (Map.Entry<Integer, ByteArrayOutputStream> entry : merged.entrySet()) {
+            result.put(entry.getKey(), entry.getValue().toByteArray());
+        }
+        return result;
+    }
+
+    private static Map<Integer, byte[]> getManufacturerData(ScanRecord scanRecord) {
+        Map<Integer, byte[]> result = new LinkedHashMap<>();
+        SparseArray<byte[]> data = scanRecord.getManufacturerSpecificData();
+        if (data != null) {
+            for (int i = 0; i < data.size(); i++) {
+                if (data.valueAt(i) != null) {
+                    result.put(data.keyAt(i), data.valueAt(i));
+                }
+            }
+        }
+        return result;
     }
 
     public void updateData(ScanResult result) {
