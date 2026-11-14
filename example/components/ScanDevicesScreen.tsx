@@ -22,8 +22,10 @@ import BleManager, {
   BleScanCallbackType,
   BleScanMatchMode,
   BleScanMode,
+  BleState,
   Peripheral,
   PeripheralInfo,
+  IOSAccessory,
 } from 'react-native-ble-manager';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -48,6 +50,7 @@ const ScanDevicesScreen = () => {
     >();
 
   const [isScanning, setIsScanning] = useState(false);
+  const [accessories, setAccessories] = useState<IOSAccessory[]>([]);
   const [peripherals, setPeripherals] = useState(
     new Map<Peripheral['id'], Peripheral>()
   );
@@ -290,9 +293,12 @@ const ScanDevicesScreen = () => {
     }
   }
 
-  const connectPeripheral = async (peripheral: Peripheral) => {
+  const connectPeripheral = async (peripheral: Pick<Peripheral, 'id'>) => {
     try {
       if (peripheral) {
+        if ((await BleManager.checkState()) !== BleState.On) {
+          throw new Error('Wait for Bluetooth to be on before connecting.');
+        }
         setPeripherals((map) => {
           const p = map.get(peripheral.id);
           if (p) {
@@ -382,6 +388,44 @@ const ScanDevicesScreen = () => {
         `[connectPeripheral][${peripheral.id}] connectPeripheral error`,
         error
       );
+    }
+  };
+
+  const setupAccessory = async () => {
+    try {
+      if (!(await BleManager.supportsAccessorySetup())) {
+        console.warn('Accessory setup requires iOS 18 or newer.');
+        return;
+      }
+      await BleManager.accessoriesScan([
+        {
+          name: 'Heart rate sensor',
+          productImage: 'heart.fill',
+          serviceUUID: '180D',
+        },
+      ]);
+      setAccessories(await BleManager.getPairedAccessories());
+    } catch (error) {
+      console.error('[setupAccessory]', error);
+    }
+  };
+
+  const retrieveAccessories = async () => {
+    try {
+      setAccessories(await BleManager.getPairedAccessories());
+    } catch (error) {
+      console.error('[retrieveAccessories]', error);
+    }
+  };
+
+  const forgetAccessory = async (id: string) => {
+    try {
+      await BleManager.removeAccessory(id);
+      setAccessories((current) =>
+        current.filter((accessory) => accessory.id !== id)
+      );
+    } catch (error) {
+      console.error('[forgetAccessory]', error);
     }
   };
 
@@ -551,6 +595,54 @@ const ScanDevicesScreen = () => {
                 <Text style={styles.scanButtonText}>Enable Bluetooth</Text>
               </Pressable>
             </View>
+          </>
+        )}
+
+        {Platform.OS === 'ios' && (
+          <>
+            <View style={styles.buttonGroup}>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.scanButton}
+                onPress={setupAccessory}
+              >
+                <Text style={styles.scanButtonText}>Set up accessory</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.scanButton}
+                onPress={retrieveAccessories}
+              >
+                <Text style={styles.scanButtonText}>List accessories</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                style={styles.scanButton}
+                onPress={() => BleManager.stopAccessoriesScan()}
+              >
+                <Text style={styles.scanButtonText}>Stop accessory setup</Text>
+              </Pressable>
+            </View>
+            {accessories.map((accessory) => (
+              <View key={accessory.id} style={styles.buttonGroup}>
+                <Text>{accessory.name}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={accessory.state !== 20}
+                  style={styles.scanButton}
+                  onPress={() => connectPeripheral(accessory)}
+                >
+                  <Text style={styles.scanButtonText}>Connect accessory</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  style={styles.scanButton}
+                  onPress={() => forgetAccessory(accessory.id)}
+                >
+                  <Text style={styles.scanButtonText}>Forget accessory</Text>
+                </Pressable>
+              </View>
+            ))}
           </>
         )}
 

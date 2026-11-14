@@ -242,6 +242,31 @@ RCT_EXPORT_MODULE()
     [_swBleManager supportsCompanion:callback];
 }
 
+- (void)supportsAccessorySetup:(RCTResponseSenderBlock)callback {
+    [_swBleManager supportsAccessorySetup:callback];
+}
+
+- (void)accessoriesScan:(NSArray *)displayItems
+                resolve:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject {
+    [_swBleManager accessoriesScan:displayItems resolve:resolve reject:reject];
+}
+
+- (void)getPairedAccessories:(RCTPromiseResolveBlock)resolve
+                     reject:(RCTPromiseRejectBlock)reject {
+    [_swBleManager getPairedAccessories:resolve reject:reject];
+}
+
+- (void)removeAccessory:(NSString *)identifier
+                resolve:(RCTPromiseResolveBlock)resolve
+                 reject:(RCTPromiseRejectBlock)reject {
+    [_swBleManager removeAccessory:identifier resolve:resolve reject:reject];
+}
+
+- (void)stopAccessoriesScan {
+    [_swBleManager stopAccessoriesScan];
+}
+
 - (void)write:(NSString *)peripheralUUID
            serviceUUID:(NSString *)serviceUUID
     characteristicUUID:(NSString *)characteristicUUID
