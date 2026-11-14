@@ -34,6 +34,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -890,12 +891,15 @@ public class BleManager extends NativeBleManagerSpec {
     public void getDiscoveredPeripherals(Callback callback) {
         BleLog.d(LOG_TAG, "Get discovered peripherals");
         WritableArray map = Arguments.createArray();
+        // Serialize a copy outside the lock: asWritableMap() calls BluetoothDevice.getName(), a binder
+        // call that can block under heavy scanning, while scan results reach savePeripheral() on the
+        // UI thread, which needs this lock.
+        List<Peripheral> snapshot;
         synchronized (peripherals) {
-            for (Map.Entry<String, Peripheral> entry : peripherals.entrySet()) {
-                Peripheral peripheral = entry.getValue();
-                WritableMap jsonBundle = peripheral.asWritableMap();
-                map.pushMap(jsonBundle);
-            }
+            snapshot = new ArrayList<>(peripherals.values());
+        }
+        for (Peripheral peripheral : snapshot) {
+            map.pushMap(peripheral.asWritableMap());
         }
         callback.invoke(null, map);
     }
