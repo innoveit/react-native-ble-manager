@@ -39,6 +39,17 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
     private let serialQueue = DispatchQueue(label: "BleManager.serialQueue")
 
+    // The CBCentralManager's queue, where the delegate methods run
+    private var delegateQueue = DispatchQueue.main
+
+    // Writes without response waiting for room in CoreBluetooth's send
+    // queue, per peripheral UUID. Touched only on the delegate queue.
+    private var pendingWritesWithoutResponse:
+        [String: [(
+            data: Data, characteristic: CBCharacteristic,
+            callback: RCTResponseSenderBlock?
+        )]] = [:]
+
     // Structured error payload so JS can detect specific failures by (domain, code).
     private static func errorPayload(_ error: Error) -> [String: Any] {
         return [
@@ -405,6 +416,7 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         } else {
             queue = DispatchQueue.main
         }
+        delegateQueue = queue
 
         if let restoreIdentifierKey = options["restoreIdentifierKey"] as? String
         {
@@ -1033,8 +1045,9 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
 
         if dataMessage.count > maxByteSize {
             var offset = 0
-            let peripheral = context.peripheral
-            guard let characteristic = context.characteristic else { return }
+            guard let peripheral = context.peripheral?.instance,
+                let characteristic = context.characteristic
+            else { return }
 
             repeat {
                 let thisChunkSize = min(maxByteSize, dataMessage.count - offset)
@@ -1043,28 +1056,75 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
                 )
 
                 offset += thisChunkSize
-                peripheral?.instance.writeValue(
+                // The last chunk resolves the promise
+                queueWriteWithoutResponse(
                     chunk,
                     for: characteristic,
-                    type: .withoutResponse
+                    peripheral: peripheral,
+                    callback: offset < dataMessage.count ? nil : callback
                 )
 
                 let sleepTimeSeconds = TimeInterval(queueSleepTime) / 1000
                 Thread.sleep(forTimeInterval: sleepTimeSeconds)
             } while offset < dataMessage.count
-
-            callback([])
         } else {
-            let peripheral = context.peripheral
-            guard let characteristic = context.characteristic else { return }
+            guard let peripheral = context.peripheral?.instance,
+                let characteristic = context.characteristic
+            else { return }
 
-            peripheral?.instance.writeValue(
+            queueWriteWithoutResponse(
                 dataMessage,
                 for: characteristic,
+                peripheral: peripheral,
+                callback: callback
+            )
+        }
+    }
+
+    // CoreBluetooth drops a write without response, without an error, when
+    // its send queue is full (canSendWriteWithoutResponse is false). So the
+    // writes wait in a queue and are sent only when there is room;
+    // peripheralIsReady(toSendWriteWithoutResponse:) resumes. The callback
+    // runs once the write is handed to CoreBluetooth.
+    private func queueWriteWithoutResponse(
+        _ data: Data,
+        for characteristic: CBCharacteristic,
+        peripheral: CBPeripheral,
+        callback: RCTResponseSenderBlock?
+    ) {
+        delegateQueue.async {
+            let key = peripheral.uuidAsString()
+            if peripheral.state != .connected {
+                callback?(["Peripheral is not connected: \(key)"])
+                return
+            }
+            self.pendingWritesWithoutResponse[key, default: []].append(
+                (data, characteristic, callback)
+            )
+            self.sendPendingWritesWithoutResponse(peripheral)
+        }
+    }
+
+    // Runs on the delegate queue
+    private func sendPendingWritesWithoutResponse(_ peripheral: CBPeripheral) {
+        let key = peripheral.uuidAsString()
+        while peripheral.canSendWriteWithoutResponse,
+            let write = pendingWritesWithoutResponse[key]?.first
+        {
+            pendingWritesWithoutResponse[key]?.removeFirst()
+            peripheral.writeValue(
+                write.data,
+                for: write.characteristic,
                 type: .withoutResponse
             )
-            callback([])
+            write.callback?([])
         }
+    }
+
+    public func peripheralIsReady(
+        toSendWriteWithoutResponse peripheral: CBPeripheral
+    ) {
+        sendPendingWritesWithoutResponse(peripheral)
     }
 
     @objc public func read(
@@ -1349,6 +1409,14 @@ public class SwiftBleManager: NSObject, CBCentralManagerDelegate,
         }
 
         let errorStr = "Peripheral did disconnect: \(peripheralUUIDString)"
+
+        let pendingWrites =
+            pendingWritesWithoutResponse.removeValue(
+                forKey: peripheralUUIDString
+            ) ?? []
+        for write in pendingWrites {
+            write.callback?([errorStr])
+        }
 
         invokeAndClearDictionary(
             &connectCallbacks,
