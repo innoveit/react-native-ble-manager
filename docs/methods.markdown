@@ -27,6 +27,7 @@ These APIs are available on both platforms.
 Init the module.
 Returns a `Promise` object.
 Once initialized, subsequent calls resolve successfully without changing the configuration or recreating native resources. To run the initialization path again, pass `forceReinitialize: true`.
+If initialization fails, the `Promise` is rejected and the module stays not started, so the next call initializes again.
 
 **Arguments**
 
