@@ -24,8 +24,13 @@ import {
   BleManagerDidUpdateNotificationStateForEvent,
   BleManagerCompanionPeripheral,
 } from './types';
-import { CallbackError } from './NativeBleManager';
+import {
+  CallbackError,
+  IOSAccessory,
+  IOSAccessoryDisplayItem,
+} from './NativeBleManager';
 export * from './types';
+export type { IOSAccessory, IOSAccessoryDisplayItem } from './NativeBleManager';
 
 // @ts-expect-error This applies the turbo module version only when turbo is enabled for backwards compatibility.
 const isTurboModuleEnabled = global?.__turboModuleProxy != null;
@@ -1024,6 +1029,39 @@ class BleManager {
    */
   onCompanionPeripheral(callback: EventCallback<BleManagerCompanionPeripheral>): EventSubscription {
     return BleManagerModule.onCompanionPeripheral(callback);
+  }
+
+  /** Whether iOS 18+ AccessorySetupKit is available. Always false on Android. */
+  supportsAccessorySetup(): Promise<boolean> {
+    return new Promise((resolve) =>
+      BleManagerModule.supportsAccessorySetup(resolve)
+    );
+  }
+
+  /**
+   * [iOS only, 18+] Show the system picker. Returns newly configured Bluetooth
+   * accessories, or an empty array when dismissed without a selection.
+   * Services must be declared in Info.plist; productImage is an asset or SF Symbol name.
+   */
+  accessoriesScan(
+    displayItems: IOSAccessoryDisplayItem[]
+  ): Promise<IOSAccessory[]> {
+    return BleManagerModule.accessoriesScan(displayItems);
+  }
+
+  /** [iOS only, 18+] List Bluetooth accessories previously configured through AccessorySetupKit. */
+  getPairedAccessories(): Promise<IOSAccessory[]> {
+    return BleManagerModule.getPairedAccessories();
+  }
+
+  /** [iOS only, 18+] Remove an accessory's authorization. This is not disconnect(). */
+  removeAccessory(id: string): Promise<void> {
+    return BleManagerModule.removeAccessory(id);
+  }
+
+  /** [iOS only, 18+] Stop the picker and reject its pending promise with CANCELLED. */
+  stopAccessoriesScan(): void {
+    BleManagerModule.stopAccessoriesScan();
   }
 }
 

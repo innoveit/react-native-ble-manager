@@ -18,6 +18,9 @@ parent: Usage
 # Methods
 {: .no_toc }
 
+iOS 18+ accessory picker, listing and removal are documented in
+[iOS accessory setup](../accessory-setup/). Android Companion APIs retain their existing names.
+
 ## Common (iOS & Android)
 
 These APIs are available on both platforms.
