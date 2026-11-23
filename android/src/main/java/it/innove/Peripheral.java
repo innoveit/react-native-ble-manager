@@ -563,26 +563,24 @@ public class Peripheral extends BluetoothGattCallback {
         super.onCharacteristicWrite(gatt, characteristic, status);
 
         mainHandler.post(() -> {
-            if (!writeQueue.isEmpty()) {
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
+                    BleLog.d(BleManager.LOG_TAG, "Write needs bonding");
+                }
+                writeQueue.clear();
+                for (Callback writeCallback : writeCallbacks) {
+                    writeCallback.invoke("Error writing " + characteristic.getUuid() + " status=" + status, null);
+                }
+                writeCallbacks.clear();
+                completedCommand();
+            } else if (!writeQueue.isEmpty()) {
                 byte[] data = writeQueue.poll();
                 doWrite(characteristic, data);
             } else {
-                if (status != BluetoothGatt.GATT_SUCCESS) {
-                    if (status == GATT_AUTH_FAIL || status == GATT_INSUFFICIENT_AUTHENTICATION) {
-                        BleLog.d(BleManager.LOG_TAG, "Write needs bonding");
-                        // *not* doing completedCommand()
-                        return;
-                    }
-                    for (Callback writeCallback : writeCallbacks) {
-                        writeCallback.invoke("Error writing " + characteristic.getUuid() + " status=" + status, null);
-                    }
-                    writeCallbacks.clear();
-                } else if (!writeCallbacks.isEmpty()) {
-                    for (Callback writeCallback : writeCallbacks) {
-                        writeCallback.invoke();
-                    }
-                    writeCallbacks.clear();
+                for (Callback writeCallback : writeCallbacks) {
+                    writeCallback.invoke();
                 }
+                writeCallbacks.clear();
                 completedCommand();
             }
         });
